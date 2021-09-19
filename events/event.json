@@ -34,6 +34,14 @@
     "X-Forwarded-Proto": "https"
   },
   "requestContext": {
+    "authorizer" : {
+        "jwt": {
+            "claims":{
+                "claims": {
+                    "email":"test@example.com"
+            }
+        }
+    },
     "accountId": "123456789012",
     "resourceId": "123456",
     "stage": "prod",
