@@ -27,7 +27,7 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
-
+  
   MyHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
@@ -38,54 +38,44 @@ Resources:
           - http://localhost:8080
   
   UpdateProfileFunction:
-    type: aws::serverless::function 
-    properties:
-      codeuri: update_profile/
-      handler: app.lambda_handler
-      runtime: python3.7
-      events:
-        helloworld:
-          type: httpapi 
-          properties:
-            path: /update_profile
-            method: post
-            apiid: !ref myhttpapi
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update_profile/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Events:
+        UpdateProfile:
+          Type: HttpApi 
+          Properties:
+            Path: /update_profile
+            Method: POST
+            ApiId: !Ref MyHttpApi
   
   ReadProfileFunction:
-    type: aws::serverless::function 
-    properties:
-      codeuri: read_profile/
-      handler: app.lambda_handler
-      runtime: python3.7
-      events:
-        helloworld:
-          type: httpapi 
-          properties:
-            path: /read_profile
-            method: get
-            apiid: !ref myhttpapi
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: read_profile/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Events:
+        ReadProfile:
+          Type: HttpApi 
+          Properties:
+            Path: /read_profile
+            Method: GET
+            ApiId: !Ref MyHttpApi 
 
-  helloworldfunction:
-    type: aws::serverless::function 
-    properties:
-      codeuri: hello_world/
-      handler: app.lambda_handler
-      runtime: python3.7
-      events:
-        helloworld:
-          type: httpapi 
-          properties:
-            path: /hello
-            method: get
-            apiid: !ref myhttpapi
+  Helloworldfunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: hello_world/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Events:
+        Helloworld:
+          Type: HttpApi 
+          Properties:
+            Path: /hello
+            Method: GET
+            ApiId: !Ref MyHttpApi
 
-outputs:
-  helloworldapi:
-    description: "api gateway endpoint url for prod stage for hello world function"
-    value: !sub "https://${serverlessrestapi}.execute-api.${aws::region}.amazonaws.com/prod/hello/"
-  helloworldfunction:
-    description: "hello world lambda function arn"
-    value: !getatt helloworldfunction.arn
-  helloworldfunctioniamrole:
-    description: "implicit iam role created for hello world function"
-    value: !getatt helloworldfunctionrole.arn
