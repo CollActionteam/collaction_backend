@@ -11,6 +11,15 @@ Globals:
     Timeout: 3
 
 Resources:
+
+  MyHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+        AllowOrigins:
+          - http://localhost:8080
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -19,10 +28,11 @@ Resources:
       Runtime: python3.7
       Events:
         HelloWorld:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: HttpApi # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /hello
             Method: get
+            ApiId: !Ref MyHttpApi
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
