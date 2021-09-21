@@ -25,7 +25,7 @@ Resources:
   EmailContactFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: email-contact/
+      CodeUri: email_contact/
       Handler: app.lambda_handler
       Runtime: python3.7
       Events:
