@@ -21,6 +21,7 @@ Build and run the entire application using the following commands:
 sam build
 sam local start-api
 ```
+In order to connect from another device append `--host 0.0.0.0` to the second command.
 
 You can also run a single function using an event file.
 ```bash
