@@ -7,6 +7,9 @@ Description: >
 Globals:
   Function:
     Timeout: 10
+    Environment:
+      Variables:
+        LOCAL_RESOURCES_ONLY: !Ref LocalResourcesOnly
 
 Parameters:
   Stage:
@@ -15,6 +18,12 @@ Parameters:
     AllowedValues:
       - dev
       - prod
+  LocalResourcesOnly:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
 
 Resources:
 
