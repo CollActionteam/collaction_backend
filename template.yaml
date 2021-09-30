@@ -1,25 +1,42 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  sam-test-app
-
-  Sample SAM Template for sam-test-app
+  CollAction backend
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 10
+    Environment:
+      Variables:
+        LOCAL_RESOURCES_ONLY: !Ref LocalResourcesOnly
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+  LocalResourcesOnly:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
 
 Resources:
 
-  MyHttpApi:
+  HttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
+      StageName: !Ref Stage
       CorsConfiguration:
         AllowMethods:
           - GET
         AllowOrigins:
           - http://localhost:8080
+
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -32,7 +49,34 @@ Resources:
           Properties:
             Path: /hello
             Method: get
-            ApiId: !Ref MyHttpApi
+            ApiId: !Ref HttpApi
+
+  EmailContactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: email_contact/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Events:
+        Contact:
+          Type: HttpApi
+          Properties:
+            Path: /contact
+            Method: post
+            ApiId: !Ref HttpApi
+            Policies:
+              - Statement:
+                - Sid: SSMGetParameterPolicy
+                  Effect: Allow
+                  Action:
+                  - ssm:GetParameter
+                  Resource: '*'
+              - Statement:
+                - Sid: AuthorizeFromAddress
+                  Effect: Allow
+                  Action:
+                  - ses:SendEmail
+                  Resource: '*'
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
