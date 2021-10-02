@@ -24,12 +24,24 @@ Parameters:
     AllowedValues:
       - 'true'
       - 'false'
+  FirebaseProjectId:
+    Type: String
+    
 
 Resources:
 
   HttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
+      Auth:
+        Authorizers:
+          FirebaseAuthorizer:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              #audience:
+              #  - !Ref FirebaseProjectId
+              issuer: !Sub https://securetoken.google.com/${FirebaseProjectId}
+        DefaultAuthorizer: FirebaseAuthorizer
       StageName: !Ref Stage
       CorsConfiguration:
         AllowMethods:
@@ -51,32 +63,46 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
 
-  EmailContactFunction:
+  WhoamiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: email_contact/
+      CodeUri: whoami/
       Handler: app.lambda_handler
       Runtime: python3.7
       Events:
-        Contact:
+        Whoami:
           Type: HttpApi
           Properties:
-            Path: /contact
-            Method: post
+            Path: /whoami
+            Method: get
             ApiId: !Ref HttpApi
-            Policies:
-              - Statement:
-                - Sid: SSMGetParameterPolicy
-                  Effect: Allow
-                  Action:
-                  - ssm:GetParameter
-                  Resource: '*'
-              - Statement:
-                - Sid: AuthorizeFromAddress
-                  Effect: Allow
-                  Action:
-                  - ses:SendEmail
-                  Resource: '*'
+
+#  EmailContactFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: email_contact/
+#      Handler: app.lambda_handler
+#      Runtime: python3.7
+#      Events:
+#        Contact:
+#          Type: HttpApi
+#          Properties:
+#            Path: /contact
+#            Method: post
+#            ApiId: !Ref HttpApi
+#            Policies:
+#              - Statement:
+#                - Sid: SSMGetParameterPolicy
+#                  Effect: Allow
+#                  Action:
+#                  - ssm:GetParameter
+#                  Resource: '*'
+#              - Statement:
+#                - Sid: AuthorizeFromAddress
+#                  Effect: Allow
+#                  Action:
+#                  - ses:SendEmail
+#                  Resource: '*'
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
