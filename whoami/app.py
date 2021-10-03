@@ -6,8 +6,8 @@ def lambda_handler(event, context):
     if 'authorizer' in event['requestContext']:
         claims = event['requestContext']['authorizer']['jwt']['claims']
     return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": f'claims from token are {str(claims)}',
+        'statusCode': 200,
+        'body': json.dumps({
+            'message': f'claims from token are {str(claims)}',
         }),
     }
