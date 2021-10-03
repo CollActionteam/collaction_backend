@@ -38,8 +38,8 @@ Resources:
           FirebaseAuthorizer:
             IdentitySource: $request.header.Authorization
             JwtConfiguration:
-              #audience:
-              #  - !Ref FirebaseProjectId
+              audience:
+                - !Ref FirebaseProjectId
               issuer: !Sub https://securetoken.google.com/${FirebaseProjectId}
         DefaultAuthorizer: FirebaseAuthorizer
       StageName: !Ref Stage
@@ -62,6 +62,8 @@ Resources:
             Path: /hello
             Method: get
             ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
 
   WhoamiFunction:
     Type: AWS::Serverless::Function
@@ -90,30 +92,26 @@ Resources:
             Path: /contact
             Method: post
             ApiId: !Ref HttpApi
-            Policies:
-              - Statement:
-                - Sid: SSMGetParameterPolicy
-                  Effect: Allow
-                  Action:
-                  - ssm:GetParameter
-                  Resource: '*'
-              - Statement:
-                - Sid: AuthorizeFromAddress
-                  Effect: Allow
-                  Action:
-                  - ses:SendEmail
-                  Resource: '*'
+            Auth:
+              Authorizer: "NONE"
+      Policies:
+        - Statement:
+          - Sid: SSMGetParameterPolicy
+            Effect: Allow
+            Action:
+            - ssm:GetParameter
+            Resource: '*'
+        - Statement:
+          - Sid: AuthorizeFromAddress
+            Effect: Allow
+            Action:
+            - ses:SendEmail
+            Resource: '*'
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  HttpApiHelloWorld:
+    Description: "API Gateway endpoint URL for deployed stage for Hello World function"
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/hello"
