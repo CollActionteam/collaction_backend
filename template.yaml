@@ -26,7 +26,6 @@ Parameters:
       - 'false'
   FirebaseProjectId:
     Type: String
-    
 
 Resources:
 
