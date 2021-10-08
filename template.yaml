@@ -68,8 +68,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: whoami/
-      Handler: app.lambda_handler
-      Runtime: python3.7
+      Handler: whoami
+      Runtime: go1.x
       Events:
         Whoami:
           Type: HttpApi
