@@ -12,7 +12,7 @@ import (
 
 var (
 	// DefaultHTTPGetAddress Default Address
-	DefaultHTTPGetAddress = "https://checkip.amazonaws.com"
+	EndpointGetMyIP = "https://checkip.amazonaws.com"
 
 	// ErrNoIP No IP found in response
 	ErrNoIP = errors.New("No IP in HTTP response")
@@ -22,7 +22,7 @@ var (
 )
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	resp, err := http.Get(DefaultHTTPGetAddress)
+	resp, err := http.Get(EndpointGetMyIP)
 	if err != nil {
 		return events.APIGatewayProxyResponse{}, err
 	}
@@ -41,7 +41,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}
 
 	return events.APIGatewayProxyResponse{
-		Body:       fmt.Sprintf("Hello World/Hallo Welt/Hola Mundo , %v", string(ip)),
+		Body:       fmt.Sprintf("Hello World, %v", string(ip)),
 		StatusCode: 200,
 	}, nil
 }
