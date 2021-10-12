@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -11,12 +10,14 @@ import (
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	msg := "No jwt claims!"
 	statusCode := 400
-	if claims, hasClaims := request.RequestContext.Authorizer["jwt"]; hasClaims {
-		jsonClaims, _ := json.Marshal(claims)
-		msg = fmt.Sprintf("Extracted claims: %s", string(jsonClaims))
+	var claims interface{} = nil
+	if authJWT, hasAuthJWT := request.RequestContext.Authorizer["jwt"]; hasAuthJWT {
+		authJWTAsMap, _ := authJWT.(map[string]interface{})
+		claims = authJWTAsMap["claims"]
+		msg = "Extracted claims!"
 		statusCode = 200
 	}
-	body, _ := json.Marshal(map[string]interface{}{"message": msg})
+	body, _ := json.Marshal(map[string]interface{}{"message": msg, "claims": claims})
 	return events.APIGatewayProxyResponse{
 		Body:       string(body),
 		StatusCode: statusCode,
