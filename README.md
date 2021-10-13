@@ -3,7 +3,7 @@ Built using [AWS SAM](https://github.com/aws/serverless-application-model).
 
 ## Dependencies
 * SAM CLI - [Install the SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
-* [Python 3 installed](https://www.python.org/downloads/)
+* [Go installed](https://golang.org/doc/install)
 * Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community)
 
 ## Project structure
@@ -30,7 +30,9 @@ sam local invoke HelloWorldFunction --event events/event.json
 ```
 
 ## Unit tests
-Tests are defined in the `tests` folder in this project. Use PIP to install [pytest](https://pypi.org/project/pytest/) and [pytest-mock](https://pypi.org/project/pytest-mock/) before running the tests.
+Run the tests from the root directory of the project thus:
 ```bash
-python -m pytest tests/
+go test ./...
+or
+go test ./... -v
 ```

@@ -51,9 +51,12 @@ Resources:
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: hello_world/
-      Handler: app.lambda_handler
-      Runtime: python3.7
+      CodeUri: hello-world/
+      Handler: hello-world
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
       Events:
         HelloWorld:
           Type: HttpApi # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -78,34 +81,32 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
 
-  EmailContactFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: email_contact/
-      Handler: app.lambda_handler
-      Runtime: python3.7
-      Events:
-        Contact:
-          Type: HttpApi
-          Properties:
-            Path: /contact
-            Method: post
-            ApiId: !Ref HttpApi
-            Auth:
-              Authorizer: "NONE"
-      Policies:
-        - Statement:
-          - Sid: SSMGetParameterPolicy
-            Effect: Allow
-            Action:
-            - ssm:GetParameter
-            Resource: '*'
-        - Statement:
-          - Sid: AuthorizeFromAddress
-            Effect: Allow
-            Action:
-            - ses:SendEmail
-            Resource: '*'
+  # EmailContactFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     CodeUri: email_contact/
+  #     Handler: app.lambda_handler
+  #     Runtime: python3.7
+  #     Events:
+  #       Contact:
+  #         Type: HttpApi
+  #         Properties:
+  #           Path: /contact
+  #           Method: post
+  #           ApiId: !Ref HttpApi
+  #           Policies:
+  #             - Statement:
+  #               - Sid: SSMGetParameterPolicy
+  #                 Effect: Allow
+  #                 Action:
+  #                 - ssm:GetParameter
+  #                 Resource: '*'
+  #             - Statement:
+  #               - Sid: AuthorizeFromAddress
+  #                 Effect: Allow
+  #                 Action:
+  #                 - ses:SendEmail
+  #                 Resource: '*'
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
