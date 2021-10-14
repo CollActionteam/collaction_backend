@@ -32,6 +32,8 @@ sam local invoke HelloWorldFunction --event events/event.json
 Run the tests from the root directory of the project thus:
 ```bash
 go test ./...
+```
 or
+```
 go test ./... -v
 ```
