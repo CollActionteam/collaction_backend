@@ -1,0 +1,14 @@
+{
+  "requestContext": {
+    "authorizer": {
+      "jwt": {
+        "claims": {
+          "name": "Timothy",
+          "user_id": "S0m3Rand0mStr1nG",
+          "sub": "S0m3Rand0mStr1nG",
+          "phone_number": "+31612345678"
+        }
+      }
+    }
+  }
+}

@@ -7,6 +7,7 @@ Built using [AWS SAM](https://github.com/aws/serverless-application-model).
 * Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community)
 
 ## Project structure
+- `auth/` - Package for extracting user information from requests
 - `email-contact/` - Contact form Lambda function
 - `hello_world/` - Example Lambda function.
 - `events/` - Invocation events that you can use to invoke the function.

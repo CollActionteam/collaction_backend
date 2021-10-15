@@ -11,11 +11,13 @@ import (
 )
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	msg := "No user info was extracted!"
+	msg := "no user info was extracted"
 	statusCode := 400
-	u := auth.ExtractUserInfo(request)
-	if u != nil {
-		msg = fmt.Sprintf("You name is %s, your user id is %s and your phone number is %s", u.Name, u.UserID, u.PhoneNumber)
+	usrInf, err := auth.ExtractUserInfo(request)
+	if err != nil {
+		msg = err.Error()
+	} else if usrInf != nil {
+		msg = fmt.Sprintf("your name is %s, your user id is %s and your phone number is %s", usrInf.Name(), usrInf.UserID(), usrInf.PhoneNumber())
 		statusCode = 200
 	}
 	body, _ := json.Marshal(map[string]interface{}{"message": msg})
