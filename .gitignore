@@ -1,5 +1,6 @@
 # AWS
 .aws-sam
+samconfig.toml
 
 # from https://github.com/github/gitignore/blob/master/Go.gitignore
 

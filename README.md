@@ -7,10 +7,11 @@ Built using [AWS SAM](https://github.com/aws/serverless-application-model).
 * Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community)
 
 ## Project structure
+- `auth/` - Package for extracting user information from requests
 - `email-contact/` - Contact form Lambda function
 - `hello_world/` - Example Lambda function.
 - `events/` - Invocation events that you can use to invoke the function.
-- `tests/` - Unit tests for the application code. 
+- `whoami/` - Example Lambda for authenticating Firebase users. 
 - `template.yaml` - A template that defines the application's AWS resources.
 
 For additional information, refer to `README.md` files in these directories.
@@ -32,6 +33,8 @@ sam local invoke HelloWorldFunction --event events/event.json
 Run the tests from the root directory of the project thus:
 ```bash
 go test ./...
+```
 or
+```
 go test ./... -v
 ```
