@@ -26,5 +26,9 @@ cat <<EOF >> my-event.json
   }
 }
 EOF
-sam local invoke WhoamiFunctino --event my-event.json
+sam local invoke WhoamiFunction --event my-event.json
 ```
+or
+```bash
+
+```sam local invoke WhoamiFunction --event events/example_whoami.json
