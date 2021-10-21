@@ -13,18 +13,18 @@ import (
 const (
 	// Replace sender@example.com with your "From" address.
 	// This address must be verified with Amazon SES.
-	Sender = "mihai@collaction.org"
+	Sender = "hello@collaction.org"
 
 	// Replace recipient@example.com with a "To" address. If your account
 	// is still in the sandbox, this address must be verified.
-	Recipient = "mihai@collaction.org"
+	Recipient = "hello@collaction.org"
 
 	// Specify a configuration set. To use a configuration
 	// set, comment the next line and line 92.
 	//ConfigurationSet = "ConfigSet"
 
 	// The subject line for the email.
-	Subject = "Amazon SES Test (AWS SDK for Go)"
+	Subject = "lambda EmailContactFunction"
 
 	// The HTML body for the email.
 	HtmlBody = "<h1>Amazon SES Test Email (AWS SDK for Go)</h1><p>This email was sent with " +

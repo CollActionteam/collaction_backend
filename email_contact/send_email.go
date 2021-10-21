@@ -18,29 +18,29 @@ import (
 const (
 	// Replace sender@example.com with your "From" address.
 	// This address must be verified with Amazon SES.
-	Sender = "hello@collaction.org"
+	sender = "hello@collaction.org"
 
 	// Replace recipient@example.com with a "To" address. If your account
 	// is still in the sandbox, this address must be verified.
-	Recipient = "hello@collaction.org"
+	recipient = "hello@collaction.org"
 
 	// Specify a configuration set. To use a configuration
 	// set, comment the next line and line 92.
 	//ConfigurationSet = "ConfigSet"
 
 	// The subject line for the email.
-	Subject = "Amazon SES Test (AWS SDK for Go)"
+	subject = "Amazon SES Test (AWS SDK for Go)"
 
 	// The HTML body for the email.
-	HtmlBody = "<h1>Amazon SES Test Email (AWS SDK for Go)</h1><p>This email was sent with " +
+	htmlBody = "<h1>Amazon SES Test Email (AWS SDK for Go)</h1><p>This email was sent with " +
 		"<a href='https://aws.amazon.com/ses/'>Amazon SES</a> using the " +
 		"<a href='https://aws.amazon.com/sdk-for-go/'>AWS SDK for Go</a>.</p>"
 
 	//The email body for recipients with non-HTML email clients.
-	TextBody = "This email was sent with Amazon SES using the AWS SDK for Go."
+	textBody = "This email was sent with Amazon SES using the AWS SDK for Go."
 
 	// The character encoding for the email.
-	CharSet = "UTF-8"
+	charSet = "UTF-8"
 )
 
 func init() {
@@ -49,7 +49,7 @@ func init() {
 	os.Setenv("AWS_SDK_LOAD_CONFIG", "true")
 }
 
-func main() {
+func send_mail() {
 	// Create a new session in the us-west-2 region.
 	// Replace us-west-2 with the AWS Region you're using for Amazon SES.
 	//sess, err := session.NewSession(&aws.Config{
