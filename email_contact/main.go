@@ -13,11 +13,11 @@ import (
 const (
 	// Replace sender@example.com with your "From" address.
 	// This address must be verified with Amazon SES.
-	Sender = "<...>@collaction.org"
+	Sender = "mihai@collaction.org"
 
 	// Replace recipient@example.com with a "To" address. If your account
 	// is still in the sandbox, this address must be verified.
-	Recipient = "<....>@collaction.org"
+	Recipient = "mihai@collaction.org"
 
 	// Specify a configuration set. To use a configuration
 	// set, comment the next line and line 92.
