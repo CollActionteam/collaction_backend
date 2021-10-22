@@ -5,9 +5,13 @@
 #    - Testing
 #    - Deploying to prod
 #    - Branch based workflows
+#    - Split into multiple jobs
 # ==================================================
 
 name: CICD
+
+env:
+  stack_name_prefix: collaction
 
 on:
   push:
@@ -31,4 +35,11 @@ jobs:
           sam build
           echo ${{ secrets.AWS_SAMCONFIG_DEV }} | base64 -d > samconfig.toml
       - name: Deploy
-        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name collaction-dev --resolve-s3
+        run: |
+          sam deploy \
+          --no-confirm-changeset \
+          --no-fail-on-empty-changeset \
+          --resolve-s3 \
+          --capabilities CAPABILITY_IAM \
+          --no-progressbar \
+          --stack-name ${{ env.stack_name_prefix }}-dev
