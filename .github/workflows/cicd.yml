@@ -1,0 +1,32 @@
+# ==================================================
+# This is the main worflow for testing, building and
+# deploying the app.
+#   The following is not yet implemented:
+#    - Testing
+#    - Deploying to prod
+#    - Branch based workflows
+# ==================================================
+
+name: CICD
+
+on:
+  push:
+    # branches:
+    #  - development
+    # TODO deploy to prod on master
+jobs:
+  build-deploy-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: aws-actions/setup-sam@v1
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+      - run: sam build
+      # TODO run tests
+      - run: echo ${{ secrets.AWS_SAMCONFIG }} | base64 -d > samconfig.toml
+      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name collaction-dev
