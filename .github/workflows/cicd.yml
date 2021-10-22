@@ -26,7 +26,9 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
-      - run: sam build
-      # TODO run tests
-      - run: echo ${{ secrets.AWS_SAMCONFIG }} | base64 -d > samconfig.toml
-      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name collaction-dev
+      - name: Build
+        run: |
+          sam build
+          echo ${{ secrets.AWS_SAMCONFIG_DEV }} | base64 -d > samconfig.toml
+      - name: Deploy
+        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name collaction-dev --resolve-s3
