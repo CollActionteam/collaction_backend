@@ -80,7 +80,8 @@ jobs:
           echo not yet implemented
 
   deploy-dev:
-    if: ${{ github.ref == 'refs/heads/development' }}
+    # TODO run on every branch just for testing
+    # if: ${{ github.ref == 'refs/heads/development' }}
     needs: [test]
     runs-on: ubuntu-latest
     steps:
