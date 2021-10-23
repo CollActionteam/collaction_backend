@@ -10,22 +10,36 @@
 
 name: CICD
 
-env:
-  stack_name_prefix: collaction
-
 on:
   push:
-    # branches:
-    #  - development
-    # TODO deploy to prod on master
+#    branches: [development]
+#  pull_request:
+#    types: [opened, synchronize]
+
+env:
+  stack_name_prefix: collaction
+  sam_deployment_options: |
+    --no-confirm-changeset \
+    --no-fail-on-empty-changeset \
+    --resolve-s3 \
+    --capabilities CAPABILITY_IAM \
+    --no-progressbar \
+    --tags \
+        RUN=$GITHUB_RUN_NUMBER \
+        COMMIT_HASH=$GITHUB_SHA
+
 jobs:
-  build-deploy-dev:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - uses: aws-actions/setup-sam@v1
-      - uses: aws-actions/configure-aws-credentials@v1
+      - name: Fetch code from repository
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -34,12 +48,63 @@ jobs:
         run: |
           sam build
           echo ${{ secrets.AWS_SAMCONFIG_DEV }} | base64 -d > samconfig.toml
+      - name: Cache build (store)
+        uses: actions/cache@v2
+        with:
+          path: ./.aws-sam
+          key: cache-sam-build-${{ env.GITHUB_SHA }}
+      
+  test:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch code from repository
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+      - name: Cache build (load)
+        uses: actions/cache@v2
+        with:
+          path: ./.aws-sam
+          key: cache-sam-build-${{ env.GITHUB_SHA }}
+      - name: Test # TODO
+        run: |
+          echo not yet implemented
+
+  deploy-dev:
+    if: ${{ github.ref == 'refs/heads/development' }}
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch code from repository
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+      - name: Cache build (load)
+        uses: actions/cache@v2
+        with:
+          path: ./.aws-sam
+          key: cache-sam-build-${{ env.GITHUB_SHA }}
       - name: Deploy
         run: |
+          echo ${{ secrets.AWS_SAMCONFIG_DEV }} | base64 -d > samconfig.toml
           sam deploy \
-          --no-confirm-changeset \
-          --no-fail-on-empty-changeset \
-          --resolve-s3 \
-          --capabilities CAPABILITY_IAM \
-          --no-progressbar \
-          --stack-name ${{ env.stack_name_prefix }}-dev
+            --stack-name ${{ env.stack_name_prefix }}-dev \
+            ${{ env.sam_deployment_options }}
+
