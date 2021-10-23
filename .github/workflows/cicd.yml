@@ -61,11 +61,11 @@ jobs:
         with:
           path: ./.aws-sam
           key: cache-sam-build-${{ github.sha }}
-      - name: Test # TODO
+      - name: Run tests # TODO
         run: |
           echo not yet implemented
 
-  deploy-dev:
+  deploy: # Dynamically deploys to dev or prod depending on the branch
     # if: ${{ github.ref == 'refs/heads/development' || github.ref == 'refs/heads/master' }}
     needs: [test]
     runs-on: ubuntu-latest
@@ -88,16 +88,16 @@ jobs:
           path: ./.aws-sam
           key: cache-sam-build-${{ env.GITHUB_SHA }}
       - name: Deploy
-        # TODO either use a stage specific config file or override the stage parameter
         run: |
-          echo ${{ secrets.AWS_SAMCONFIG_DEV }} | base64 -d > samconfig.toml
+          echo ${{ github.ref == 'refs/heads/master' && secrets.AWS_SAMCONFIG_PROD || secrets.AWS_SAMCONFIG_DEV }} | \
+            base64 -d > samconfig.toml
           sam deploy \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --resolve-s3 \
             --capabilities CAPABILITY_IAM \
             --no-progressbar \
-            --stack-name collaction-${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
+            --stack-name collaction-${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }} \
             --tags \
                 CD_RUN_NUMBER=${{ github.run_number }} \
                 COMMIT_HASH=${{ github.sha }}
