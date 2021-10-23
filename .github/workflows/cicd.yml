@@ -4,8 +4,6 @@
 #   The following is not yet implemented:
 #    - Testing
 #    - Deploying to prod
-#    - Branch based workflows
-#    - Split into multiple jobs
 # ==================================================
 
 name: CICD
@@ -13,20 +11,8 @@ name: CICD
 on:
   push:
 #    branches: [development]
-#  pull_request:
-#    types: [opened, synchronize]
-
-env:
-  stack_name_prefix: collaction
-  sam_deployment_options: |
-    --no-confirm-changeset \
-    --no-fail-on-empty-changeset \
-    --resolve-s3 \
-    --capabilities CAPABILITY_IAM \
-    --no-progressbar \
-    --tags \
-        RUN=$GITHUB_RUN_NUMBER \
-        COMMIT_HASH=$GITHUB_SHA
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
   build:
@@ -74,14 +60,13 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ./.aws-sam
-          key: cache-sam-build-${{ env.GITHUB_SHA }}
+          key: cache-sam-build-${{ github.sha }}
       - name: Test # TODO
         run: |
           echo not yet implemented
 
   deploy-dev:
-    # TODO run on every branch just for testing
-    # if: ${{ github.ref == 'refs/heads/development' }}
+    # if: ${{ github.ref == 'refs/heads/development' || github.ref == 'refs/heads/master' }}
     needs: [test]
     runs-on: ubuntu-latest
     steps:
@@ -103,9 +88,17 @@ jobs:
           path: ./.aws-sam
           key: cache-sam-build-${{ env.GITHUB_SHA }}
       - name: Deploy
+        # TODO either use a stage specific config file or override the stage parameter
         run: |
           echo ${{ secrets.AWS_SAMCONFIG_DEV }} | base64 -d > samconfig.toml
           sam deploy \
-            --stack-name ${{ env.stack_name_prefix }}-dev \
-            ${{ env.sam_deployment_options }}
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --resolve-s3 \
+            --capabilities CAPABILITY_IAM \
+            --no-progressbar \
+            --stack-name collaction-${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
+            --tags \
+                CD_RUN_NUMBER=${{ github.run_number }} \
+                COMMIT_HASH=${{ github.sha }}
 
