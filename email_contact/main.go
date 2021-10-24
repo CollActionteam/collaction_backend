@@ -30,7 +30,7 @@ type Mail struct {
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	//just for debugging purposes
-	request_details(req)
+	//request_details(req)
 
 	sess := session.Must(session.NewSession())
 
