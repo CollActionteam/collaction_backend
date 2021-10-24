@@ -31,4 +31,4 @@ sam local invoke WhoamiFunction --event my-event.json
 or
 ```bash
 
-```sam local invoke WhoamiFunction --event events/example_whoami.json
+```sam local invoke WhoamiFunction --event event_examples/whoami.json
