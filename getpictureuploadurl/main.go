@@ -39,7 +39,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (res events
 		return res, err
 	}
 
-	response, _ := json.Marshal(map[string]interface{}{"link": strUrl})
+	response, _ := json.Marshal(map[string]interface{}{"upload_url": strUrl})
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
