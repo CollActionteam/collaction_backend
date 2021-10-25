@@ -14,23 +14,15 @@ func GetUploadUrl(ext string, userID string) (string, error) {
 	var (
 		bucket  = os.Getenv("BUCKET")
 		filekey = userID + "." + ext
-		region  = os.Getenv("REGION")
 	)
 
 	mime := "image/png"
 
 	// Initialize a session that the SDK will use to load
 	// credentials from the shared credentials file ~/.aws/credentials.
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(region)},
-	)
-
-	if err != nil {
-		return "", err
-	}
 
 	// Create S3 service client
-	svc := s3.New(sess)
+	svc := s3.New(session.Must(session.NewSession()))
 	reqs, _ := svc.PutObjectRequest(&s3.PutObjectInput{
 		Bucket:      aws.String(bucket),
 		Key:         aws.String(filekey),

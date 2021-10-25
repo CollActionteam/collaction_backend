@@ -93,7 +93,7 @@ Resources:
       Policies:
         - S3CrudPolicy:
             BucketName:
-              !Ref Bucket
+              !Ref ProfilePictureUploadBucket
       Events:
         ProfilePictureUpload:
           Type: HttpApi
@@ -105,8 +105,6 @@ Resources:
 
   ProfilePictureUploadBucket:
     Type: AWS::S3::Bucket
-    Properties:
-      BucketName: ${self:Globals.Function.Environment.Variables.bucket} 
 
 
   # EmailContactFunction:
