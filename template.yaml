@@ -4,14 +4,14 @@ Description: >
   CollAction backend
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
-custom:
-  bucket: profile-url-picture-uploadbucket-5668889
 
 Globals:
   Function:
     Timeout: 10
     Environment:
       Variables:
+        BUCKET: !Ref ProfilePictureUploadBucket
+        REGION: eu-central-1
         LOCAL_RESOURCES_ONLY: !Ref LocalResourcesOnly
 
 Parameters:
@@ -94,36 +94,19 @@ Resources:
         - S3CrudPolicy:
             BucketName:
               !Ref Bucket
-      # iamRoleStatements:
-      #   #S3 Permissions
-      #   - Effect: Allow
-      #     Action:
-      #       - s3:*
-      #     Resource: "arn:aws:s3:::${self:custom.bucket}"
       Events:
         ProfilePictureUpload:
           Type: HttpApi
           Properties:
-            Path: /getpictureuploadurl/{ext}
+            Path: /upload-profile-picture
             Method: get
             ApiId: !Ref HttpApi
 
 
-  Bucket:
+  ProfilePictureUploadBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: ${self:custom.bucket} 
-      
-  MyBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-        Bucket: !Ref Bucket
-        PolicyDocument:
-          Statement:
-            - Effect: Allow
-              Principal: '*' # public access to access the bucket files 
-              Action: s3:GetObject
-              Resource: 'arn:aws:s3:::${self:custom.bucket}/*'
+      BucketName: ${self:Globals.Function.Environment.Variables.bucket} 
 
 
   # EmailContactFunction:

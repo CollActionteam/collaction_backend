@@ -1,8 +1,7 @@
 package profilepictureservice
 
 import (
-	"fmt"
-	"strings"
+	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,16 +10,14 @@ import (
 )
 
 func GetUploadUrl(ext string, userID string) (string, error) {
+
 	var (
-		bucket  = "profile-url-picture-uploadbucket-5668889"
-		filekey = userID
-		region  = "eu-central-1"
+		bucket  = os.Getenv("BUCKET")
+		filekey = userID + "." + ext
+		region  = os.Getenv("REGION")
 	)
 
-	mime, err := GetMime(ext)
-	if err != nil {
-		return "", err
-	}
+	mime := "image/png"
 
 	// Initialize a session that the SDK will use to load
 	// credentials from the shared credentials file ~/.aws/credentials.
@@ -42,22 +39,8 @@ func GetUploadUrl(ext string, userID string) (string, error) {
 
 	str, err := reqs.Presign(15 * time.Minute)
 
-	// log.Println("The URL is:", str, " err:", err)
 	if err != nil {
 		return "", err
 	}
 	return str, nil
-}
-
-func GetMime(ext string) (string, error) {
-	ext = strings.ToLower(ext)
-	if ext == "png" {
-		return "image/png", nil
-	} else if ext == "jpg" {
-		return "image/jpg", nil
-	} else if ext == "jpeg" {
-		return "image/jpeg", nil
-	}
-	return "", fmt.Errorf("file format not supported")
-
 }

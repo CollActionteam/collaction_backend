@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -12,6 +13,9 @@ import (
 )
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (res events.APIGatewayProxyResponse, err error) {
+
+	// This is to recover from a "invalid memory address or nil pointer dereference: errorString" runtime error
+	// when the endpoint is called without valid auth token
 	defer func() {
 		if r := recover(); r != nil {
 			res = events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}
@@ -29,15 +33,17 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (res events
 	// getting user id, which will be used as object key
 	userID := usrInf.UserID()
 
-	strUrl, err := pps.GetUploadUrl(req.PathParameters["ext"], userID)
+	strUrl, err := pps.GetUploadUrl("png", userID)
 	if err != nil {
-		res = events.APIGatewayProxyResponse{StatusCode: http.StatusForbidden, Body: "user not authorized"}
+		res = events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError, Body: "error generating link"}
 		return res, err
 	}
 
+	response, _ := json.Marshal(map[string]interface{}{"link": strUrl})
+
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
-		Body:       strUrl,
+		Body:       string(response),
 	}, nil
 }
 
