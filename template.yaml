@@ -67,6 +67,43 @@ Resources:
             Auth:
               Authorizer: "NONE"
 
+  ProfilePictureUploadBucket:
+    Type: 'AWS::S3::Bucket'
+
+  ProfilePictureBucket:
+    Type: 'AWS::S3::Bucket'
+
+  ProcessProfilePictureFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: process-profile-picture/
+      Handler: process-profile-picture
+      Runtime: go1.x
+      Environment:
+        Variables:
+          # Beware of recursive execution! Double check referenced buckets!
+          OUTPUT_BUCKET_NAME: !Ref ProfilePictureBucket
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action: 
+              - s3:GetObject*
+              - s3:PutObject*
+              - s3:DeleteObject*
+            Resource: '*'
+        #- S3CrudPolicy:
+        #    BucketName:
+        #      !Ref ProfilePictureUploadBucket
+        - S3CrudPolicy:
+            BucketName:
+              !Ref ProfilePictureBucket
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket: !Ref ProfilePictureUploadBucket
+            Events: s3:ObjectCreated:*
+
   WhoamiFunction:
     Type: AWS::Serverless::Function
     Properties:
