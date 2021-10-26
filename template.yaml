@@ -10,7 +10,6 @@ Globals:
     Timeout: 10
     Environment:
       Variables:
-        BUCKET: !Ref ProfilePictureUploadBucket
         LOCAL_RESOURCES_ONLY: !Ref LocalResourcesOnly
 
 Parameters:
@@ -74,6 +73,15 @@ Resources:
 
   ProfilePictureBucket:
     Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: anonymous.png
+        RoutingRules:
+          - RoutingRuleCondition:
+              HttpErrorCodeReturnedEquals: '404'
+            RedirectRule:
+              ReplaceKeyWith: anonymous.png
 
   GetPictureUploadUrlFunction:
     Type: AWS::Serverless::Function
@@ -81,10 +89,15 @@ Resources:
       CodeUri: getpictureuploadurl/
       Handler: getpictureuploadurl
       Runtime: go1.x
+      Environment:
+        Variables:
+          BUCKET: !Ref ProfilePictureUploadBucket
       Policies:
-        - S3CrudPolicy:
-            BucketName:
-              !Ref ProfilePictureUploadBucket
+        - Statement:
+          - Effect: Allow
+            Action: 
+              - s3:PutObject*
+            Resource: '*'
       Events:
         ProfilePictureUpload:
           Type: HttpApi
@@ -111,9 +124,6 @@ Resources:
               - s3:PutObject*
               - s3:DeleteObject*
             Resource: '*'
-        - S3CrudPolicy:
-            BucketName:
-              !Ref ProfilePictureBucket
       Events:
         S3Event:
           Type: S3

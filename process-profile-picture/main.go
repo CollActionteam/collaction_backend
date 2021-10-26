@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/png"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -48,9 +49,11 @@ func handler(e events.S3Event) {
 
 		// Upload image
 		_, err = svc.PutObject(&s3.PutObjectInput{
-			Body:   bytes.NewReader(f.Bytes()),
-			Bucket: aws.String(outputBucketName),
-			Key:    aws.String(key),
+			Body:        bytes.NewReader(f.Bytes()),
+			Bucket:      aws.String(outputBucketName),
+			Key:         aws.String(key),
+			ContentType: aws.String("image/png"),
+			ACL:         aws.String("public-read"),
 		})
 		if err != nil {
 			panic(err.Error())
@@ -71,7 +74,9 @@ func handler(e events.S3Event) {
 		// TODO maybe check if the bucket is the correct one
 		// Should it check that the target and source bucket are not the same?
 		key := r.S3.Object.Key
-		process_object(bucketName, key)
+		if strings.HasSuffix(key, ".png") {
+			process_object(bucketName, key)
+		}
 	}
 }
 
