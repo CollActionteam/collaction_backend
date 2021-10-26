@@ -83,11 +83,11 @@ Resources:
             RedirectRule:
               ReplaceKeyWith: anonymous.png
 
-  GetPictureUploadUrlFunction:
+  UploadProfilePictureFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: getpictureuploadurl/
-      Handler: getpictureuploadurl
+      CodeUri: upload-profile-picture/
+      Handler: upload-profile-picture
       Runtime: go1.x
       Environment:
         Variables:

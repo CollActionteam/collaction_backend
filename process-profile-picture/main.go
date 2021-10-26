@@ -65,11 +65,11 @@ func processImage(imgBytes []byte) ([]byte, error) {
 	imgCfg, _, err := image.DecodeConfig(bytes.NewReader(imgBytes))
 
 	if imgCfg.Width != imgCfg.Height {
-		return nil, errors.New("Image does not have an aspect ratio of 1.00!")
+		return nil, errors.New("image does not have an aspect ratio of 1.00")
 	}
 
 	if imgCfg.Width < minWidth || imgCfg.Width > maxWidth {
-		return nil, errors.New(fmt.Sprintf("Image is not between %d and %d pixels wide!", minWidth, maxWidth))
+		return nil, fmt.Errorf("image is not between %d and %d pixels wide", minWidth, maxWidth)
 	}
 
 	img, _, err := image.Decode(bytes.NewReader(imgBytes))

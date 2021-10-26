@@ -1,5 +1,5 @@
-# Get s3 upload url
-
+# Upload profile picture endpoint
+Generate a temporary URL for uploading the profile picture.
 
 ## Usage:
 ```bash
@@ -14,7 +14,7 @@ curl --location --request GET 'http://domain/upload-profile-picture' \
 }
 ```
 
-## Using upload url
+## Using the upload URL
 ```bash
 curl --location --request PUT 'https://upload/url/' \
 --form 'image=@"/Path/to/image"'
