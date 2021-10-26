@@ -4,11 +4,13 @@ Description: >
   CollAction backend
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+
 Globals:
   Function:
     Timeout: 10
     Environment:
       Variables:
+        BUCKET: !Ref ProfilePictureUploadBucket
         LOCAL_RESOURCES_ONLY: !Ref LocalResourcesOnly
 
 Parameters:
@@ -47,7 +49,7 @@ Resources:
           - GET
         AllowOrigins:
           - http://localhost:8080
-
+      
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -73,6 +75,24 @@ Resources:
   ProfilePictureBucket:
     Type: 'AWS::S3::Bucket'
 
+  GetPictureUploadUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: getpictureuploadurl/
+      Handler: getpictureuploadurl
+      Runtime: go1.x
+      Policies:
+        - S3CrudPolicy:
+            BucketName:
+              !Ref ProfilePictureUploadBucket
+      Events:
+        ProfilePictureUpload:
+          Type: HttpApi
+          Properties:
+            Path: /upload-profile-picture
+            Method: get
+            ApiId: !Ref HttpApi
+
   ProcessProfilePictureFunction:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -91,9 +111,6 @@ Resources:
               - s3:PutObject*
               - s3:DeleteObject*
             Resource: '*'
-        #- S3CrudPolicy:
-        #    BucketName:
-        #      !Ref ProfilePictureUploadBucket
         - S3CrudPolicy:
             BucketName:
               !Ref ProfilePictureBucket
