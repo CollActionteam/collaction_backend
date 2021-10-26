@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/mail"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -29,9 +30,6 @@ type Mail struct {
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	//just for debugging purposes
-	//request_details(req)
-
 	sess := session.Must(session.NewSession())
 
 	// Create an SES session.
@@ -40,7 +38,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	// Assemble the email.
 	input, err := buildEmail(req)
 	if err != nil {
-		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 404}, nil
+		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 400}, nil
 	}
 
 	// Attempt to send the email.
@@ -61,6 +59,11 @@ func buildEmail(r events.APIGatewayProxyRequest) (*ses.SendEmailInput, error) {
 
 	// unmarshal the json, return 404 if error
 	err := json.Unmarshal([]byte(r.Body), &bodyRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	err = valid(bodyRequest.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -104,34 +107,11 @@ func getRecipient() string {
 	return "hello@collaction.org"
 }
 
-func main() {
-	lambda.Start(handler)
+func valid(email string) error {
+	_, err := mail.ParseAddress(email)
+	return err
 }
 
-func request_details(r events.APIGatewayProxyRequest) {
-
-	var bodyRequest Mail
-
-	fmt.Println("[handler]...")
-
-	fmt.Println("events.APIGatewayProxyRequest is", r)
-
-	body := r.Body
-	fmt.Println("request.Body is", body)
-
-	fmt.Println("Headers:")
-	for key, value := range r.Headers {
-		fmt.Printf("    %s: %s\n", key, value)
-	}
-
-	_ = json.Unmarshal([]byte(r.Body), &bodyRequest)
-
-	fmt.Println("bodyRequest.Email:", bodyRequest.Email)
-	fmt.Println("bodyRequest.Subject:", bodyRequest.Subject)
-	fmt.Println("bodyRequest.Message:", bodyRequest.Message)
-	fmt.Println("bodyRequest.AppVersion", bodyRequest.AppVersion)
-
-	fmt.Println("recipient:", getRecipient())
-	fmt.Println("sender:", getSender())
-
+func main() {
+	lambda.Start(handler)
 }
