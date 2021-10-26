@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
@@ -15,21 +16,27 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rekognition"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/nfnt/resize"
 )
 
-const moderationConfidenceThreshold = 0.9
-const maxFileSize = 5 * 1024 * 1024
+const (
+	moderationConfidenceThreshold = 0.9
+	maxFileSize                   = 5 * 1024 * 1024
+	minWidth                      = 250
+	maxWidth                      = 1024
+	preferedSize                  = 300
+)
 
-func contains(slice []string, item string) bool {
-	for _, candidate := range slice {
-		if candidate == item {
-			return true
+func checkContent(clientRekognition *rekognition.Rekognition, bucketName *string, key *string) error {
+	contains := func(slice []string, item string) bool {
+		for _, candidate := range slice {
+			if candidate == item {
+				return true
+			}
 		}
+		return false
 	}
-	return false
-}
 
-func checkIsContentOK(clientRekognition *rekognition.Rekognition, bucketName *string, key *string) (bool, *string, error) {
 	mlRes, err := clientRekognition.DetectModerationLabels(&rekognition.DetectModerationLabelsInput{
 		Image: &rekognition.Image{
 			S3Object: &rekognition.S3Object{
@@ -39,23 +46,35 @@ func checkIsContentOK(clientRekognition *rekognition.Rekognition, bucketName *st
 		},
 	})
 	if err != nil {
-		return false, nil, err
+		return err
 	}
 	// Refer to https://docs.aws.amazon.com/rekognition/latest/dg/moderation.html#moderation-api
 	unacceptableLabels := []string{"Explicit Nudity", "Violence", "Visually Disturbing", "Hate Symbols"}
 	for _, label := range mlRes.ModerationLabels {
 		if *label.Confidence >= moderationConfidenceThreshold {
 			if contains(unacceptableLabels, *label.Name) || contains(unacceptableLabels, *label.ParentName) {
-				reason := fmt.Sprintf("%s (%f%% confidence)", *label.Name, *label.Confidence)
-				return false, &reason, nil
+				reason := fmt.Sprintf("Rejected file %s because is might contain %s (%f%% confidence)!\n", *key, *label.Name, *label.Confidence)
+				return errors.New(reason)
 			}
 		}
 	}
-	return true, nil, nil
+	return nil
 }
 
 func processImage(imgBytes []byte) ([]byte, error) {
+	imgCfg, _, err := image.DecodeConfig(bytes.NewReader(imgBytes))
+
+	if imgCfg.Width != imgCfg.Height {
+		return nil, errors.New("Image does not have an aspect ratio of 1.00!")
+	}
+
+	if imgCfg.Width < minWidth || imgCfg.Width > maxWidth {
+		return nil, errors.New(fmt.Sprintf("Image is not between %d and %d pixels wide!", minWidth, maxWidth))
+	}
+
 	img, _, err := image.Decode(bytes.NewReader(imgBytes))
+	img = resize.Thumbnail(preferedSize, preferedSize, img, resize.Lanczos3)
+
 	if err != nil {
 		return nil, err
 	}
@@ -87,6 +106,13 @@ func handler(e events.S3Event) {
 			}
 		}()
 
+		// Analyze content
+		err = checkContent(clientRekognition, &inputBucketName, &key)
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
+
 		// Download image
 		dlRes, err := clientS3.GetObject(&s3.GetObjectInput{
 			Bucket: aws.String(inputBucketName),
@@ -105,17 +131,6 @@ func handler(e events.S3Event) {
 		defer dlRes.Body.Close()
 		if err != nil {
 			log.Println(err.Error())
-			return
-		}
-
-		// Analyze content
-		isContentOK, reason, err := checkIsContentOK(clientRekognition, &inputBucketName, &key)
-		if err != nil {
-			log.Println(err.Error())
-			return
-		}
-		if !isContentOK {
-			log.Printf("Rejected file %s because %s!\n", key, *reason)
 			return
 		}
 
