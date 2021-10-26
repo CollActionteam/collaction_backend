@@ -133,6 +133,28 @@ Resources:
   #                 - ses:SendEmail
   #                 Resource: '*'
 
+  CreateProfielHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: profileservice/
+      Handler: handlers.createProfileHandler
+      Runtime: Go1.16
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /createprofile
+            Method: POST
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref ProfileTable
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref ProfileTable
+  
+  ProfileTable:
+    Type: AWS::Serverless::SimpleTable
+
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
