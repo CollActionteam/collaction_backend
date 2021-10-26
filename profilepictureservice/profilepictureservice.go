@@ -16,17 +16,14 @@ func GetUploadUrl(ext string, userID string) (string, error) {
 		filekey = userID + "." + ext
 	)
 
-	mime := "image/png"
-
 	// Initialize a session that the SDK will use to load
 	// credentials from the shared credentials file ~/.aws/credentials.
 
 	// Create S3 service client
 	svc := s3.New(session.Must(session.NewSession()))
 	reqs, _ := svc.PutObjectRequest(&s3.PutObjectInput{
-		Bucket:      aws.String(bucket),
-		Key:         aws.String(filekey),
-		ContentType: aws.String(mime),
+		Bucket: aws.String(bucket),
+		Key:    aws.String(filekey),
 	})
 
 	str, err := reqs.Presign(15 * time.Minute)
