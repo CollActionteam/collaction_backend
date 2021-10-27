@@ -9,8 +9,10 @@ Built using [AWS SAM](https://github.com/aws/serverless-application-model).
 ## Project structure
 - `auth/` - Package for extracting user information from requests
 - `email-contact/` - Contact form Lambda function
-- `hello_world/` - Example Lambda function.
+- `hello-world/` - Example Lambda function.
 - `events/` - Invocation events that you can use to invoke the function.
+- `process-profile-picture/` - Lambda function for moderating uploaded profile pictures and making them public. 
+- `upload-profile-picture/` - Lambda function for generating an upload URL for the profile picture. 
 - `whoami/` - Example Lambda for authenticating Firebase users. 
 - `template.yaml` - A template that defines the application's AWS resources.
 
