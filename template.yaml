@@ -11,6 +11,7 @@ Globals:
     Environment:
       Variables:
         BUCKET: !Ref ProfilePictureUploadBucket
+        PROFILE_TABLE: !Ref ProfileTable
         LOCAL_RESOURCES_ONLY: !Ref LocalResourcesOnly
 
 Parameters:
@@ -105,6 +106,34 @@ Resources:
   ProfilePictureUploadBucket:
     Type: AWS::S3::Bucket
 
+  ProfielHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: profileservice/
+      Handler: handlers.createProfileHandler
+      Runtime: go1.x
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref ProfileTable
+      Events:
+        ProfielHandler:
+          Type: HttpApi
+          Properties:
+            Path: /profile
+            Method: any
+            ApiId: !Ref HttpApi
+  
+  ProfileTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+        AttributeDefinitions:
+          - AttributeName: UserID
+            AttributeType: S
+        KeySchema:
+          - AttributeName: UserID
+            KeyType: S
+
 
   # EmailContactFunction:
   #   Type: AWS::Serverless::Function
@@ -133,27 +162,7 @@ Resources:
   #                 - ses:SendEmail
   #                 Resource: '*'
 
-  CreateProfielHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: profileservice/
-      Handler: handlers.createProfileHandler
-      Runtime: Go1.16
-      Events:
-        CatchAll:
-          Type: Api
-          Properties:
-            Path: /createprofile
-            Method: POST
-      Environment:
-        Variables:
-          DYNAMODB_TABLE: !Ref ProfileTable
-      Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref ProfileTable
-  
-  ProfileTable:
-    Type: AWS::Serverless::SimpleTable
+
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
