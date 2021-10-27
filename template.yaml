@@ -4,6 +4,7 @@ Description: >
   CollAction backend
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+
 Globals:
   Function:
     Timeout: 10
@@ -47,7 +48,7 @@ Resources:
           - GET
         AllowOrigins:
           - http://localhost:8080
-
+      
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -66,6 +67,70 @@ Resources:
             ApiId: !Ref HttpApi
             Auth:
               Authorizer: "NONE"
+
+  ProfilePictureUploadBucket:
+    Type: 'AWS::S3::Bucket'
+
+  ProfilePictureBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: anonymous.png
+        RoutingRules:
+          - RoutingRuleCondition:
+              HttpErrorCodeReturnedEquals: '404'
+            RedirectRule:
+              ReplaceKeyWith: anonymous.png
+
+  UploadProfilePictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: upload-profile-picture/
+      Handler: upload-profile-picture
+      Runtime: go1.x
+      Environment:
+        Variables:
+          BUCKET: !Ref ProfilePictureUploadBucket
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action: 
+              - s3:PutObject*
+            Resource: '*'
+      Events:
+        ProfilePictureUpload:
+          Type: HttpApi
+          Properties:
+            Path: /upload-profile-picture
+            Method: get
+            ApiId: !Ref HttpApi
+
+  ProcessProfilePictureFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: process-profile-picture/
+      Handler: process-profile-picture
+      Runtime: go1.x
+      Environment:
+        Variables:
+          # Beware of recursive execution! Double check referenced buckets!
+          OUTPUT_BUCKET_NAME: !Ref ProfilePictureBucket
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action: 
+              - s3:GetObject*
+              - s3:PutObject*
+              - s3:DeleteObject*
+              - rekognition:DetectModerationLabels
+            Resource: '*'
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket: !Ref ProfilePictureUploadBucket
+            Events: s3:ObjectCreated:*
 
   WhoamiFunction:
     Type: AWS::Serverless::Function
