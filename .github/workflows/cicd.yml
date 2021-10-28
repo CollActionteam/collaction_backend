@@ -37,7 +37,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ./.aws-sam
-          key: cache-sam-build-${{ env.GITHUB_SHA }}
+          key: cache-sam-build-${{ github.sha }}
       
   test:
     needs: [build]
@@ -78,7 +78,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ./.aws-sam
-          key: cache-sam-build-${{ env.GITHUB_SHA }}
+          key: cache-sam-build-${{ github.sha }}
       - name: Deploy
         run: |
           echo ${{ github.ref == 'refs/heads/master' && secrets.AWS_SAMCONFIG_PROD || secrets.AWS_SAMCONFIG_DEV }} | \
