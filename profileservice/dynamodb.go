@@ -119,13 +119,12 @@ func GetProfile(req events.APIGatewayProxyRequest) (Profile, error) {
 
 	svc := connDb()
 
-	// usrInf, err := auth.ExtractUserInfo(req)
-	// if err != nil {
-	// 	return Profile{}, err
-	// }
+	usrInf, err := auth.ExtractUserInfo(req)
+	if err != nil {
+		return Profile{}, err
+	}
 
-	// userID := usrInf.UserID()
-	userID := "WHHl9feFyeXyU0QwwASGxqsFgTN2"
+	userID := usrInf.UserID()
 
 	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(tablename),
