@@ -2,7 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   CollAction backend
-
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 
 Globals:
@@ -10,8 +9,6 @@ Globals:
     Timeout: 10
     Environment:
       Variables:
-        BUCKET: !Ref ProfilePictureUploadBucket
-        PROFILE_TABLE: !Ref ProfileTable
         LOCAL_RESOURCES_ONLY: !Ref LocalResourcesOnly
 
 Parameters:
@@ -148,56 +145,64 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
 
-  GetPictureUploadUrlFunction:
+  GetProfileHandlerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: getpictureuploadurl/
-      Handler: getpictureuploadurl
+      CodeUri: getuserprofile/
+      Handler: getuserprofile
       Runtime: go1.x
-      Policies:
-        - S3CrudPolicy:
-            BucketName:
-              !Ref ProfilePictureUploadBucket
       Events:
-        ProfilePictureUpload:
+        GetProfileHandler:
           Type: HttpApi
           Properties:
-            Path: /upload-profile-picture
+            Path: /profile
             Method: get
             ApiId: !Ref HttpApi
-
-
-  ProfilePictureUploadBucket:
-    Type: AWS::S3::Bucket
-
-  ProfielHandlerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: profileservice/
-      Handler: handlers.createProfileHandler
-      Runtime: go1.x
+            Auth:
+              Authorizer: "NONE"
+      Environment:
+        Variables:
+          PROFILE_TABLE: !Ref ProfileTable
       Policies:
         - DynamoDBCrudPolicy:
             TableName:
               !Ref ProfileTable
+
+  CreateProfileHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: createuserprofile/
+      Handler: createuserprofile
+      Runtime: go1.x
       Events:
-        ProfielHandler:
+        CreateProfileHandler:
           Type: HttpApi
           Properties:
             Path: /profile
-            Method: any
+            Method: post
             ApiId: !Ref HttpApi
-  
+      Environment:
+        Variables:
+          PROFILE_TABLE: !Ref ProfileTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref ProfileTable
+      
+
   ProfileTable:
     Type: AWS::DynamoDB::Table
     Properties:
-        AttributeDefinitions:
-          - AttributeName: UserID
-            AttributeType: S
-        KeySchema:
-          - AttributeName: UserID
-            KeyType: S
-
+      TableName: profileTable
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      AttributeDefinitions:
+        - AttributeName: UserID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: UserID
+          KeyType: HASH
 
   # EmailContactFunction:
   #   Type: AWS::Serverless::Function
@@ -225,8 +230,6 @@ Resources:
   #                 Action:
   #                 - ses:SendEmail
   #                 Resource: '*'
-
-
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
