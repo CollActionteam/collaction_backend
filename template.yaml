@@ -71,17 +71,18 @@ Resources:
   ProfilePictureUploadBucket:
     Type: 'AWS::S3::Bucket'
 
-  ProfilePictureBucket:
+  StaticHostingBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
       AccessControl: PublicRead
       WebsiteConfiguration:
-        IndexDocument: anonymous.png
+        IndexDocument: index.html
         RoutingRules:
           - RoutingRuleCondition:
               HttpErrorCodeReturnedEquals: '404'
+              KeyPrefixEquals: profile-pictures/
             RedirectRule:
-              ReplaceKeyWith: anonymous.png
+              ReplaceKeyWith: profile-pictures/anonymous.png
 
   UploadProfilePictureFunction:
     Type: AWS::Serverless::Function
@@ -115,7 +116,8 @@ Resources:
       Environment:
         Variables:
           # Beware of recursive execution! Double check referenced buckets!
-          OUTPUT_BUCKET_NAME: !Ref ProfilePictureBucket
+          OUTPUT_BUCKET_NAME: !Ref StaticHostingBucket
+          KEY_PREIFX: profile-pictures/
       Policies:
         - Statement:
           - Effect: Allow
