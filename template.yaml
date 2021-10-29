@@ -193,7 +193,6 @@ Resources:
   ProfileTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: profileTable
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
