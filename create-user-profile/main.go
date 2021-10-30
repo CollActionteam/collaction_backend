@@ -11,25 +11,31 @@ import (
 )
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var msg []byte
-
-	fmt.Println("POST")
 
 	err := profileservice.CreateProfile(req)
 	if err != nil {
-
-		msg, _ = json.Marshal(map[string]interface{}{"message": "Error Processing Request"})
+		tmsg := profileservice.Response{
+			Message: fmt.Sprintf("%v", err),
+			Data:    "",
+			Status:  http.StatusBadRequest,
+		}
+		jsonData, _ := json.Marshal(tmsg)
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusBadRequest,
-			Body:       string(msg),
-		}, err
+			Body:       string(jsonData),
+		}, nil
 
 	}
 
-	msg, _ = json.Marshal(map[string]interface{}{"message": "Profile Created"})
+	tmsg := profileservice.Response{
+		Message: "Profile Created",
+		Data:    "",
+		Status:  200,
+	}
+	jsonData, _ := json.Marshal(tmsg)
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Body:       string(msg),
+		Body:       string(jsonData),
 	}, nil
 }
 

@@ -10,29 +10,42 @@ import (
 )
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var msg []byte
+	var msg profileservice.Response
 
 	profileData, err := profileservice.GetProfile(req)
 	if err != nil {
-
-		msg, _ = json.Marshal(map[string]interface{}{"message": "Error Retreiving Profile"})
+		msg = profileservice.Response{
+			Message: "Error Retreiving Profile",
+			Data:    "",
+			Status:  http.StatusInternalServerError,
+		}
+		jsonData, _ := json.Marshal(msg)
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-			Body:       string(msg),
+			Body:       string(jsonData),
 		}, err
 
 	}
 
-	jsonData, err := json.Marshal(profileData)
-	if err != nil {
-
-		msg, _ = json.Marshal(map[string]interface{}{"message": "Error Encoding Data"})
+	if profileData == nil {
+		msg = profileservice.Response{
+			Message: "no user Profile found",
+			Data:    "",
+			Status:  404,
+		}
+		jsonData, _ := json.Marshal(msg)
 		return events.APIGatewayProxyResponse{
-			StatusCode: 200,
-			Body:       string(msg),
-		}, err
-
+			StatusCode: http.StatusNotFound,
+			Body:       string(jsonData),
+		}, nil
 	}
+
+	msg = profileservice.Response{
+		Message: "Successfully Retrieved Profile",
+		Data:    profileData,
+		Status:  200,
+	}
+	jsonData, _ := json.Marshal(msg)
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,

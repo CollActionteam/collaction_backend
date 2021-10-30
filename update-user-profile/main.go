@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/CollActionteam/collaction_backend/profileservice"
@@ -10,24 +11,33 @@ import (
 )
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var msg []byte
 
 	err := profileservice.UpdateProfile(req)
 
 	if err != nil {
+		tmsg := profileservice.Response{
+			Message: fmt.Sprintf("%v", err),
+			Data:    "",
+			Status:  200,
+		}
+		jsonData, _ := json.Marshal(tmsg)
 
-		msg, _ = json.Marshal(map[string]interface{}{"message": "Error Processing Update Request"})
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusBadRequest,
-			Body:       string(msg),
+			Body:       string(jsonData),
 		}, err
 
 	}
 
-	msg, _ = json.Marshal(map[string]interface{}{"message": "profile update successful"})
+	tmsg := profileservice.Response{
+		Message: "profile update successful",
+		Data:    "",
+		Status:  http.StatusBadRequest,
+	}
+	jsonData, _ := json.Marshal(tmsg)
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Body:       string(msg),
+		Body:       string(jsonData),
 	}, nil
 }
 

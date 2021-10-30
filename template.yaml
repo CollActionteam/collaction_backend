@@ -32,15 +32,15 @@ Resources:
   HttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      Auth:
-        Authorizers:
-          FirebaseAuthorizer:
-            IdentitySource: $request.header.Authorization
-            JwtConfiguration:
-              audience:
-                - !Ref FirebaseProjectId
-              issuer: !Sub https://securetoken.google.com/${FirebaseProjectId}
-        DefaultAuthorizer: FirebaseAuthorizer
+      # Auth:
+      #   Authorizers:
+      #     FirebaseAuthorizer:
+      #       IdentitySource: $request.header.Authorization
+      #       JwtConfiguration:
+      #         audience:
+      #           - !Ref FirebaseProjectId
+      #         issuer: !Sub https://securetoken.google.com/${FirebaseProjectId}
+      #   DefaultAuthorizer: FirebaseAuthorizer
       StageName: !Ref Stage
       CorsConfiguration:
         AllowMethods:
@@ -64,8 +64,8 @@ Resources:
             Path: /hello
             Method: get
             ApiId: !Ref HttpApi
-            Auth:
-              Authorizer: "NONE"
+            # Auth:
+            #   Authorizer: "NONE"
 
   ProfilePictureUploadBucket:
     Type: 'AWS::S3::Bucket'
@@ -148,8 +148,8 @@ Resources:
   GetProfileHandlerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: getuserprofile/
-      Handler: getuserprofile
+      CodeUri: get-user-profile/
+      Handler: get-user-profile
       Runtime: go1.x
       Events:
         GetProfileHandler:
@@ -158,8 +158,6 @@ Resources:
             Path: /profile
             Method: get
             ApiId: !Ref HttpApi
-            Auth:
-              Authorizer: "NONE"
       Environment:
         Variables:
           PROFILE_TABLE: !Ref ProfileTable
@@ -171,8 +169,8 @@ Resources:
   CreateProfileHandlerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: createuserprofile/
-      Handler: createuserprofile
+      CodeUri: create-user-profile/
+      Handler: create-user-profile
       Runtime: go1.x
       Events:
         CreateProfileHandler:
@@ -188,20 +186,33 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName:
               !Ref ProfileTable
-      
+  UpdateProfileHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-profile/
+      Handler: update-user-profile
+      Runtime: go1.x
+      Events:
+        UpdateProfileHandler:
+          Type: HttpApi
+          Properties:
+            Path: /profile
+            Method: patch
+            ApiId: !Ref HttpApi
+      Environment:
+        Variables:
+          PROFILE_TABLE: !Ref ProfileTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref ProfileTable
 
   ProfileTable:
-    Type: AWS::DynamoDB::Table
+    Type: AWS::Serverless::SimpleTable
     Properties:
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-      AttributeDefinitions:
-        - AttributeName: UserID
-          AttributeType: S
-      KeySchema:
-        - AttributeName: UserID
-          KeyType: HASH
+      PrimaryKey:
+        Name: userid
+        Type: String
 
   # EmailContactFunction:
   #   Type: AWS::Serverless::Function

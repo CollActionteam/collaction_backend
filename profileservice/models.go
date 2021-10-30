@@ -8,3 +8,9 @@ type Profile struct {
 	Bio         string `json:"bio,omitempty"`
 	Phone       string `json:"phone,omitempty"`
 }
+
+type Response struct {
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+	Status  int         `json:"status"`
+}

@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/mitchellh/mapstructure"
 )
 
 var (
@@ -38,22 +37,22 @@ func UpdateProfile(req events.APIGatewayProxyRequest) (err error) {
 		return err
 	}
 
+	userID := usrInf.UserID()
+
 	err = json.Unmarshal([]byte(req.Body), &profiledata)
 	if err != nil {
 		return err
 	}
 
-	requiredMap := map[string]*dynamodb.AttributeValue{}
+	requiredMap := map[string]string{}
 
-	err = mapstructure.Decode(profiledata, &requiredMap)
-	if err != nil {
-		return err
-	}
+	inrec, _ := json.Marshal(profiledata)
+	json.Unmarshal(inrec, &requiredMap)
 
 	nw := len(requiredMap)
 
 	if nw < 1 {
-		return fmt.Errorf("No user data provided")
+		return fmt.Errorf("no user data provided")
 	}
 
 	var wg sync.WaitGroup
@@ -63,9 +62,7 @@ func UpdateProfile(req events.APIGatewayProxyRequest) (err error) {
 	wrkchan := make(chan error, nw)
 
 	for i, v := range requiredMap {
-		varMap := map[string]*dynamodb.AttributeValue{}
-		varMap[i] = v
-		go UpdateProfileTableItem(i, v, usrInf.UserID(), svc, wrkchan, &wg)
+		go UpdateProfileTableItem(i, v, userID, svc, wrkchan, &wg)
 	}
 
 	go func() {
@@ -86,19 +83,19 @@ func UpdateProfile(req events.APIGatewayProxyRequest) (err error) {
 	return nil
 }
 
-func UpdateProfileTableItem(i string, v *dynamodb.AttributeValue, userID string, svc *dynamodb.DynamoDB, ch chan error, wg *sync.WaitGroup) {
+func UpdateProfileTableItem(i string, v string, userID string, svc *dynamodb.DynamoDB, ch chan error, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":r": {
-				N: aws.String(fmt.Sprintf("%v", v)),
+				S: aws.String(v),
 			},
 		},
 		TableName: aws.String(tablename),
 		Key: map[string]*dynamodb.AttributeValue{
-			"UserID": {
-				N: aws.String(userID),
+			"userid": {
+				S: aws.String(userID),
 			},
 		},
 		ReturnValues:     aws.String("UPDATED_NEW"),
@@ -114,14 +111,14 @@ func UpdateProfileTableItem(i string, v *dynamodb.AttributeValue, userID string,
 	ch <- nil
 }
 
-func GetProfile(req events.APIGatewayProxyRequest) (Profile, error) {
-	var profiledata = Profile{}
+func GetProfile(req events.APIGatewayProxyRequest) (*Profile, error) {
+	var profiledata *Profile
 
 	svc := connDb()
 
 	usrInf, err := auth.ExtractUserInfo(req)
 	if err != nil {
-		return Profile{}, err
+		return nil, err
 	}
 
 	userID := usrInf.UserID()
@@ -129,22 +126,22 @@ func GetProfile(req events.APIGatewayProxyRequest) (Profile, error) {
 	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(tablename),
 		Key: map[string]*dynamodb.AttributeValue{
-			"UserID": {
-				N: aws.String(userID),
+			"userid": {
+				S: aws.String(userID),
 			},
 		},
 	})
 	if err != nil {
-		return Profile{}, err
+		return nil, err
 	}
 
 	if searchResult.Item == nil {
-		return Profile{}, fmt.Errorf("user profile does not exist")
+		return nil, nil
 	}
 
 	err = dynamodbattribute.UnmarshalMap(searchResult.Item, &profiledata)
 	if err != nil {
-		return Profile{}, err
+		return nil, err
 	}
 
 	return profiledata, nil
@@ -160,11 +157,15 @@ func CreateProfile(req events.APIGatewayProxyRequest) error {
 		return err
 	}
 
+	userID := usrInf.UserID()
+	userName := usrInf.Name()
+	userPhoneNumber := usrInf.PhoneNumber()
+
 	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(tablename),
 		Key: map[string]*dynamodb.AttributeValue{
-			"UserID": {
-				N: aws.String(usrInf.UserID()),
+			"userid": {
+				S: aws.String(userID),
 			},
 		},
 	})
@@ -173,7 +174,8 @@ func CreateProfile(req events.APIGatewayProxyRequest) error {
 	}
 
 	if searchResult.Item != nil {
-		return fmt.Errorf("user profile exists")
+		err := fmt.Errorf("user profile exists")
+		return err
 	}
 
 	err = json.Unmarshal([]byte(req.Body), &profiledata)
@@ -181,14 +183,14 @@ func CreateProfile(req events.APIGatewayProxyRequest) error {
 		return err
 	}
 
-	profiledata.UserID = usrInf.UserID()
+	profiledata.UserID = userID
 
 	if profiledata.DisplayName == "" {
-		profiledata.DisplayName = usrInf.Name()
+		profiledata.DisplayName = userName
 	}
 
 	if profiledata.Phone == "" {
-		profiledata.DisplayName = usrInf.PhoneNumber()
+		profiledata.Phone = userPhoneNumber
 	}
 
 	err = InsertItemIntoProfileTable(profiledata, svc)
