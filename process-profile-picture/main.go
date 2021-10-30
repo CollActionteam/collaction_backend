@@ -142,10 +142,11 @@ func handler(e events.S3Event) {
 		}
 
 		// Upload image
+		keyPrefix := os.Getenv("KEY_PREIFX")
 		_, err = clientS3.PutObject(&s3.PutObjectInput{
 			Body:        bytes.NewReader(imgBytes),
 			Bucket:      aws.String(outputBucketName),
-			Key:         aws.String(key),
+			Key:         aws.String(fmt.Sprintf("%s%s", keyPrefix, key)),
 			ContentType: aws.String("image/png"),
 			ACL:         aws.String("public-read"),
 		})
@@ -160,7 +161,9 @@ func handler(e events.S3Event) {
 		// TODO Should it check that the target and source bucket are not the same?
 		key := r.S3.Object.Key
 		if strings.HasSuffix(key, ".png") {
-			process_object(bucketName, key)
+			lastPrefixSeparatorIdx := strings.LastIndex(key, "/")
+			keyWithoutPrefix := key[lastPrefixSeparatorIdx+1:]
+			process_object(bucketName, keyWithoutPrefix)
 		}
 	}
 }
