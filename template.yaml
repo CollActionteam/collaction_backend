@@ -32,15 +32,15 @@ Resources:
   HttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      # Auth:
-      #   Authorizers:
-      #     FirebaseAuthorizer:
-      #       IdentitySource: $request.header.Authorization
-      #       JwtConfiguration:
-      #         audience:
-      #           - !Ref FirebaseProjectId
-      #         issuer: !Sub https://securetoken.google.com/${FirebaseProjectId}
-      #   DefaultAuthorizer: FirebaseAuthorizer
+      Auth:
+        Authorizers:
+          FirebaseAuthorizer:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              audience:
+                - !Ref FirebaseProjectId
+              issuer: !Sub https://securetoken.google.com/${FirebaseProjectId}
+        DefaultAuthorizer: FirebaseAuthorizer
       StageName: !Ref Stage
       CorsConfiguration:
         AllowMethods:
@@ -64,8 +64,8 @@ Resources:
             Path: /hello
             Method: get
             ApiId: !Ref HttpApi
-            # Auth:
-            #   Authorizer: "NONE"
+            Auth:
+              Authorizer: "NONE"
 
   ProfilePictureUploadBucket:
     Type: 'AWS::S3::Bucket'
@@ -145,59 +145,18 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
 
-  GetProfileHandlerFunction:
+  ProfileCRUDFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get-user-profile/
-      Handler: get-user-profile
+      CodeUri: profile-crud/
+      Handler: profile-crud
       Runtime: go1.x
       Events:
-        GetProfileHandler:
+        ProfileCRUDHandler:
           Type: HttpApi
           Properties:
-            Path: /profile
-            Method: get
-            ApiId: !Ref HttpApi
-      Environment:
-        Variables:
-          PROFILE_TABLE: !Ref ProfileTable
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName:
-              !Ref ProfileTable
-
-  CreateProfileHandlerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: create-user-profile/
-      Handler: create-user-profile
-      Runtime: go1.x
-      Events:
-        CreateProfileHandler:
-          Type: HttpApi
-          Properties:
-            Path: /profile
-            Method: post
-            ApiId: !Ref HttpApi
-      Environment:
-        Variables:
-          PROFILE_TABLE: !Ref ProfileTable
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName:
-              !Ref ProfileTable
-  UpdateProfileHandlerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: update-user-profile/
-      Handler: update-user-profile
-      Runtime: go1.x
-      Events:
-        UpdateProfileHandler:
-          Type: HttpApi
-          Properties:
-            Path: /profile
-            Method: patch
+            Path: /profiles/{userID}
+            Method: any
             ApiId: !Ref HttpApi
       Environment:
         Variables:

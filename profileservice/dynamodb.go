@@ -27,12 +27,12 @@ func connDb() (svc *dynamodb.DynamoDB) {
 	return
 }
 
-func UpdateProfile(req events.APIGatewayProxyRequest) (err error) {
+func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 	var profiledata = Profile{}
 
 	svc := connDb()
 
-	usrInf, err := auth.ExtractUserInfo(req)
+	usrInf, err := auth.ExtractUserInfoV2(req)
 	if err != nil {
 		return err
 	}
@@ -111,12 +111,12 @@ func UpdateProfileTableItem(i string, v string, userID string, svc *dynamodb.Dyn
 	ch <- nil
 }
 
-func GetProfile(req events.APIGatewayProxyRequest) (*Profile, error) {
+func GetProfile(req events.APIGatewayV2HTTPRequest) (*Profile, error) {
 	var profiledata *Profile
 
 	svc := connDb()
 
-	usrInf, err := auth.ExtractUserInfo(req)
+	usrInf, err := auth.ExtractUserInfoV2(req)
 	if err != nil {
 		return nil, err
 	}
@@ -147,12 +147,12 @@ func GetProfile(req events.APIGatewayProxyRequest) (*Profile, error) {
 	return profiledata, nil
 }
 
-func CreateProfile(req events.APIGatewayProxyRequest) error {
+func CreateProfile(req events.APIGatewayV2HTTPRequest) error {
 	var profiledata Profile
 
 	svc := connDb()
 
-	usrInf, err := auth.ExtractUserInfo(req)
+	usrInf, err := auth.ExtractUserInfoV2(req)
 	if err != nil {
 		return err
 	}
