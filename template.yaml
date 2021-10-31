@@ -148,6 +148,11 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
 
+  ParticipationStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      ShardCount: 1
+
   ParticipationTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -159,19 +164,30 @@ Resources:
           AttributeType: "S"
         - AttributeName: "crowdactionID"
           AttributeType: "S"
-        - AttributeName: "date"
+        - AttributeName: "timestamp"
           AttributeType: "S"
       KeySchema:
         - AttributeName: "userID"
           KeyType: "HASH"
-        - AttributeName: "date"
+        - AttributeName: "timestamp"
           KeyType: "RANGE"
       GlobalSecondaryIndexes:
+        - IndexName: "participation"
+          KeySchema:
+            - AttributeName: "crowdactionID"
+              KeyType: "HASH"
+            - AttributeName: "userID"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: KEYS_ONLY
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
         - IndexName: "crowdactionParticipants"
           KeySchema:
             - AttributeName: "crowdactionID"
               KeyType: "HASH"
-            - AttributeName: "date"
+            - AttributeName: "timestamp"
               KeyType: "RANGE"
           Projection:
             NonKeyAttributes:
@@ -181,6 +197,34 @@ Resources:
           ProvisionedThroughput:
             ReadCapacityUnits: 5
             WriteCapacityUnits: 5
+
+  ParticipationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: participation/
+      Handler: participation
+      Runtime: go1.x
+      Environment:
+        Variables:
+          PARTICIPATION_TABLE: !Ref ParticipationTable
+          PARTICIPATION_STREAM: !Ref ParticipationStream
+      Events:
+        ChangeParticipation:
+          Type: HttpApi
+          Properties:
+            Path: /{crowdactionID}/participation
+            Method: any
+            ApiId: !Ref HttpApi
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref ParticipationTable
+        - Statement:
+          - Sid: ParticipationStreamPutRecordPolicy
+            Effect: Allow
+            Action:
+            - kinesis:PutRecord
+            Resource: '*'
 
 
   # EmailContactFunction:
