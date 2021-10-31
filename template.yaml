@@ -148,6 +148,41 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
 
+  ParticipationTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      AttributeDefinitions:
+        - AttributeName: "userID"
+          AttributeType: "S"
+        - AttributeName: "crowdactionID"
+          AttributeType: "S"
+        - AttributeName: "date"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "userID"
+          KeyType: "HASH"
+        - AttributeName: "date"
+          KeyType: "RANGE"
+      GlobalSecondaryIndexes:
+        - IndexName: "crowdactionParticipants"
+          KeySchema:
+            - AttributeName: "crowdactionID"
+              KeyType: "HASH"
+            - AttributeName: "date"
+              KeyType: "RANGE"
+          Projection:
+            NonKeyAttributes:
+              - "userID"
+              - "name"
+            ProjectionType: "INCLUDE"
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+
+
   # EmailContactFunction:
   #   Type: AWS::Serverless::Function
   #   Properties:
