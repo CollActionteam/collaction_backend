@@ -69,6 +69,7 @@ func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 
 	for i, v := range requiredMap {
 		if contains(i, skipFields) || v == "" {
+			wg.Done()
 			continue
 		} else {
 			go UpdateProfileTableItem(i, v, userID, svc, wrkchan, &wg)
@@ -89,6 +90,8 @@ func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("!! Done updating profile !!") // TODO remove
 
 	return nil
 }
@@ -116,6 +119,8 @@ func UpdateProfileTableItem(i string, v string, userID string, svc *dynamodb.Dyn
 	if err != nil {
 		ch <- err
 		return
+	} else {
+		fmt.Printf("Set %s=%s for %s\n", i, v, userID) //TODO remove
 	}
 
 	ch <- nil
@@ -196,14 +201,19 @@ func CreateProfile(req events.APIGatewayV2HTTPRequest) error {
 
 	svc := connDb()
 
-	usrInf, err := auth.ExtractUserInfoV2(req)
-	if err != nil {
-		return err
-	}
+	/*
+		usrInf, err := auth.ExtractUserInfoV2(req)
+		if err != nil {
+			return err
+		}
 
-	userID := usrInf.UserID()
-	userName := usrInf.Name()
-	userPhoneNumber := usrInf.PhoneNumber()
+		userID := usrInf.UserID()
+		userName := usrInf.Name()
+		userPhoneNumber := usrInf.PhoneNumber()
+	*/
+	userID := "test123"
+	userName := "Peter Pan"
+	userPhoneNumber := "123 456 789"
 
 	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(tablename),

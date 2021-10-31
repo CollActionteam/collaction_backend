@@ -1,0 +1,20 @@
+{
+    "pathParameters": {
+        "userID": "timothy123"
+    },
+    "requestContext": {
+        "authorizer": {
+            "jwt": {
+                "claims": {
+                    "name": "Peter",
+                    "user_id": "peter789",
+                    "sub": "peter789",
+                    "phone_number": "+31611111111"
+                }
+            }
+        },
+        "http": {
+            "method": "GET"
+        }
+    }
+}
