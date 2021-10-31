@@ -55,50 +55,6 @@ func getProfile(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyRespo
 	}, err
 }
 
-func getProfileByID(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
-	var msg profileservice.Response
-
-	profileData, err := profileservice.GetProfileByID(req)
-	if err != nil {
-		msg = profileservice.Response{
-			Message: "Error Retreiving Profile",
-			Data:    "",
-			Status:  http.StatusInternalServerError,
-		}
-		jsonData, _ := json.Marshal(msg)
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       string(jsonData),
-		}, err
-
-	}
-
-	if profileData == nil {
-		msg = profileservice.Response{
-			Message: "no user Profile found",
-			Data:    "",
-			Status:  404,
-		}
-		jsonData, _ := json.Marshal(msg)
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusNotFound,
-			Body:       string(jsonData),
-		}, nil
-	}
-
-	msg = profileservice.Response{
-		Message: "Successfully Retrieved Profile",
-		Data:    profileData,
-		Status:  200,
-	}
-	jsonData, _ := json.Marshal(msg)
-
-	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Body:       string(jsonData),
-	}, err
-}
-
 func createProfile(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	err := profileservice.CreateProfile(req)
 	if err != nil {
@@ -163,12 +119,7 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse
 	var res events.APIGatewayProxyResponse
 	var err error
 	if method == "get" {
-		if req.PathParameters["userID"] != "" {
-			res, err = getProfileByID(req)
-		} else {
-			res, err = getProfile(req)
-		}
-
+		res, err = getProfile(req)
 	} else if method == "post" {
 		res, err = createProfile(req)
 	} else if method == "put" {

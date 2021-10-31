@@ -123,15 +123,21 @@ func UpdateProfileTableItem(i string, v string, userID string, svc *dynamodb.Dyn
 
 func GetProfile(req events.APIGatewayV2HTTPRequest) (*Profile, error) {
 	var profiledata *Profile
+	var userID string
 
 	svc := connDb()
 
-	usrInf, err := auth.ExtractUserInfoV2(req)
-	if err != nil {
-		return nil, err
-	}
+	idParameter := req.PathParameters["userID"]
+	if idParameter != "" {
+		userID = idParameter
+	} else {
+		usrInf, err := auth.ExtractUserInfoV2(req)
+		if err != nil {
+			return nil, err
+		}
 
-	userID := usrInf.UserID()
+		userID = usrInf.UserID()
+	}
 
 	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(tablename),
@@ -154,38 +160,6 @@ func GetProfile(req events.APIGatewayV2HTTPRequest) (*Profile, error) {
 		return nil, err
 	}
 
-	profiledata.Phone = ""
-
-	return profiledata, nil
-}
-
-func GetProfileByID(req events.APIGatewayV2HTTPRequest) (*Profile, error) {
-	var profiledata *Profile
-
-	svc := connDb()
-
-	userID := req.PathParameters["userID"]
-
-	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{
-		TableName: aws.String(tablename),
-		Key: map[string]*dynamodb.AttributeValue{
-			"userid": {
-				S: aws.String(userID),
-			},
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if searchResult.Item == nil {
-		return nil, nil
-	}
-
-	err = dynamodbattribute.UnmarshalMap(searchResult.Item, &profiledata)
-	if err != nil {
-		return nil, err
-	}
 	profiledata.Phone = ""
 
 	return profiledata, nil
