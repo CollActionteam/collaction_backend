@@ -201,19 +201,14 @@ func CreateProfile(req events.APIGatewayV2HTTPRequest) error {
 
 	svc := connDb()
 
-	/*
-		usrInf, err := auth.ExtractUserInfoV2(req)
-		if err != nil {
-			return err
-		}
+	usrInf, err := auth.ExtractUserInfoV2(req)
+	if err != nil {
+		return err
+	}
 
-		userID := usrInf.UserID()
-		userName := usrInf.Name()
-		userPhoneNumber := usrInf.PhoneNumber()
-	*/
-	userID := "test123"
-	userName := "Peter Pan"
-	userPhoneNumber := "123 456 789"
+	userID := usrInf.UserID()
+	userName := usrInf.Name()
+	userPhoneNumber := usrInf.PhoneNumber()
 
 	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(tablename),

@@ -1,5 +1,5 @@
 {
-    "body": "{\"displayname\": \"Timothy\", \"city\": \"Paris\", \"country\": \"France\", \"bio\": \"I just moved to Europe\"}",
+    "body": "{\"city\": \"Paris\", \"country\": \"France\", \"bio\": \"I just moved to Europe\"}",
     "pathParameters": {
         "userID": "timothy123"
     },
