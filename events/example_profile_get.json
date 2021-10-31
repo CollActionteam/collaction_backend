@@ -1,0 +1,10 @@
+{
+    "pathParameters": {
+        "userID": "timothy123"
+    },
+    "requestContext": {
+        "http": {
+            "method": "GET"
+        }
+    }
+}

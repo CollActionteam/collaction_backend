@@ -33,7 +33,7 @@ func getProfile(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyRespo
 		msg = profileservice.Response{
 			Message: "no user Profile found",
 			Data:    "",
-			Status:  404,
+			Status:  http.StatusNotFound,
 		}
 		jsonData, _ := json.Marshal(msg)
 		return events.APIGatewayProxyResponse{
@@ -45,12 +45,12 @@ func getProfile(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyRespo
 	msg = profileservice.Response{
 		Message: "Successfully Retrieved Profile",
 		Data:    profileData,
-		Status:  200,
+		Status:  http.StatusOK,
 	}
 	jsonData, _ := json.Marshal(msg)
 
 	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
+		StatusCode: http.StatusOK,
 		Body:       string(jsonData),
 	}, err
 }
@@ -74,11 +74,11 @@ func createProfile(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyRe
 	tmsg := profileservice.Response{
 		Message: "Profile Created",
 		Data:    "",
-		Status:  200,
+		Status:  http.StatusCreated,
 	}
 	jsonData, _ := json.Marshal(tmsg)
 	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
+		StatusCode: http.StatusCreated,
 		Body:       string(jsonData),
 	}, nil
 }
@@ -90,7 +90,7 @@ func updateProfile(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyRe
 		tmsg := profileservice.Response{
 			Message: fmt.Sprintf("%v", err),
 			Data:    "",
-			Status:  200,
+			Status:  http.StatusInternalServerError,
 		}
 		jsonData, _ := json.Marshal(tmsg)
 
@@ -104,11 +104,11 @@ func updateProfile(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyRe
 	tmsg := profileservice.Response{
 		Message: "profile update successful",
 		Data:    "",
-		Status:  200,
+		Status:  http.StatusOK,
 	}
 	jsonData, _ := json.Marshal(tmsg)
 	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
+		StatusCode: http.StatusOK,
 		Body:       string(jsonData),
 	}, nil
 }
@@ -127,7 +127,7 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse
 	} else {
 		jsonData, _ := json.Marshal(map[string]interface{}{"message": "Not implemented"})
 		res = events.APIGatewayProxyResponse{
-			StatusCode: 501,
+			StatusCode: http.StatusNotImplemented,
 			Body:       string(jsonData),
 		}
 	}

@@ -69,6 +69,7 @@ func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 
 	for i, v := range requiredMap {
 		if contains(i, skipFields) || v == "" {
+			wg.Done()
 			continue
 		} else {
 			go UpdateProfileTableItem(i, v, userID, svc, wrkchan, &wg)
@@ -89,6 +90,8 @@ func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("!! Done updating profile !!") // TODO remove
 
 	return nil
 }
@@ -116,6 +119,8 @@ func UpdateProfileTableItem(i string, v string, userID string, svc *dynamodb.Dyn
 	if err != nil {
 		ch <- err
 		return
+	} else {
+		fmt.Printf("Set %s=%s for %s\n", i, v, userID) //TODO remove
 	}
 
 	ch <- nil
