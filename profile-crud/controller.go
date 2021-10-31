@@ -1,7 +1,8 @@
-package profileservice
+package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -91,8 +92,6 @@ func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 		return err
 	}
 
-	fmt.Println("!! Done updating profile !!") // TODO remove
-
 	return nil
 }
 
@@ -119,8 +118,6 @@ func UpdateProfileTableItem(i string, v string, userID string, svc *dynamodb.Dyn
 	if err != nil {
 		ch <- err
 		return
-	} else {
-		fmt.Printf("Set %s=%s for %s\n", i, v, userID) //TODO remove
 	}
 
 	ch <- nil
@@ -136,12 +133,7 @@ func GetProfile(req events.APIGatewayV2HTTPRequest) (*Profile, error) {
 	if idParameter != "" {
 		userID = idParameter
 	} else {
-		usrInf, err := auth.ExtractUserInfoV2(req)
-		if err != nil {
-			return nil, err
-		}
-
-		userID = usrInf.UserID()
+		return nil, errors.New("no profile selected")
 	}
 
 	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{

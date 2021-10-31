@@ -1,4 +1,4 @@
-package profileservice
+package main
 
 import (
 	validation "github.com/go-ozzo/ozzo-validation"
