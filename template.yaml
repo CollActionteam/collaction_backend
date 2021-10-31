@@ -165,21 +165,23 @@ Resources:
         - AttributeName: "crowdactionID"
           AttributeType: "S"
         - AttributeName: "timestamp"
-          AttributeType: "S"
+          AttributeType: "N"
       KeySchema:
-        - AttributeName: "userID"
-          KeyType: "HASH"
-        - AttributeName: "timestamp"
-          KeyType: "RANGE"
-      GlobalSecondaryIndexes:
-        - IndexName: "participation"
-          KeySchema:
-            - AttributeName: "crowdactionID"
-              KeyType: "HASH"
             - AttributeName: "userID"
+              KeyType: "HASH"
+            - AttributeName: "crowdactionID"
               KeyType: "RANGE"
+      GlobalSecondaryIndexes:
+        - IndexName: "participantCrowdactions"
+          KeySchema:
+          - AttributeName: "userID"
+            KeyType: "HASH"
+          - AttributeName: "timestamp"
+            KeyType: "RANGE"
           Projection:
-            ProjectionType: KEYS_ONLY
+            NonKeyAttributes:
+              - "crowdactionID"
+            ProjectionType: "INCLUDE"
           ProvisionedThroughput:
             ReadCapacityUnits: 5
             WriteCapacityUnits: 5

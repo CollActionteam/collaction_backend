@@ -15,7 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 )
 
@@ -26,24 +25,18 @@ var (
 
 func doesParticipationExist(dbc *dynamodb.DynamoDB, userID string, crowdactionID string) (bool, error) {
 	var err error
-	keyCond := expression.KeyAnd(
-		expression.Key("userID").Equal(expression.Value(userID)),
-		expression.Key("crowdactionID").Equal(expression.Value(crowdactionID)),
-	)
-	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
-	if err != nil {
-		return false, err
-	}
-	out, err := dbc.Query(&dynamodb.QueryInput{
-		TableName:              &tableName,
-		IndexName:              aws.String("participation"),
-		KeyConditionExpression: expr.KeyCondition(),
+	out, err := dbc.GetItem(&dynamodb.GetItemInput{
+		TableName: &tableName,
+		Key: map[string]*dynamodb.AttributeValue{
+			"userID": {
+				S: aws.String(userID),
+			},
+			"crowdactionID": {
+				S: aws.String(crowdactionID),
+			},
+		},
 	})
-	exists := false
-	if out != nil && out.Count != nil {
-		exists = *out.Count != 1
-	}
-	return exists, err
+	return out.Item != nil, err
 }
 
 func recordEvent(sess *session.Session, userID string, crowdactionID string, count int) error {
@@ -54,8 +47,9 @@ func recordEvent(sess *session.Session, userID string, crowdactionID string, cou
 		Count:         count,
 	})
 	_, err := kc.PutRecord(&kinesis.PutRecordInput{
-		StreamName: &streamName,
-		Data:       json,
+		StreamName:   &streamName,
+		PartitionKey: &crowdactionID,
+		Data:         json,
 	})
 	return err
 }
@@ -95,17 +89,15 @@ func cancelParticipation(userID string, crowdactionID string) error {
 	sess := session.Must(session.NewSession())
 	dbc := dynamodb.New(sess)
 	exists, err := doesParticipationExist(dbc, userID, crowdactionID)
+	if err != nil {
+		return err
+	}
 	if !exists {
-		err = errors.New("not participating")
-	}
-	if err != nil {
-		return err
-	}
-	if err != nil {
-		return err
+		return errors.New("not participating")
 	}
 	_, err = dbc.DeleteItem(&dynamodb.DeleteItemInput{
 		TableName: &tableName,
+
 		Key: map[string]*dynamodb.AttributeValue{
 			"userID": {
 				S: aws.String(userID),
@@ -145,7 +137,7 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse
 	}
 	if err != nil {
 		return events.APIGatewayProxyResponse{
-			Body:       err.Error(),
+			Body:       getResponseBody(err.Error()),
 			StatusCode: http.StatusInternalServerError,
 		}, nil
 	} else {
