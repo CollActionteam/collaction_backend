@@ -53,7 +53,14 @@ curl --location --request PATCH 'http://domain/profiles/{userID}' \
 ## Get
 ### Usage
 ```bash
-curl --location --request GET 'http://domain/profile' \
+curl --location --request GET 'http://domain/profiles/' \
+--header 'Authorization: Bearer my-jwt-here'
+```
+
+or
+
+```bash
+curl --location --request GET 'http://domain/profiles/{userID}' \
 --header 'Authorization: Bearer my-jwt-here'
 ```
 

@@ -6,7 +6,6 @@ import (
 	"os"
 	"sync"
 
-	"github.com/CollActionteam/collaction_backend/auth"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -29,17 +28,24 @@ func connDb() (svc *dynamodb.DynamoDB) {
 
 func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 	var profiledata = Profile{}
+	var skipFields = []string{"userid", "displayname", "phone"}
 
 	svc := connDb()
 
-	usrInf, err := auth.ExtractUserInfoV2(req)
+	// usrInf, err := auth.ExtractUserInfoV2(req)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// userID := usrInf.UserID()
+	userID := "797529429472947"
+
+	err = json.Unmarshal([]byte(req.Body), &profiledata)
 	if err != nil {
 		return err
 	}
 
-	userID := usrInf.UserID()
-
-	err = json.Unmarshal([]byte(req.Body), &profiledata)
+	err = profiledata.ValidateProfileStruct("update")
 	if err != nil {
 		return err
 	}
@@ -62,7 +68,11 @@ func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 	wrkchan := make(chan error, nw)
 
 	for i, v := range requiredMap {
-		go UpdateProfileTableItem(i, v, userID, svc, wrkchan, &wg)
+		if contains(i, skipFields) || v == "" {
+			continue
+		} else {
+			go UpdateProfileTableItem(i, v, userID, svc, wrkchan, &wg)
+		}
 	}
 
 	go func() {
@@ -116,12 +126,13 @@ func GetProfile(req events.APIGatewayV2HTTPRequest) (*Profile, error) {
 
 	svc := connDb()
 
-	usrInf, err := auth.ExtractUserInfoV2(req)
-	if err != nil {
-		return nil, err
-	}
+	// usrInf, err := auth.ExtractUserInfoV2(req)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	userID := usrInf.UserID()
+	// userID := usrInf.UserID()
+	userID := "797529429472947"
 
 	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(tablename),
@@ -144,6 +155,40 @@ func GetProfile(req events.APIGatewayV2HTTPRequest) (*Profile, error) {
 		return nil, err
 	}
 
+	profiledata.Phone = ""
+
+	return profiledata, nil
+}
+
+func GetProfileByID(req events.APIGatewayV2HTTPRequest) (*Profile, error) {
+	var profiledata *Profile
+
+	svc := connDb()
+
+	userID := req.PathParameters["userID"]
+
+	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{
+		TableName: aws.String(tablename),
+		Key: map[string]*dynamodb.AttributeValue{
+			"userid": {
+				S: aws.String(userID),
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if searchResult.Item == nil {
+		return nil, nil
+	}
+
+	err = dynamodbattribute.UnmarshalMap(searchResult.Item, &profiledata)
+	if err != nil {
+		return nil, err
+	}
+	profiledata.Phone = ""
+
 	return profiledata, nil
 }
 
@@ -152,14 +197,17 @@ func CreateProfile(req events.APIGatewayV2HTTPRequest) error {
 
 	svc := connDb()
 
-	usrInf, err := auth.ExtractUserInfoV2(req)
-	if err != nil {
-		return err
-	}
+	// usrInf, err := auth.ExtractUserInfoV2(req)
+	// if err != nil {
+	// 	return err
+	// }
 
-	userID := usrInf.UserID()
-	userName := usrInf.Name()
-	userPhoneNumber := usrInf.PhoneNumber()
+	// userID := usrInf.UserID()
+	// userName := usrInf.Name()
+	// userPhoneNumber := usrInf.PhoneNumber()
+	userID := "797529429472947"
+	userName := "Chigozie"
+	userPhoneNumber := "09036636277"
 
 	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(tablename),
@@ -183,14 +231,16 @@ func CreateProfile(req events.APIGatewayV2HTTPRequest) error {
 		return err
 	}
 
+	err = profiledata.ValidateProfileStruct("create")
+	if err != nil {
+		return err
+	}
+
 	profiledata.UserID = userID
+	profiledata.Phone = userPhoneNumber
 
 	if profiledata.DisplayName == "" {
 		profiledata.DisplayName = userName
-	}
-
-	if profiledata.Phone == "" {
-		profiledata.Phone = userPhoneNumber
 	}
 
 	err = InsertItemIntoProfileTable(profiledata, svc)
@@ -218,4 +268,14 @@ func InsertItemIntoProfileTable(profile Profile, svc *dynamodb.DynamoDB) error {
 	}
 
 	return nil
+}
+
+func contains(v string, a []string) bool {
+	for _, i := range a {
+		if i == v {
+			return true
+		}
+	}
+
+	return false
 }
