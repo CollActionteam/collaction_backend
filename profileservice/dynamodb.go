@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/CollActionteam/collaction_backend/auth"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -32,13 +33,12 @@ func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 
 	svc := connDb()
 
-	// usrInf, err := auth.ExtractUserInfoV2(req)
-	// if err != nil {
-	// 	return err
-	// }
+	usrInf, err := auth.ExtractUserInfoV2(req)
+	if err != nil {
+		return err
+	}
 
-	// userID := usrInf.UserID()
-	userID := "797529429472947"
+	userID := usrInf.UserID()
 
 	err = json.Unmarshal([]byte(req.Body), &profiledata)
 	if err != nil {
@@ -126,13 +126,12 @@ func GetProfile(req events.APIGatewayV2HTTPRequest) (*Profile, error) {
 
 	svc := connDb()
 
-	// usrInf, err := auth.ExtractUserInfoV2(req)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	usrInf, err := auth.ExtractUserInfoV2(req)
+	if err != nil {
+		return nil, err
+	}
 
-	// userID := usrInf.UserID()
-	userID := "797529429472947"
+	userID := usrInf.UserID()
 
 	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(tablename),
@@ -197,17 +196,14 @@ func CreateProfile(req events.APIGatewayV2HTTPRequest) error {
 
 	svc := connDb()
 
-	// usrInf, err := auth.ExtractUserInfoV2(req)
-	// if err != nil {
-	// 	return err
-	// }
+	usrInf, err := auth.ExtractUserInfoV2(req)
+	if err != nil {
+		return err
+	}
 
-	// userID := usrInf.UserID()
-	// userName := usrInf.Name()
-	// userPhoneNumber := usrInf.PhoneNumber()
-	userID := "797529429472947"
-	userName := "Chigozie"
-	userPhoneNumber := "09036636277"
+	userID := usrInf.UserID()
+	userName := usrInf.Name()
+	userPhoneNumber := usrInf.PhoneNumber()
 
 	searchResult, err := svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(tablename),
