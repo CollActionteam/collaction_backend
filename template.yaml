@@ -214,7 +214,7 @@ Resources:
         ChangeParticipation:
           Type: HttpApi
           Properties:
-            Path: /{crowdactionID}/participation
+            Path: /crowdactions/{crowdactionID}/participation
             Method: any
             ApiId: !Ref HttpApi
       Policies:
