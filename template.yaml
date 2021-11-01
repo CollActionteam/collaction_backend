@@ -157,6 +157,36 @@ Resources:
             Bucket: !Ref ProfilePictureUploadBucket
             Events: s3:ObjectCreated:*
 
+  CrowdactionTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: crowdactionID
+        Type: String
+
+  CrowdactionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: crowdaction/
+      Handler: crowdaction
+      Runtime: go1.x
+      Events:
+        FetchCrowdaction:
+          Type: HttpApi
+          Properties:
+            Path: /crowdactions/{crowdactionID}
+            Method: get
+            ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
+      Environment:
+        Variables:
+          CROWDACTION_TABLE: !Ref CrowdactionTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref CrowdactionTable
+
   WhoamiFunction:
     Type: AWS::Serverless::Function
     Properties:

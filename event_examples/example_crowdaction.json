@@ -1,0 +1,10 @@
+{
+  "pathParameters": {
+      "crowdactionID": "veganMonth123"
+  },
+  "requestContext": {
+      "http": {
+          "method": "GET"
+      }
+  }
+}
