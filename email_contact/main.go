@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/mail"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
 const (
@@ -17,7 +19,9 @@ const (
 	charSet = "UTF-8"
 
 	// separator between actual email message and app version
-	separator = "  ### app version: "
+	separator          = "  ### app version: "
+	max_subject_length = 50
+	max_message_length = 500
 )
 
 // BodyRequest is our self-made struct to process JSON request from Client
@@ -28,9 +32,11 @@ type Mail struct {
 	AppVersion string `json:"app_version"`
 }
 
+var sess *session.Session
+
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	sess := session.Must(session.NewSession())
+	sess = session.Must(session.NewSession())
 
 	// Create an SES session.
 	svc := ses.New(sess)
@@ -63,16 +69,41 @@ func buildEmail(r events.APIGatewayProxyRequest) (*ses.SendEmailInput, error) {
 		return nil, err
 	}
 
-	err = valid(bodyRequest.Email)
+	//validate input
+	err = isValid("email", bodyRequest.Email)
 	if err != nil {
 		return nil, err
 	}
+
+	err = isValid("subject", bodyRequest.Subject)
+	if err != nil {
+		return nil, err
+	}
+
+	err = isValid("message", bodyRequest.Message)
+	if err != nil {
+		return nil, err
+	}
+
+	stage := r.RequestContext.Stage
+	if stage == "" {
+		stage = "dev"
+	}
+	paramName := "/collaction/" + stage + "/contact/email"
+	recipient, err := getParameterValue(paramName)
+	if err != nil {
+		return nil, err
+	}
+	if recipient == "" {
+		return nil, errors.New("no email value")
+	}
+	sender := recipient
 
 	return &ses.SendEmailInput{
 		Destination: &ses.Destination{
 			//		CcAddresses: []*string{},
 			ToAddresses: []*string{
-				aws.String(getRecipient()),
+				aws.String(recipient),
 			},
 		},
 		Message: &ses.Message{
@@ -89,27 +120,43 @@ func buildEmail(r events.APIGatewayProxyRequest) (*ses.SendEmailInput, error) {
 				Data:    aws.String(bodyRequest.Subject),
 			},
 		},
-		Source:           aws.String(getSender()),
+		Source:           aws.String(sender),
 		ReplyToAddresses: []*string{aws.String(bodyRequest.Email)},
 	}, nil
 
 }
 
-//email used for sender
-func getSender() string {
-	//TO DO obtain address from the parameter store
-	return "hello@collaction.org"
+func isValid(input string, value string) error {
+
+	switch input {
+	case "email":
+		_, err := mail.ParseAddress(value)
+		return err
+	case "subject":
+		if len(value) > max_subject_length {
+			return errors.New("email subject is more than " + fmt.Sprint(max_subject_length) + " characters")
+		}
+	case "mesage":
+		if len(value) > max_message_length {
+			return errors.New("email message is more than " + fmt.Sprint(max_message_length) + " characters")
+		}
+	}
+
+	return nil
+
 }
 
-//email used for recipient
-func getRecipient() string {
-	//TO DO obtain address from the parameter store
-	return "hello@collaction.org"
-}
+func getParameterValue(paramName string) (string, error) {
 
-func valid(email string) error {
-	_, err := mail.ParseAddress(email)
-	return err
+	ssmsvc := ssm.New(sess)
+	param, err := ssmsvc.GetParameter(&ssm.GetParameterInput{
+		Name: aws.String(paramName),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return *param.Parameter.Value, nil
 }
 
 func main() {
