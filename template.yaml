@@ -68,6 +68,29 @@ Resources:
             Auth:
               Authorizer: "NONE"
 
+  EmailContactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: email_contact/
+      Handler: email_contact
+      Runtime: go1.x
+      Events:
+        Contact:
+          Type: HttpApi
+          Properties:
+            Path: /contact
+            Method: post
+            ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'ses:SendEmail'
+                - 'ses:SendRawEmail'
+              Resource: '*'
   ProfilePictureUploadBucket:
     Type: 'AWS::S3::Bucket'
 
@@ -241,34 +264,6 @@ Resources:
             Action:
             - kinesis:PutRecord
             Resource: '*'
-
-
-  # EmailContactFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     CodeUri: email_contact/
-  #     Handler: app.lambda_handler
-  #     Runtime: python3.7
-  #     Events:
-  #       Contact:
-  #         Type: HttpApi
-  #         Properties:
-  #           Path: /contact
-  #           Method: post
-  #           ApiId: !Ref HttpApi
-  #           Policies:
-  #             - Statement:
-  #               - Sid: SSMGetParameterPolicy
-  #                 Effect: Allow
-  #                 Action:
-  #                 - ssm:GetParameter
-  #                 Resource: '*'
-  #             - Statement:
-  #               - Sid: AuthorizeFromAddress
-  #                 Effect: Allow
-  #                 Action:
-  #                 - ses:SendEmail
-  #                 Resource: '*'
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

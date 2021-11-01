@@ -1,0 +1,3 @@
+{
+    "body": "{\"email\": \"user@example.org\", \"subject\": \"Hello world\", \"message\": \"Please respond to this email :)\",\"app_version\": \"android 1.0.1+1\"}"
+}
