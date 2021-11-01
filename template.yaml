@@ -67,20 +67,44 @@ Resources:
             Auth:
               Authorizer: "NONE"
 
+  EmailContactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: email_contact/
+      Handler: email_contact
+      Runtime: go1.x
+      Events:
+        Contact:
+          Type: HttpApi
+          Properties:
+            Path: /contact
+            Method: post
+            ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'ses:SendEmail'
+                - 'ses:SendRawEmail'
+              Resource: '*'
   ProfilePictureUploadBucket:
     Type: 'AWS::S3::Bucket'
 
-  ProfilePictureBucket:
+  StaticHostingBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
       AccessControl: PublicRead
       WebsiteConfiguration:
-        IndexDocument: anonymous.png
+        IndexDocument: index.html
         RoutingRules:
           - RoutingRuleCondition:
               HttpErrorCodeReturnedEquals: '404'
+              KeyPrefixEquals: profile-pictures/
             RedirectRule:
-              ReplaceKeyWith: anonymous.png
+              ReplaceKeyWith: profile-pictures/anonymous.png
 
   UploadProfilePictureFunction:
     Type: AWS::Serverless::Function
@@ -114,7 +138,8 @@ Resources:
       Environment:
         Variables:
           # Beware of recursive execution! Double check referenced buckets!
-          OUTPUT_BUCKET_NAME: !Ref ProfilePictureBucket
+          OUTPUT_BUCKET_NAME: !Ref StaticHostingBucket
+          KEY_PREIFX: profile-pictures/
       Policies:
         - Statement:
           - Effect: Allow
@@ -172,33 +197,6 @@ Resources:
       PrimaryKey:
         Name: userid
         Type: String
-
-  # EmailContactFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     CodeUri: email_contact/
-  #     Handler: app.lambda_handler
-  #     Runtime: python3.7
-  #     Events:
-  #       Contact:
-  #         Type: HttpApi
-  #         Properties:
-  #           Path: /contact
-  #           Method: post
-  #           ApiId: !Ref HttpApi
-  #           Policies:
-  #             - Statement:
-  #               - Sid: SSMGetParameterPolicy
-  #                 Effect: Allow
-  #                 Action:
-  #                 - ssm:GetParameter
-  #                 Resource: '*'
-  #             - Statement:
-  #               - Sid: AuthorizeFromAddress
-  #                 Effect: Allow
-  #                 Action:
-  #                 - ses:SendEmail
-  #                 Resource: '*'
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
