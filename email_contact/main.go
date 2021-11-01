@@ -136,10 +136,12 @@ func isValid(input string, value string) error {
 		if len(value) > max_subject_length {
 			return errors.New("email subject is more than " + fmt.Sprint(max_subject_length) + " characters")
 		}
-	case "mesage":
+	case "message":
 		if len(value) > max_message_length {
 			return errors.New("email message is more than " + fmt.Sprint(max_message_length) + " characters")
 		}
+	default:
+		return fmt.Errorf("unknown field %s", input)
 	}
 
 	return nil
