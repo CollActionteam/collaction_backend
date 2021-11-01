@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/CollActionteam/collaction_backend/auth"
+	"github.com/CollActionteam/collaction_backend/participation"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -41,7 +42,7 @@ func doesParticipationExist(dbc *dynamodb.DynamoDB, userID string, crowdactionID
 
 func recordEvent(sess *session.Session, userID string, crowdactionID string, count int) error {
 	kc := kinesis.New(sess)
-	json, _ := json.Marshal(ParticipationEvent{
+	json, _ := json.Marshal(participation.ParticipationEvent{
 		UserID:        userID,
 		CrowdactionID: crowdactionID,
 		Count:         count,

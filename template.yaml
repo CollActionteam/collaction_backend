@@ -153,6 +153,20 @@ Resources:
     Properties:
       ShardCount: 1
 
+  AggregateParticipationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: participation/aggregator
+      Handler: aggregator
+      Runtime: go1.x
+      Events:
+        Stream:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt ParticipationStream.Arn
+            BatchSize: 100
+            StartingPosition: LATEST
+
   ParticipationTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -203,8 +217,8 @@ Resources:
   ParticipationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: participation/
-      Handler: participation
+      CodeUri: participation/api
+      Handler: api
       Runtime: go1.x
       Environment:
         Variables:

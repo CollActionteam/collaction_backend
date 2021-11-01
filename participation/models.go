@@ -1,4 +1,4 @@
-package main
+package participation
 
 type ParticipationEvent struct {
 	UserID        string `json:"userID"`
