@@ -56,10 +56,12 @@ func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 	inrec, _ := json.Marshal(profiledata)
 	json.Unmarshal(inrec, &requiredMap)
 
+	DeleteMapProps(requiredMap, skipFields)
+
 	nw := len(requiredMap)
 
 	if nw < 1 {
-		return fmt.Errorf("no user data provided")
+		return fmt.Errorf("no required update field provided")
 	}
 
 	var wg sync.WaitGroup
@@ -69,12 +71,7 @@ func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 	wrkchan := make(chan error, nw)
 
 	for i, v := range requiredMap {
-		if contains(i, skipFields) || v == "" {
-			wg.Done()
-			continue
-		} else {
-			go UpdateProfileTableItem(i, v, userID, svc, wrkchan, &wg)
-		}
+		go UpdateProfileTableItem(i, v, userID, svc, wrkchan, &wg)
 	}
 
 	go func() {
@@ -237,12 +234,8 @@ func InsertItemIntoProfileTable(profile Profile, svc *dynamodb.DynamoDB) error {
 	return nil
 }
 
-func contains(v string, a []string) bool {
-	for _, i := range a {
-		if i == v {
-			return true
-		}
+func DeleteMapProps(m map[string]string, s []string) {
+	for _, v := range s {
+		delete(m, v)
 	}
-
-	return false
 }
