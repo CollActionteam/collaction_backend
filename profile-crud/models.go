@@ -4,6 +4,17 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 )
 
+const (
+	DisplayNameMinimumLength = 2
+	DisplayNameMaximumLength = 20
+	CountryMinimumLength     = 3
+	CountryMaximumLength     = 20
+	CityMinimumLength        = 3
+	CityMaximumLength        = 20
+	BioMinimumLength         = 10
+	BioMaximumLength         = 100
+)
+
 type Profile struct {
 	UserID      string `json:"userid,omitempty"`
 	DisplayName string `json:"displayname,omitempty"`
@@ -22,18 +33,18 @@ type Response struct {
 func (c Profile) ValidateProfileStruct(validateType string) error {
 	if validateType == "create" {
 		return validation.ValidateStruct(&c,
-			validation.Field(&c.DisplayName, validation.Required, validation.Length(1, 20)),
-			validation.Field(&c.Country, validation.Required, validation.Length(1, 20)),
-			validation.Field(&c.City, validation.Required, validation.Length(1, 20)),
-			validation.Field(&c.Bio, validation.Required, validation.Length(1, 100)),
+			validation.Field(&c.DisplayName, validation.Required, validation.Length(DisplayNameMinimumLength, DisplayNameMaximumLength)),
+			validation.Field(&c.Country, validation.Required, validation.Length(CountryMinimumLength, CountryMaximumLength)),
+			validation.Field(&c.City, validation.Required, validation.Length(CityMinimumLength, CityMaximumLength)),
+			validation.Field(&c.Bio, validation.Required, validation.Length(BioMinimumLength, BioMaximumLength)),
 		)
 
 	} else if validateType == "update" {
 		return validation.ValidateStruct(&c,
-			validation.Field(&c.DisplayName, validation.Length(0, 20)),
-			validation.Field(&c.Country, validation.Length(0, 20)),
-			validation.Field(&c.City, validation.Length(0, 20)),
-			validation.Field(&c.Bio, validation.Length(0, 100)),
+			validation.Field(&c.DisplayName, validation.Length(DisplayNameMinimumLength, DisplayNameMaximumLength)),
+			validation.Field(&c.Country, validation.Length(CountryMinimumLength, CountryMaximumLength)),
+			validation.Field(&c.City, validation.Length(CityMinimumLength, CityMaximumLength)),
+			validation.Field(&c.Bio, validation.Length(BioMinimumLength, BioMaximumLength)),
 		)
 	}
 

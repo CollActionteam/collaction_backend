@@ -16,7 +16,7 @@ func getProfile(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyRespo
 	profileData, err := GetProfile(req)
 	if err != nil {
 		msg = Response{
-			Message: "Error Retreiving Profile",
+			Message: "Error Retrieving Profile",
 			Data:    "",
 			Status:  http.StatusInternalServerError,
 		}
@@ -42,7 +42,7 @@ func getProfile(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyRespo
 	}
 
 	msg = Response{
-		Message: "Successfully Retrieved Profile",
+		Message: "Successfully Retrieving Profile",
 		Data:    profileData,
 		Status:  http.StatusOK,
 	}
@@ -117,13 +117,15 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse
 
 	var res events.APIGatewayProxyResponse
 	var err error
-	if method == "get" {
+
+	switch method {
+	case "get":
 		res, err = getProfile(req)
-	} else if method == "post" {
+	case "post":
 		res, err = createProfile(req)
-	} else if method == "put" {
+	case "put":
 		res, err = updateProfile(req)
-	} else {
+	default:
 		jsonData, _ := json.Marshal(map[string]interface{}{"message": "Not implemented"})
 		res = events.APIGatewayProxyResponse{
 			StatusCode: http.StatusNotImplemented,

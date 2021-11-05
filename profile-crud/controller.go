@@ -53,22 +53,29 @@ func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 
 	requiredMap := map[string]string{}
 
-	inrec, _ := json.Marshal(profiledata)
-	json.Unmarshal(inrec, &requiredMap)
+	inrec, err := json.Marshal(profiledata)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(inrec, &requiredMap)
+	if err != nil {
+		return err
+	}
 
 	DeleteMapProps(requiredMap, skipFields)
 
-	nw := len(requiredMap)
+	mapLength := len(requiredMap)
 
-	if nw < 1 {
+	if mapLength < 1 {
 		return fmt.Errorf("no required update field provided")
 	}
 
 	var wg sync.WaitGroup
 
-	wg.Add(nw)
+	wg.Add(mapLength)
 
-	wrkchan := make(chan error, nw)
+	wrkchan := make(chan error, mapLength)
 
 	for i, v := range requiredMap {
 		go UpdateProfileTableItem(i, v, userID, svc, wrkchan, &wg)
