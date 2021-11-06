@@ -179,6 +179,14 @@ Resources:
             ApiId: !Ref HttpApi
             Auth:
               Authorizer: "NONE"
+        FetchCrowdactions:
+          Type: HttpApi
+          Properties:
+            Path: /crowdactions
+            Method: get
+            ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
       Environment:
         Variables:
           CROWDACTION_TABLE: !Ref CrowdactionTable
