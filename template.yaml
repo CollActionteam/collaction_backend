@@ -30,6 +30,34 @@ Parameters:
 
 Resources:
 
+  CloudFrontOriginIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: "origin identity for static content distribution"
+
+  StaticContentDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties: 
+      DistributionConfig:
+        DefaultCacheBehavior:
+          AllowedMethods: [HEAD, DELETE, POST, GET, OPTIONS, PUT, PATCH]
+          TargetOriginId: StaticBucketOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+        Enabled: true
+        Aliases:
+          # TODO load from parameter
+          # - fqdn for static content
+        Origins:
+          - Id: StaticBucketOrigin
+            DomainName: !Sub ${StaticHostingBucket}.s3.${ AWS::Region }.amazonaws.com
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginIdentity}'
+
   HttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
@@ -97,15 +125,16 @@ Resources:
   StaticHostingBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      AccessControl: PublicRead
+      AccessControl: Private
       WebsiteConfiguration:
         IndexDocument: index.html
-        RoutingRules:
-          - RoutingRuleCondition:
-              HttpErrorCodeReturnedEquals: '404'
-              KeyPrefixEquals: profile-pictures/
-            RedirectRule:
-              ReplaceKeyWith: profile-pictures/anonymous.png
+        # TODO does not seem to work
+        # RoutingRules:
+        #   - RoutingRuleCondition:
+        #       HttpErrorCodeReturnedEquals: '403'
+        #       KeyPrefixEquals: profile-pictures/
+        #     RedirectRule:
+        #       ReplaceKeyWith: profile-pictures/anonymous.png
 
   UploadProfilePictureFunction:
     Type: AWS::Serverless::Function
