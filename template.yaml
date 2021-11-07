@@ -18,8 +18,41 @@ Parameters:
       - prod
   FirebaseProjectId:
     Type: String
+  DomainParameter:
+    Type: String
+  SubdomainSuffixParameter:
+    Type: String
+  HostedZoneIdParameter:
+    Type: String
+  AcmCertificateArnParameter:
+    Type: String
+  
 
 Resources:
+
+  StaticDNSRecords: 
+      Type: AWS::Route53::RecordSetGroup
+      Properties:
+        HostedZoneId: !Ref HostedZoneIdParameter
+        RecordSets:
+          - Name: !Sub "static${SubdomainSuffixParameter}.${DomainParameter}"
+            Type: A
+            AliasTarget:
+              HostedZoneId: Z2FDTNDATAQYW2 # Value according to documentation (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-route53.html)
+              DNSName: !GetAtt StaticContentDistribution.DomainName
+
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Sub "*.${DomainParameter}"
+      SubjectAlternativeNames:
+        - !Ref DomainParameter
+        - !Sub "*.${DomainParameter}"
+      DomainValidationOptions:
+        - DomainName: !Ref DomainParameter
+          HostedZoneId:
+            Ref: HostedZoneIdParameter
+      ValidationMethod: DNS
 
   CloudFrontOriginIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
@@ -41,17 +74,26 @@ Resources:
               Forward: none
         Enabled: true
         Aliases:
-          # TODO load from parameter
-          # - fqdn for static content
+          - !Sub "static${SubdomainSuffixParameter}.${DomainParameter}"
         Origins:
           - Id: StaticBucketOrigin
             DomainName: !Sub ${StaticHostingBucket}.s3.${ AWS::Region }.amazonaws.com
             S3OriginConfig:
               OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginIdentity}'
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AcmCertificateArnParameter
+          MinimumProtocolVersion: TLSv1.1_2016
+          SslSupportMethod: sni-only
 
   HttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
+      Domain:
+        DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
+        CertificateArn: !Ref Certificate
+        Route53:
+          HostedZoneId:
+            Ref: HostedZoneIdParameter
       Auth:
         Authorizers:
           FirebaseAuthorizer:
@@ -192,9 +234,12 @@ Resources:
             ApiId: !Ref HttpApi
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  CustomDomainHttpApiHelloWorld:
+    Description: "API Gateway endpoint URL for deployed stage for Hello World function"
+    Value: !Sub "https://api${SubdomainSuffixParameter}.${DomainParameter}/hello"
+  CustomDomainStaticEndpoint:
+    Description: "CloudFront distribution endpoint URL for static files"
+    Value: !Sub "https://static${SubdomainSuffixParameter}.${DomainParameter}/"
   HttpApiHelloWorld:
     Description: "API Gateway endpoint URL for deployed stage for Hello World function"
     Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/hello"
