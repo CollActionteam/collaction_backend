@@ -17,11 +17,21 @@ var (
 	tableName = os.Getenv("CROWDACTION_TABLE")
 )
 
-func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	crowdactionID := req.PathParameters["crowdactionID"]
+////get list of crowd actions
+func getListCrowdaction(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 
-	sess := session.Must(session.NewSession())
-	dbc := dynamodb.New(sess)
+	//no error
+	var body []byte
+	return events.APIGatewayProxyResponse{
+		Body:       string(body),
+		StatusCode: http.StatusOK,
+	}, nil
+}
+
+//get details about a crowd action
+func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+
+	dbc := getDBConnection()
 
 	out, err := dbc.GetItem(&dynamodb.GetItemInput{
 		TableName: &tableName,
@@ -33,7 +43,10 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	})
 
 	if err != nil {
-		body, _ := json.Marshal(map[string]interface{}{"message": err.Error()})
+		body, err := json.Marshal(map[string]interface{}{"message": err.Error()})
+		if err != nil {
+			return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
+		}
 		return events.APIGatewayProxyResponse{
 			Body:       string(body),
 			StatusCode: http.StatusInternalServerError,
@@ -41,7 +54,10 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	}
 
 	if out.Item == nil {
-		body, _ := json.Marshal(map[string]interface{}{"message": "crowdaction does not exist"})
+		body, err := json.Marshal(map[string]interface{}{"message": "crowdaction does not exist"})
+		if err != nil {
+			return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
+		}
 		return events.APIGatewayProxyResponse{
 			Body:       string(body),
 			StatusCode: http.StatusNotFound,
@@ -51,11 +67,38 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	var crowdaction Crowdaction
 	dynamodbattribute.UnmarshalMap(out.Item, &crowdaction)
 
-	body, _ := json.Marshal(map[string]interface{}{"data": crowdaction})
+	body, err := json.Marshal(map[string]interface{}{"data": crowdaction})
+	if err != nil {
+		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
+	}
 	return events.APIGatewayProxyResponse{
 		Body:       string(body),
 		StatusCode: http.StatusOK,
 	}, nil
+
+}
+
+func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+
+	var (
+		resp events.APIGatewayProxyResponse
+		err  error
+	)
+
+	crowdactionID := req.PathParameters["crowdactionID"]
+
+	if crowdactionID == "" {
+		resp, err = getListCrowdaction(req)
+		return resp, err
+	}
+
+	resp, err = getCrowdaction(crowdactionID, req)
+	return resp, err
+}
+
+func getDBConnection() *dynamodb.DynamoDB {
+	sess := session.Must(session.NewSession())
+	return dynamodb.New(sess)
 }
 
 func main() {
