@@ -2,7 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   CollAction backend
-
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 
 Globals:
@@ -258,6 +257,34 @@ Resources:
             Path: /whoami
             Method: get
             ApiId: !Ref HttpApi
+
+  ProfileCRUDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: profile-crud/
+      Handler: profile-crud
+      Runtime: go1.x
+      Events:
+        ProfileCRUDHandler:
+          Type: HttpApi
+          Properties:
+            Path: /profiles/{userID}
+            Method: any
+            ApiId: !Ref HttpApi
+      Environment:
+        Variables:
+          PROFILE_TABLE: !Ref ProfileTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref ProfileTable
+
+  ProfileTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: userid
+        Type: String
 
 Outputs:
   HttpApiHelloWorld:
