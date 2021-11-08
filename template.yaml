@@ -20,29 +20,42 @@ Parameters:
     Type: String
   DomainParameter:
     Type: String
+    Description: "Domain name without subdomains (If this is empty no custom (sub-)domains are set up)"
   SubdomainSuffixParameter:
     Type: String
+    Description: "Suffix to apply to all subdomains within this stack"
   HostedZoneIdParameter:
     Type: String
+    Description: "Hosted Zone Id of the specified domain (Only for custom domain)"
   AcmCertificateArnParameter:
     Type: String
+    Description: "ARN of certificate for CloudFront in region us-east-1 (Only for custom domain)"
   
+Conditions:
+  shouldUseCustomDomainNames: !Not [!Equals [!Ref DomainParameter, ""]]
 
 Resources:
 
-  StaticDNSRecords: 
-      Type: AWS::Route53::RecordSetGroup
-      Properties:
-        HostedZoneId: !Ref HostedZoneIdParameter
-        RecordSets:
-          - Name: !Sub "static${SubdomainSuffixParameter}.${DomainParameter}"
-            Type: A
-            AliasTarget:
-              HostedZoneId: Z2FDTNDATAQYW2 # Value according to documentation (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-route53.html)
-              DNSName: !GetAtt StaticContentDistribution.DomainName
+  DnsRecords: 
+    Type: AWS::Route53::RecordSetGroup
+    Condition: shouldUseCustomDomainNames
+    Properties:
+      HostedZoneId: !Ref HostedZoneIdParameter
+      RecordSets:
+        - Name: !Sub "static${SubdomainSuffixParameter}.${DomainParameter}"
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2 # Fixed value according to documentation (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-route53.html)
+            DNSName: !GetAtt StaticContentDistribution.DomainName
+        - Name: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
+          Type: A
+          AliasTarget:
+            HostedZoneId: !GetAtt HttpApiDomainName.RegionalHostedZoneId
+            DNSName: !GetAtt HttpApiDomainName.RegionalDomainName
 
   Certificate:
     Type: AWS::CertificateManager::Certificate
+    Condition: shouldUseCustomDomainNames
     Properties:
       DomainName: !Sub "*.${DomainParameter}"
       SubjectAlternativeNames:
@@ -56,12 +69,14 @@ Resources:
 
   CloudFrontOriginIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Condition: shouldUseCustomDomainNames
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: "origin identity for static content distribution"
 
   StaticContentDistribution:
     Type: AWS::CloudFront::Distribution
+    Condition: shouldUseCustomDomainNames
     Properties: 
       DistributionConfig:
         DefaultCacheBehavior:
@@ -85,15 +100,28 @@ Resources:
           MinimumProtocolVersion: TLSv1.1_2016
           SslSupportMethod: sni-only
 
+  HttpApiDomainName:
+    Type: AWS::ApiGatewayV2::DomainName
+    Condition: shouldUseCustomDomainNames
+    Properties: 
+      DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
+      DomainNameConfigurations: 
+        - EndpointType: REGIONAL
+          CertificateArn: !Ref Certificate
+
+  HttpApiMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Condition: shouldUseCustomDomainNames
+    Properties: 
+      ApiMappingKey: ""
+      DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
+      ApiId: !Ref HttpApi
+      Stage: !Ref Stage
+    DependsOn: HttpApiDomainName
+
   HttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      Domain:
-        DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
-        CertificateArn: !Ref Certificate
-        Route53:
-          HostedZoneId:
-            Ref: HostedZoneIdParameter
       Auth:
         Authorizers:
           FirebaseAuthorizer:
@@ -105,10 +133,8 @@ Resources:
         DefaultAuthorizer: FirebaseAuthorizer
       StageName: !Ref Stage
       CorsConfiguration:
-        AllowMethods:
-          - GET
-        AllowOrigins:
-          - http://localhost:8080
+        AllowMethods: [GET]
+        AllowOrigins: [http://localhost:8080]
       
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -161,7 +187,7 @@ Resources:
       AccessControl: Private
       WebsiteConfiguration:
         IndexDocument: index.html
-        # TODO does not seem to work
+        # TODO does not seem to work using CloudFront
         # RoutingRules:
         #   - RoutingRuleCondition:
         #       HttpErrorCodeReturnedEquals: '403'
@@ -234,12 +260,14 @@ Resources:
             ApiId: !Ref HttpApi
 
 Outputs:
-  CustomDomainHttpApiHelloWorld:
-    Description: "API Gateway endpoint URL for deployed stage for Hello World function"
-    Value: !Sub "https://api${SubdomainSuffixParameter}.${DomainParameter}/hello"
-  CustomDomainStaticEndpoint:
-    Description: "CloudFront distribution endpoint URL for static files"
-    Value: !Sub "https://static${SubdomainSuffixParameter}.${DomainParameter}/"
   HttpApiHelloWorld:
     Description: "API Gateway endpoint URL for deployed stage for Hello World function"
     Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/hello"
+  CustomDomainHttpApiHelloWorld:
+    Condition: shouldUseCustomDomainNames
+    Description: "API Gateway endpoint URL for deployed stage for Hello World function"
+    Value: !Sub "https://api${SubdomainSuffixParameter}.${DomainParameter}/hello"
+  CustomDomainStaticEndpoint:
+    Condition: shouldUseCustomDomainNames
+    Description: "CloudFront distribution endpoint URL for static files"
+    Value: !Sub "https://static${SubdomainSuffixParameter}.${DomainParameter}/"
