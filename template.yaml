@@ -158,11 +158,25 @@ Resources:
             Events: s3:ObjectCreated:*
 
   CrowdactionTable:
-    Type: AWS::Serverless::SimpleTable
+    Type: AWS::DynamoDB::Table
     Properties:
+      TableName: CrowdactionTable
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
       PrimaryKey:
         Name: crowdactionID
         Type: String
+      AttributeDefinitions:
+        - AttributeName: crowdactionID
+          AttributeType: S
+        - AttributeName: start_date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: crowdactionID
+          KeyType: HASH
+        - AttributeName: start_date
+          KeyType: RANGE
 
   CrowdactionFunction:
     Type: AWS::Serverless::Function

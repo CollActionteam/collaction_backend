@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -19,8 +21,39 @@ var (
 
 ////get list of crowd actions
 func getListCrowdaction(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	//TO DO
+	dbc := dynamodbClient()
 
-	//no error
+	//https://dynobase.dev/dynamodb-golang-query-examples/#query
+
+	//scan vs query
+
+	_, err := dbc.Query(&dynamodb.QueryInput{
+		TableName:              aws.String("CrowdactionTable"),
+		KeyConditionExpression: aws.String("crowdactionID = :hashKey and start_datte > :rangeKey"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":hashKey":  &types.AttributeValueMemberS{Value: "123"},
+			":rangeKey": &types.AttributeValueMemberN{Value: "20150101"},
+		},
+	})
+	if err != nil {
+		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
+	}
+
+	out, err := dbc.Scan(&dynamodb.ScanInput{
+		TableName:        aws.String("CrowdactionTable"),
+		FilterExpression: aws.String("attribute_not_exists(deletedAt) AND contains(firstName, :firstName)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":firstName": &types.AttributeValueMemberS{Value: "John"},
+		},
+	})
+	if err != nil {
+		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
+	}
+
+	fmt.Println(out.Items)
+
+	//no error if we are here
 	var body []byte
 	return events.APIGatewayProxyResponse{
 		Body:       string(body),
@@ -31,7 +64,7 @@ func getListCrowdaction(req events.APIGatewayV2HTTPRequest) (events.APIGatewayPr
 //get details about a crowd action
 func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 
-	dbc := getDBConnection()
+	dbc := dynamodbClient()
 
 	out, err := dbc.GetItem(&dynamodb.GetItemInput{
 		TableName: &tableName,
@@ -96,7 +129,7 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse
 	return resp, err
 }
 
-func getDBConnection() *dynamodb.DynamoDB {
+func dynamodbClient() *dynamodb.DynamoDB {
 	sess := session.Must(session.NewSession())
 	return dynamodb.New(sess)
 }
