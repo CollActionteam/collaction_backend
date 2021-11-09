@@ -24,8 +24,7 @@ var (
 	streamName = os.Getenv("PARTICIPATION_STREAM")
 )
 
-func doesParticipationExist(dbc *dynamodb.DynamoDB, userID string, crowdactionID string) (bool, error) {
-	var err error
+func getParticipation(dbc *dynamodb.DynamoDB, userID string, crowdactionID string) (*participation.ParticipationRecord, error) {
 	out, err := dbc.GetItem(&dynamodb.GetItemInput{
 		TableName: &tableName,
 		Key: map[string]*dynamodb.AttributeValue{
@@ -37,17 +36,26 @@ func doesParticipationExist(dbc *dynamodb.DynamoDB, userID string, crowdactionID
 			},
 		},
 	})
-	return out.Item != nil, err
+	if out.Item == nil || err != nil {
+		return nil, err
+	}
+	var r participation.ParticipationRecord
+	err = dynamodbattribute.UnmarshalMap(out.Item, r)
+	return &r, err
 }
 
-func recordEvent(sess *session.Session, userID string, crowdactionID string, count int) error {
+func recordEvent(sess *session.Session, userID string, crowdactionID string, commitmentID string, count int) error {
 	kc := kinesis.New(sess)
-	json, _ := json.Marshal(participation.ParticipationEvent{
+	json, err := json.Marshal(participation.ParticipationEvent{
 		UserID:        userID,
 		CrowdactionID: crowdactionID,
+		CommitmentID:  commitmentID,
 		Count:         count,
 	})
-	_, err := kc.PutRecord(&kinesis.PutRecordInput{
+	if err != nil {
+		return err
+	}
+	_, err = kc.PutRecord(&kinesis.PutRecordInput{
 		StreamName:   &streamName,
 		PartitionKey: &crowdactionID,
 		Data:         json,
@@ -55,22 +63,23 @@ func recordEvent(sess *session.Session, userID string, crowdactionID string, cou
 	return err
 }
 
-func registerParticipation(userID string, name string, crowdactionID string) error {
-	var err error
+func registerParticipation(userID string, name string, crowdactionID string, commitmentID string) error {
+	// TODO check if commitmentID exists for crowdaction (Blocked by CAN-72)
 	sess := session.Must(session.NewSession())
 	dbc := dynamodb.New(sess)
-	exists, err := doesParticipationExist(dbc, userID, crowdactionID)
-	if exists {
+	part, err := getParticipation(dbc, userID, crowdactionID)
+	if part != nil {
 		err = errors.New("already participating")
 	}
 	if err != nil {
 		return err
 	}
-	av, err := dynamodbattribute.MarshalMap(map[string]interface{}{
-		"userID":        userID,
-		"name":          name,
-		"crowdactionID": crowdactionID,
-		"timestamp":     time.Now().Unix(),
+	av, err := dynamodbattribute.MarshalMap(participation.ParticipationRecord{
+		UserID:        userID,
+		Name:          name,
+		CrowdactionID: crowdactionID,
+		CommitmentID:  commitmentID,
+		Timestamp:     time.Now().Unix(),
 	})
 	if err != nil {
 		return err
@@ -80,20 +89,19 @@ func registerParticipation(userID string, name string, crowdactionID string) err
 		Item:      av,
 	})
 	if err == nil {
-		err = recordEvent(sess, userID, crowdactionID, +1)
+		err = recordEvent(sess, userID, crowdactionID, commitmentID, +1)
 	}
 	return err
 }
 
 func cancelParticipation(userID string, crowdactionID string) error {
-	var err error
 	sess := session.Must(session.NewSession())
 	dbc := dynamodb.New(sess)
-	exists, err := doesParticipationExist(dbc, userID, crowdactionID)
+	part, err := getParticipation(dbc, userID, crowdactionID)
 	if err != nil {
 		return err
 	}
-	if !exists {
+	if part == nil {
 		return errors.New("not participating")
 	}
 	_, err = dbc.DeleteItem(&dynamodb.DeleteItemInput{
@@ -109,12 +117,13 @@ func cancelParticipation(userID string, crowdactionID string) error {
 		},
 	})
 	if err == nil {
-		err = recordEvent(sess, userID, crowdactionID, -1)
+		err = recordEvent(sess, userID, crowdactionID, part.CommitmentID, -1)
 	}
 	return err
 }
 
 func getResponseBody(msg string) string {
+	// "Cannot go wrong"
 	json, _ := json.Marshal(map[string]interface{}{"message": msg})
 	return string(json)
 }
@@ -122,11 +131,16 @@ func getResponseBody(msg string) string {
 func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	method := strings.ToLower(req.RequestContext.HTTP.Method)
 	crowdactionID := req.PathParameters["crowdactionID"]
-	var err error
+	// TODO check if crowdaction exists (Blocked by CAN-72)
+	// TODO check if crowdaction is open for participation/leave (Blocked by CAN-72)
 	usrInf, err := auth.ExtractUserInfoV2(req)
 	if err == nil {
 		if method == "post" {
-			err = registerParticipation(usrInf.UserID(), usrInf.Name(), crowdactionID)
+			var payload participation.JoinPayload
+			err = json.Unmarshal([]byte(req.Body), &payload)
+			if err == nil {
+				err = registerParticipation(usrInf.UserID(), usrInf.Name(), crowdactionID, payload.CommitmentID)
+			}
 		} else if method == "delete" {
 			err = cancelParticipation(usrInf.UserID(), crowdactionID)
 		} else {

@@ -1,4 +1,5 @@
 {
+  "body": "{\"commitmentID\": \"2-veggie\"}",
   "pathParameters": {
       "crowdactionID": "veganMonth123"
   },
