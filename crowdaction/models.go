@@ -5,6 +5,6 @@ type Crowdaction struct {
 	Title            string `json:"title,omitempty"`
 	DescriptionShort string `json:"description_short,omitempty"`
 	DescriptionLong  string `json:"description_long,omitempty"`
-	StartDate        string `json:"start_date,omitempty"`
-	EndDate          string `json:"end_date,omitempty"`
+	StartDate        int  `json:"start_date,omitempty"`
+	EndDate          int `json:"end_date,omitempty"`
 }
