@@ -258,6 +258,100 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
 
+  ParticipationStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      ShardCount: 5
+
+  AggregateParticipationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: participation/aggregator
+      Handler: aggregator
+      Runtime: go1.x
+      Events:
+        Stream:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt ParticipationStream.Arn
+            BatchSize: 100
+            StartingPosition: LATEST
+
+  ParticipationTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      AttributeDefinitions:
+        - AttributeName: "userID"
+          AttributeType: "S"
+        - AttributeName: "crowdactionID"
+          AttributeType: "S"
+        - AttributeName: "timestamp"
+          AttributeType: "N"
+      KeySchema:
+            - AttributeName: "userID"
+              KeyType: "HASH"
+            - AttributeName: "crowdactionID"
+              KeyType: "RANGE"
+      GlobalSecondaryIndexes:
+        - IndexName: "participantCrowdactions"
+          KeySchema:
+          - AttributeName: "userID"
+            KeyType: "HASH"
+          - AttributeName: "timestamp"
+            KeyType: "RANGE"
+          Projection:
+            NonKeyAttributes:
+              - "crowdactionID"
+            ProjectionType: "INCLUDE"
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+        - IndexName: "crowdactionParticipants"
+          KeySchema:
+            - AttributeName: "crowdactionID"
+              KeyType: "HASH"
+            - AttributeName: "timestamp"
+              KeyType: "RANGE"
+          Projection:
+            NonKeyAttributes:
+              - "userID"
+              - "name"
+            ProjectionType: "INCLUDE"
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+
+  ParticipationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: participation/endpoint
+      Handler: endpoint
+      Runtime: go1.x
+      Environment:
+        Variables:
+          PARTICIPATION_TABLE: !Ref ParticipationTable
+          PARTICIPATION_STREAM: !Ref ParticipationStream
+      Events:
+        ChangeParticipation:
+          Type: HttpApi
+          Properties:
+            Path: /crowdactions/{crowdactionID}/participation
+            Method: any
+            ApiId: !Ref HttpApi
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref ParticipationTable
+        - Statement:
+          - Sid: ParticipationStreamPutRecordPolicy
+            Effect: Allow
+            Action:
+            - kinesis:PutRecord
+            Resource: '*'
+            
   ProfileCRUDFunction:
     Type: AWS::Serverless::Function
     Properties:
