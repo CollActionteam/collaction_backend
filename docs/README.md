@@ -1,6 +1,8 @@
 # CollAction backend
 Built using [AWS SAM](https://github.com/aws/serverless-application-model).
 
+An interactive documentation of the API can be found [here](https://editor.swagger.io/?url=https://raw.githubusercontent.com/CollActionteam/collaction_backend/development/docs/api.yml).
+
 ## Dependencies
 * SAM CLI - [Install the SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 * [Go installed](https://golang.org/doc/install)
