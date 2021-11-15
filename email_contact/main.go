@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/mail"
+	"regexp"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -17,11 +18,12 @@ import (
 const (
 	// character encoding for the email.
 	charSet = "UTF-8"
-
 	// separator between actual email message and app version
 	separator          = "  ### app version: "
 	max_subject_length = 50
 	max_message_length = 500
+	//valid app version
+	expr = "^(?:ios|android) [0-9]+\\.[0-9]+\\.[0-9]+\\+[0-9]+$"
 )
 
 // BodyRequest is our self-made struct to process JSON request from Client
@@ -47,15 +49,16 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 400}, nil
 	}
 
-	// Attempt to send the email.
-	result, err := svc.SendEmail(input)
+	// attempt to send the email.
+	_, err = svc.SendEmail(input)
 	if err != nil {
-		fmt.Println(err.Error())
+		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 400}, nil
 	}
 
+	msg, _ := json.Marshal(map[string]string{"message": "message sent successfully"})
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Body:       *result.MessageId,
+		Body:       string(msg),
 	}, nil
 }
 
@@ -81,6 +84,11 @@ func buildEmail(r events.APIGatewayProxyRequest) (*ses.SendEmailInput, error) {
 	}
 
 	err = isValid("message", bodyRequest.Message)
+	if err != nil {
+		return nil, err
+	}
+
+	err = isValid("app", bodyRequest.AppVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -139,6 +147,11 @@ func isValid(input string, value string) error {
 	case "message":
 		if len(value) > max_message_length {
 			return errors.New("email message is more than " + fmt.Sprint(max_message_length) + " characters")
+		}
+	case "app":
+		valid, _ := regexp.MatchString(expr, value)
+		if !valid {
+			return errors.New(value + " app version is not correct")
 		}
 	default:
 		return fmt.Errorf("unknown field %s", input)

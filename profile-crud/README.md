@@ -69,12 +69,10 @@ curl --location --request GET 'http://domain/profiles/{userID}' \
 {
     "message": "Successfully Retrieved Profile",
     "data": {
-        "userid": "id",
         "displayname": "name",
         "country": "country",
         "city": "city",
-        "bio": "bio",
-        "phone": "phone number"
+        "bio": "bio"
     },
     "status": 200
 }

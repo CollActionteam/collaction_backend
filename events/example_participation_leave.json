@@ -1,0 +1,20 @@
+{
+  "pathParameters": {
+      "crowdactionID": "veganMonth123"
+  },
+  "requestContext": {
+      "authorizer": {
+          "jwt": {
+              "claims": {
+                  "name": "Timothy",
+                  "user_id": "timothy123",
+                  "sub": "timothy123",
+                  "phone_number": "+31612345678"
+              }
+          }
+      },
+      "http": {
+          "method": "DELETE"
+      }
+  }
+}
