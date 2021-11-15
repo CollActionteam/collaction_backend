@@ -16,6 +16,7 @@ An interactive documentation of the API can be found [here](https://editor.swagg
 - `process-profile-picture/` - Lambda function for moderating uploaded profile pictures and making them public. 
 - `upload-profile-picture/` - Lambda function for generating an upload URL for the profile picture. 
 - `whoami/` - Example Lambda for authenticating Firebase users. 
+- `profile-crud/` - Lambda function for creating, reading, and updating profile information
 - `template.yaml` - A template that defines the application's AWS resources.
 
 For additional information, refer to `README.md` files in these directories.

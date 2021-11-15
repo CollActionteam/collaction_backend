@@ -161,7 +161,7 @@ func GetProfile(req events.APIGatewayV2HTTPRequest) (*Profile, error) {
 		return nil, err
 	}
 
-	profiledata.Phone = ""
+	profiledata.Phone, profiledata.UserID = "", ""
 
 	return profiledata, nil
 }
