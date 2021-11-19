@@ -10,10 +10,10 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	msg := "no user info was extracted"
 	statusCode := 400
-	usrInf, err := auth.ExtractUserInfo(request)
+	usrInf, err := auth.ExtractUserInfoV2(request)
 	if err != nil {
 		msg = err.Error()
 	} else if usrInf != nil {
