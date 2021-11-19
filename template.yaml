@@ -160,23 +160,39 @@ Resources:
   CrowdactionTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: CrowdactionTable
+      TableName: Crowdaction
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
-      PrimaryKey:
-        Name: crowdactionID
-        Type: String
       AttributeDefinitions:
-        - AttributeName: crowdactionID
-          AttributeType: S
-        - AttributeName: start_date
-          AttributeType: S
+        -
+          AttributeName: "pk"
+          AttributeType: "S"
+        -
+          AttributeName: "sk"
+          AttributeType: "S"
+        -
+          AttributeName: "code"
+          AttributeType: "S"
       KeySchema:
-        - AttributeName: crowdactionID
-          KeyType: HASH
-        - AttributeName: start_date
-          KeyType: RANGE
+        -
+          AttributeName: "pk"
+          KeyType: "HASH"
+        -
+          AttributeName: "sk"
+          KeyType: "RANGE"
+      LocalSecondaryIndexes:
+        -
+          IndexName: "LSI_code"
+          KeySchema:
+            -
+              AttributeName: "pk"
+              KeyType: "HASH"
+            -
+              AttributeName: "code"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: ALL
 
   CrowdactionFunction:
     Type: AWS::Serverless::Function
@@ -230,3 +246,6 @@ Outputs:
   HttpApiHelloWorld:
     Description: "API Gateway endpoint URL for deployed stage for Hello World function"
     Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/hello"
+  TableName:
+    Value: !Ref  CrowdactionTable
+    Description: Table name of the newly created DynamoDB table
