@@ -11,7 +11,7 @@ samconfig.toml
 *.so
 *.dylibaz
 events/example_whoami.json
-archive.txt
+_ignored/
 # Test binary, built with `go test -c`
 *.test
 
