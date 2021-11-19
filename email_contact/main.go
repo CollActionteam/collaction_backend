@@ -36,7 +36,7 @@ type Mail struct {
 
 var sess *session.Session
 
-func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 
 	sess = session.Must(session.NewSession())
 
@@ -62,7 +62,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	}, nil
 }
 
-func buildEmail(r events.APIGatewayProxyRequest) (*ses.SendEmailInput, error) {
+func buildEmail(r events.APIGatewayV2HTTPRequest) (*ses.SendEmailInput, error) {
 
 	var bodyRequest Mail
 

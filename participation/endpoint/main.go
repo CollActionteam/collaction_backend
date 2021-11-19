@@ -133,7 +133,7 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse
 	crowdactionID := req.PathParameters["crowdactionID"]
 	// TODO check if crowdaction exists (Blocked by CAN-72)
 	// TODO check if crowdaction is open for participation/leave (Blocked by CAN-72)
-	usrInf, err := auth.ExtractUserInfoV2(req)
+	usrInf, err := auth.ExtractUserInfo(req)
 	if err == nil {
 		if method == "post" {
 			var payload participation.JoinPayload
