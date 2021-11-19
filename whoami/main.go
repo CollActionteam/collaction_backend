@@ -13,7 +13,7 @@ import (
 func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	msg := "no user info was extracted"
 	statusCode := 400
-	usrInf, err := auth.ExtractUserInfoV2(request)
+	usrInf, err := auth.ExtractUserInfo(request)
 	if err != nil {
 		msg = err.Error()
 	} else if usrInf != nil {
