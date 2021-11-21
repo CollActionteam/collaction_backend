@@ -181,18 +181,18 @@ Resources:
         -
           AttributeName: "sk"
           KeyType: "RANGE"
-      LocalSecondaryIndexes:
-        -
-          IndexName: "LSI_code"
-          KeySchema:
-            -
-              AttributeName: "pk"
-              KeyType: "HASH"
-            -
-              AttributeName: "code"
-              KeyType: "RANGE"
-          Projection:
-            ProjectionType: ALL
+      # LocalSecondaryIndexes:
+      #   -
+      #     IndexName: "LSI_code"
+      #     KeySchema:
+      #       -
+      #         AttributeName: "pk"
+      #         KeyType: "HASH"
+      #       -
+      #         AttributeName: "code"
+      #         KeyType: "RANGE"
+      #     Projection:
+      #       ProjectionType: ALL
 
   CrowdactionFunction:
     Type: AWS::Serverless::Function
