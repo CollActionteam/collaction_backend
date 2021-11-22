@@ -73,7 +73,8 @@ func getListCrowdaction(req events.APIGatewayV2HTTPRequest, status string) (even
 			sk = ""
 		case "joinable":
 			pk = prefixPKcrowdaction_date_limit_join + date
-			sk = dateCurrent.Format(dateFormat)
+			//add one day so the result includes the crowdactions starting on the current day as well
+			sk = dateCurrent.AddDate(0, 0, 1).Format(dateFormat)
 		}
 		//get items for a partition key
 		result, err := getItems(pk, sk)
@@ -176,39 +177,6 @@ func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (e
 
 }
 
-func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
-
-	var (
-		resp events.APIGatewayProxyResponse
-		err  error
-	)
-
-	dbClient = dynamodbClient()
-
-	crowdactionID := req.PathParameters["crowdactionID"]
-
-	if crowdactionID == "" {
-		status := req.QueryStringParameters["status"]
-
-		switch status {
-		case "":
-			status = "joinable" //kind of default
-		case "featured":
-			status = "joinable" //for the time being
-		case "joinable", "active", "ended":
-		default:
-			err := errors.New("unrecognizable status value")
-			return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 400}, nil
-		}
-
-		resp, err = getListCrowdaction(req, status)
-		return resp, err
-	}
-
-	resp, err = getCrowdaction(crowdactionID, req)
-	return resp, err
-}
-
 func dynamodbClient() *dynamodb.DynamoDB {
 	sess := session.Must(session.NewSession())
 	return dynamodb.New(sess)
@@ -242,14 +210,14 @@ func getItem(val string) (*dynamodb.GetItemOutput, error) {
 
 func getItems(pk, sk string) (*dynamodb.QueryOutput, error) {
 
+	var keyCond expression.KeyConditionBuilder
+
 	if sk == "" {
-		keyCond := expression.KeyAnd(
-			expression.Key("pk").Equal(expression.Value(pk))
-		)
+		keyCond = expression.Key("pk").Equal(expression.Value(pk))
 	} else {
-		keyCond := expression.KeyAnd(
+		keyCond = expression.KeyAnd(
 			expression.Key("pk").Equal(expression.Value(pk)),
-			expression.Key("sk").LessThanEqual(expression.Value(sk)),
+			expression.Key("sk").LessThan(expression.Value(sk)),
 		)
 	}
 
@@ -281,6 +249,39 @@ func getItems(pk, sk string) (*dynamodb.QueryOutput, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+
+	var (
+		resp events.APIGatewayProxyResponse
+		err  error
+	)
+
+	dbClient = dynamodbClient()
+
+	crowdactionID := req.PathParameters["crowdactionID"]
+
+	if crowdactionID == "" {
+		status := req.QueryStringParameters["status"]
+
+		switch status {
+		case "":
+			status = "joinable" //kind of default
+		case "featured":
+			status = "joinable" //for the time being
+		case "joinable", "active", "ended":
+		default:
+			err := errors.New("unrecognizable status value")
+			return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 400}, nil
+		}
+
+		resp, err = getListCrowdaction(req, status)
+		return resp, err
+	}
+
+	resp, err = getCrowdaction(crowdactionID, req)
+	return resp, err
 }
 
 func main() {

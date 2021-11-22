@@ -8,9 +8,6 @@ Description: >
 Globals:
   Function:
     Timeout: 10
-    Environment:
-      Variables:
-        LOCAL_RESOURCES_ONLY: !Ref LocalResourcesOnly
 
 Parameters:
   Stage:
@@ -19,16 +16,107 @@ Parameters:
     AllowedValues:
       - dev
       - prod
-  LocalResourcesOnly:
-    Type: String
-    Default: 'false'
-    AllowedValues:
-      - 'true'
-      - 'false'
   FirebaseProjectId:
     Type: String
+  DomainParameter:
+    Type: String
+    Description: "Domain name without subdomains (If this is empty no custom (sub-)domains are set up)"
+  SubdomainSuffixParameter:
+    Type: String
+    Description: "Suffix to apply to all subdomains within this stack"
+  HostedZoneIdParameter:
+    Type: String
+    Description: "Hosted Zone Id of the specified domain (Only for custom domain)"
+  AcmCertificateArnParameter:
+    Type: String
+    Description: "ARN of certificate for CloudFront in region us-east-1 (Only for custom domain)"
 
+Conditions:
+  shouldUseCustomDomainNames: !Not [!Equals [!Ref DomainParameter, ""]]
 Resources:
+
+  DnsRecords:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: shouldUseCustomDomainNames
+    Properties:
+      HostedZoneId: !Ref HostedZoneIdParameter
+      RecordSets:
+        - Name: !Sub "static${SubdomainSuffixParameter}.${DomainParameter}"
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2 # Fixed value according to documentation (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-route53.html)
+            DNSName: !GetAtt StaticContentDistribution.DomainName
+        - Name: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
+          Type: A
+          AliasTarget:
+            HostedZoneId: !GetAtt HttpApiDomainName.RegionalHostedZoneId
+            DNSName: !GetAtt HttpApiDomainName.RegionalDomainName
+
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Condition: shouldUseCustomDomainNames
+    Properties:
+      DomainName: !Sub "*.${DomainParameter}"
+      SubjectAlternativeNames:
+        - !Ref DomainParameter
+        - !Sub "*.${DomainParameter}"
+      DomainValidationOptions:
+        - DomainName: !Ref DomainParameter
+          HostedZoneId:
+            Ref: HostedZoneIdParameter
+      ValidationMethod: DNS
+
+  CloudFrontOriginIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Condition: shouldUseCustomDomainNames
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: "origin identity for static content distribution"
+
+  StaticContentDistribution:
+    Type: AWS::CloudFront::Distribution
+    Condition: shouldUseCustomDomainNames
+    Properties:
+      DistributionConfig:
+        DefaultCacheBehavior:
+          AllowedMethods: [HEAD, DELETE, POST, GET, OPTIONS, PUT, PATCH]
+          TargetOriginId: StaticBucketOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+        Enabled: true
+        Aliases:
+          - !Sub "static${SubdomainSuffixParameter}.${DomainParameter}"
+        Origins:
+          - Id: StaticBucketOrigin
+            DomainName: !Sub ${StaticHostingBucket}.s3.${ AWS::Region }.amazonaws.com
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginIdentity}'
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AcmCertificateArnParameter
+          MinimumProtocolVersion: TLSv1.1_2016
+          SslSupportMethod: sni-only
+
+  HttpApiDomainName:
+    Type: AWS::ApiGatewayV2::DomainName
+    Condition: shouldUseCustomDomainNames
+    Properties:
+      DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
+      DomainNameConfigurations:
+        - EndpointType: REGIONAL
+          CertificateArn: !Ref Certificate
+
+  HttpApiMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Condition: shouldUseCustomDomainNames
+    Properties:
+      ApiMappingKey: ""
+      DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
+      ApiId: !Ref HttpApi
+      Stage: !Ref Stage
+    DependsOn: HttpApiDomainName
 
   HttpApi:
     Type: AWS::Serverless::HttpApi
@@ -48,7 +136,7 @@ Resources:
           - GET
         AllowOrigins:
           - http://localhost:8080
-      
+
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -160,7 +248,6 @@ Resources:
   CrowdactionTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: Crowdaction
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
@@ -170,9 +257,6 @@ Resources:
           AttributeType: "S"
         -
           AttributeName: "sk"
-          AttributeType: "S"
-        -
-          AttributeName: "code"
           AttributeType: "S"
       KeySchema:
         -
@@ -240,12 +324,17 @@ Resources:
             ApiId: !Ref HttpApi
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   HttpApiHelloWorld:
     Description: "API Gateway endpoint URL for deployed stage for Hello World function"
     Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/hello"
+  CustomDomainHttpApiHelloWorld:
+    Condition: shouldUseCustomDomainNames
+    Description: "API Gateway endpoint URL for deployed stage for Hello World function"
+    Value: !Sub "https://api${SubdomainSuffixParameter}.${DomainParameter}/hello"
+  CustomDomainStaticEndpoint:
+    Condition: shouldUseCustomDomainNames
+    Description: "CloudFront distribution endpoint URL for static files"
+    Value: !Sub "https://static${SubdomainSuffixParameter}.${DomainParameter}/"
   TableName:
     Value: !Ref  CrowdactionTable
     Description: Table name of the newly created DynamoDB table
