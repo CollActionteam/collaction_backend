@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	msg := "no user info was extracted"
 	statusCode := http.StatusBadRequest
 	usrInf, err := auth.ExtractUserInfo(req)

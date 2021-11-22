@@ -2,7 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   CollAction backend
-
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 
 Globals:
@@ -13,6 +12,7 @@ Parameters:
   Stage:
     Type: String
     Default: dev
+    NoEcho: true
     AllowedValues:
       - dev
       - prod
@@ -20,22 +20,29 @@ Parameters:
     Type: String
   DomainParameter:
     Type: String
+    NoEcho: true
     Description: "Domain name without subdomains (If this is empty no custom (sub-)domains are set up)"
   SubdomainSuffixParameter:
     Type: String
+    NoEcho: true
     Description: "Suffix to apply to all subdomains within this stack"
   HostedZoneIdParameter:
     Type: String
+    NoEcho: true
     Description: "Hosted Zone Id of the specified domain (Only for custom domain)"
   AcmCertificateArnParameter:
     Type: String
+    NoEcho: true
     Description: "ARN of certificate for CloudFront in region us-east-1 (Only for custom domain)"
+  
+Conditions:
+  shouldUseCustomDomainNames: !Not [!Equals [!Ref DomainParameter, ""]]
 
 Conditions:
   shouldUseCustomDomainNames: !Not [!Equals [!Ref DomainParameter, ""]]
 Resources:
 
-  DnsRecords:
+  DnsRecords: 
     Type: AWS::Route53::RecordSetGroup
     Condition: shouldUseCustomDomainNames
     Properties:
@@ -76,7 +83,7 @@ Resources:
   StaticContentDistribution:
     Type: AWS::CloudFront::Distribution
     Condition: shouldUseCustomDomainNames
-    Properties:
+    Properties: 
       DistributionConfig:
         DefaultCacheBehavior:
           AllowedMethods: [HEAD, DELETE, POST, GET, OPTIONS, PUT, PATCH]
@@ -102,16 +109,16 @@ Resources:
   HttpApiDomainName:
     Type: AWS::ApiGatewayV2::DomainName
     Condition: shouldUseCustomDomainNames
-    Properties:
+    Properties: 
       DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
-      DomainNameConfigurations:
+      DomainNameConfigurations: 
         - EndpointType: REGIONAL
           CertificateArn: !Ref Certificate
 
   HttpApiMapping:
     Type: AWS::ApiGatewayV2::ApiMapping
     Condition: shouldUseCustomDomainNames
-    Properties:
+    Properties: 
       ApiMappingKey: ""
       DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
       ApiId: !Ref HttpApi
@@ -132,11 +139,9 @@ Resources:
         DefaultAuthorizer: FirebaseAuthorizer
       StageName: !Ref Stage
       CorsConfiguration:
-        AllowMethods:
-          - GET
-        AllowOrigins:
-          - http://localhost:8080
-
+        AllowMethods: [GET]
+        AllowOrigins: [http://localhost:8080]
+  
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -185,15 +190,16 @@ Resources:
   StaticHostingBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      AccessControl: PublicRead
+      AccessControl: Private
       WebsiteConfiguration:
         IndexDocument: index.html
-        RoutingRules:
-          - RoutingRuleCondition:
-              HttpErrorCodeReturnedEquals: '404'
-              KeyPrefixEquals: profile-pictures/
-            RedirectRule:
-              ReplaceKeyWith: profile-pictures/anonymous.png
+        # TODO does not seem to work using CloudFront
+        # RoutingRules:
+        #   - RoutingRuleCondition:
+        #       HttpErrorCodeReturnedEquals: '403'
+        #       KeyPrefixEquals: profile-pictures/
+        #     RedirectRule:
+        #       ReplaceKeyWith: profile-pictures/anonymous.png
 
   UploadProfilePictureFunction:
     Type: AWS::Serverless::Function
@@ -322,6 +328,128 @@ Resources:
             Path: /whoami
             Method: get
             ApiId: !Ref HttpApi
+
+  ParticipationStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      ShardCount: 5
+
+  AggregateParticipationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: participation/aggregator
+      Handler: aggregator
+      Runtime: go1.x
+      Events:
+        Stream:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt ParticipationStream.Arn
+            BatchSize: 100
+            StartingPosition: LATEST
+
+  ParticipationTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      AttributeDefinitions:
+        - AttributeName: "userID"
+          AttributeType: "S"
+        - AttributeName: "crowdactionID"
+          AttributeType: "S"
+        - AttributeName: "timestamp"
+          AttributeType: "N"
+      KeySchema:
+            - AttributeName: "userID"
+              KeyType: "HASH"
+            - AttributeName: "crowdactionID"
+              KeyType: "RANGE"
+      GlobalSecondaryIndexes:
+        - IndexName: "participantCrowdactions"
+          KeySchema:
+          - AttributeName: "userID"
+            KeyType: "HASH"
+          - AttributeName: "timestamp"
+            KeyType: "RANGE"
+          Projection:
+            NonKeyAttributes:
+              - "crowdactionID"
+            ProjectionType: "INCLUDE"
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+        - IndexName: "crowdactionParticipants"
+          KeySchema:
+            - AttributeName: "crowdactionID"
+              KeyType: "HASH"
+            - AttributeName: "timestamp"
+              KeyType: "RANGE"
+          Projection:
+            NonKeyAttributes:
+              - "userID"
+              - "name"
+            ProjectionType: "INCLUDE"
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+
+  ParticipationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: participation/endpoint
+      Handler: endpoint
+      Runtime: go1.x
+      Environment:
+        Variables:
+          PARTICIPATION_TABLE: !Ref ParticipationTable
+          PARTICIPATION_STREAM: !Ref ParticipationStream
+      Events:
+        ChangeParticipation:
+          Type: HttpApi
+          Properties:
+            Path: /crowdactions/{crowdactionID}/participation
+            Method: any
+            ApiId: !Ref HttpApi
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref ParticipationTable
+        - Statement:
+          - Sid: ParticipationStreamPutRecordPolicy
+            Effect: Allow
+            Action:
+            - kinesis:PutRecord
+            Resource: '*'
+            
+  ProfileCRUDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: profile-crud/
+      Handler: profile-crud
+      Runtime: go1.x
+      Events:
+        ProfileCRUDHandler:
+          Type: HttpApi
+          Properties:
+            Path: /profiles/{userID}
+            Method: any
+            ApiId: !Ref HttpApi
+      Environment:
+        Variables:
+          PROFILE_TABLE: !Ref ProfileTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref ProfileTable
+
+  ProfileTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: userid
+        Type: String
 
 Outputs:
   HttpApiHelloWorld:

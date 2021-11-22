@@ -13,5 +13,6 @@ The following repository secrets are used by GitHub workflows:
 |---|---|
 |`AWS_ACCESS_KEY_ID`|The AWS access key for the CI user.|
 |`AWS_SAMCONFIG_DEV`|The base64 encoded `samconfig.toml` used for deployments to `dev`|
+|`AWS_SAMCONFIG_PROD`|The base64 encoded `samconfig.toml` used for deployments to `prod`|
 |`AWS_SECRET_ACCESS_KEY`|The AWS secret access key for the CI user.|
 
