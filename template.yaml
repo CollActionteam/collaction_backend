@@ -12,22 +12,28 @@ Parameters:
   Stage:
     Type: String
     Default: dev
+    NoEcho: true
     AllowedValues:
       - dev
       - prod
   FirebaseProjectId:
     Type: String
+    NoEcho: true
   DomainParameter:
     Type: String
+    NoEcho: true
     Description: "Domain name without subdomains (If this is empty no custom (sub-)domains are set up)"
   SubdomainSuffixParameter:
     Type: String
+    NoEcho: true
     Description: "Suffix to apply to all subdomains within this stack"
   HostedZoneIdParameter:
     Type: String
+    NoEcho: true
     Description: "Hosted Zone Id of the specified domain (Only for custom domain)"
   AcmCertificateArnParameter:
     Type: String
+    NoEcho: true
     Description: "ARN of certificate for CloudFront in region us-east-1 (Only for custom domain)"
   
 Conditions:
