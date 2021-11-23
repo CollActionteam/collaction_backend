@@ -41,7 +41,7 @@ func getUploadUrl(ext string, userID string) (string, error) {
 	return str, nil
 }
 
-func handler(ctx context.Context, req events.APIGatewayProxyRequest) (res events.APIGatewayProxyResponse, err error) {
+func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (res events.APIGatewayProxyResponse, err error) {
 
 	// This is to recover from a "invalid memory address or nil pointer dereference: errorString" runtime error
 	// when the endpoint is called without valid auth token

@@ -24,19 +24,22 @@ func (usrInf userInfo) PhoneNumber() string {
 	return usrInf.phoneNumber
 }
 
-func ExtractUserInfo(request events.APIGatewayProxyRequest) (usrInf *userInfo, err error) {
+func extractUserInfoFromClaims(claims map[string]string) (usrInf *userInfo) {
+	usrInf = &userInfo{}
+	usrInf.userID = claims["user_id"]
+	usrInf.name = claims["name"]
+	usrInf.phoneNumber = claims["phone_number"]
+	return
+}
+
+func ExtractUserInfo(req events.APIGatewayV2HTTPRequest) (usrInf *userInfo, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = errors.New("could not extract user info from request")
 			usrInf = nil
 		}
 	}()
-	if authJWT, hasAuthJWT := request.RequestContext.Authorizer["jwt"]; hasAuthJWT {
-		claims := authJWT.(map[string]interface{})["claims"].(map[string]interface{})
-		usrInf = &userInfo{}
-		usrInf.userID = claims["user_id"].(string)
-		usrInf.name = claims["name"].(string)
-		usrInf.phoneNumber = claims["phone_number"].(string)
-	}
+	claims := req.RequestContext.Authorizer.JWT.Claims
+	usrInf = extractUserInfoFromClaims(claims)
 	return
 }
