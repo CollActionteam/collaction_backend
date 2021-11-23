@@ -88,17 +88,22 @@ func getListCrowdaction(req events.APIGatewayV2HTTPRequest, status string) (even
 		}
 	}
 
-	if mapErr != nil {
+	if len(mapErr) > 0 {
 		e := pkError{}
 		for k, v := range mapErr {
 			e.Pk = k
 			e.Err = v.Error()
-			jsonErr, _ := json.Marshal(e)
-			errors = append(errors, string(jsonErr))
+			jsonErr, err := json.Marshal(e)
+			if err != nil {
+				errors = append(errors, err.Error())
+			} else {
+				errors = append(errors, string(jsonErr))
+			}
 		}
 
 		body := "[" + strings.Join(errors, ",") + "]"
-		return events.APIGatewayProxyResponse{Body: body, StatusCode: http.StatusBadRequest}, nil
+		return events.APIGatewayProxyResponse{Body: body, StatusCode: http.StatusInternalServerError}, nil
+
 	}
 
 	if items == nil {
@@ -117,11 +122,11 @@ func getListCrowdaction(req events.APIGatewayV2HTTPRequest, status string) (even
 			if err != nil {
 				return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
 			}
-			c, err := json.Marshal(map[string]interface{}{"data": crowdaction})
+			action, err := json.Marshal(map[string]interface{}{"data": crowdaction})
 			if err != nil {
 				return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
 			}
-			listCrowdaction = append(listCrowdaction, string(c))
+			listCrowdaction = append(listCrowdaction, string(action))
 		}
 	}
 	body := "[" + strings.Join(listCrowdaction, ",") + "]"
