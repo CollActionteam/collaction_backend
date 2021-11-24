@@ -19,6 +19,9 @@ import (
 
 const (
 
+	//do not send back the code/password, just an indication it's needed
+	codeRequired = "yes"
+
 	//date format
 	dateFormat = "20060102"
 
@@ -51,7 +54,7 @@ var (
 	dbClient  *dynamodb.DynamoDB
 )
 
-////get list of crowd actions
+//get list of crowd actions
 func getListCrowdaction(req events.APIGatewayV2HTTPRequest, status string) (events.APIGatewayProxyResponse, error) {
 
 	var pk, sk string
@@ -122,6 +125,9 @@ func getListCrowdaction(req events.APIGatewayV2HTTPRequest, status string) (even
 			if err != nil {
 				return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
 			}
+			if crowdaction.PasswordJoin != "" {
+				crowdaction.PasswordJoin = codeRequired
+			}
 			action, err := json.Marshal(map[string]interface{}{"data": crowdaction})
 			if err != nil {
 				return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
@@ -170,7 +176,9 @@ func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (e
 	if err != nil {
 		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
 	}
-
+	if crowdaction.PasswordJoin != "" {
+		crowdaction.PasswordJoin = codeRequired
+	}
 	body, err := json.Marshal(map[string]interface{}{"data": crowdaction})
 	if err != nil {
 		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
@@ -231,17 +239,6 @@ func getItems(pk, sk string) (*dynamodb.QueryOutput, error) {
 		return nil, err
 	}
 
-	/*
-			input := &dynamodb.QueryInput{
-				ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-					":action_end": {S: aws.String(pk)},
-				},
-				KeyConditionExpression: aws.String("pk = :action_end"), aws.String("sk = :action_end"),
-				TableName: &tableName,
-			}
-		}
-	*/
-
 	input := &dynamodb.QueryInput{
 		TableName:                 &tableName,
 		ExpressionAttributeNames:  expr.Names(),
@@ -278,7 +275,7 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse
 		case "joinable", "active", "ended":
 		default:
 			err := errors.New("unrecognizable status value")
-			return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 400}, nil
+			return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
 		}
 
 		resp, err = getListCrowdaction(req, status)

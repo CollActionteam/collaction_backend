@@ -286,7 +286,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      
+  
   schemas:
     Email:
       type: object
@@ -320,4 +320,3 @@ components:
         bio:
           type: string
           example: "Hi, I am Max and I am trying to eat less meat to stop animal suffering."
-          

@@ -10,5 +10,5 @@ type Crowdaction struct {
 	DateStart     string `json:"date_start,omitempty"`
 	DateEnd       string `json:"date_end,omitempty"`
 	DateLimitJoin string `json:"date_limit_join,omitempty"`
-	Code          string `json:"code,omitempty"`
+	PasswordJoin  string `json:"code,omitempty"`
 }
