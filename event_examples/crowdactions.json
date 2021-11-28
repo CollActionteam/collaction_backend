@@ -1,0 +1,10 @@
+{
+    "requestContext": {
+        "http": {
+            "method": "GET"
+        }
+    },
+    "queryStringParameters": {
+        "status": "active"
+    }
+}

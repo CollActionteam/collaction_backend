@@ -140,7 +140,7 @@ Resources:
       CorsConfiguration:
         AllowMethods: [GET]
         AllowOrigins: [http://localhost:8080]
-      
+  
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -249,6 +249,58 @@ Resources:
           Properties:
             Bucket: !Ref ProfilePictureUploadBucket
             Events: s3:ObjectCreated:*
+
+  CrowdactionTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      AttributeDefinitions:
+        -
+          AttributeName: "pk"
+          AttributeType: "S"
+        -
+          AttributeName: "sk"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "pk"
+          KeyType: "HASH"
+        -
+          AttributeName: "sk"
+          KeyType: "RANGE"
+
+  CrowdactionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: crowdaction/
+      Handler: crowdaction
+      Runtime: go1.x
+      Events:
+        FetchCrowdaction:
+          Type: HttpApi
+          Properties:
+            Path: /crowdactions/{crowdactionID}
+            Method: get
+            ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
+        FetchCrowdactions:
+          Type: HttpApi
+          Properties:
+            Path: /crowdactions
+            Method: get
+            ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
+      Environment:
+        Variables:
+          CROWDACTION_TABLE: !Ref CrowdactionTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref CrowdactionTable
 
   WhoamiFunction:
     Type: AWS::Serverless::Function
@@ -398,3 +450,6 @@ Outputs:
     Condition: shouldUseCustomDomainNames
     Description: "CloudFront distribution endpoint URL for static files"
     Value: !Sub "https://static${SubdomainSuffixParameter}.${DomainParameter}/"
+  TableName:
+    Value: !Ref  CrowdactionTable
+    Description: Table name of the newly created DynamoDB table

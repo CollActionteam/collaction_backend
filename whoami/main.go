@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/CollActionteam/collaction_backend/auth"
 
@@ -10,15 +11,15 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	msg := "no user info was extracted"
-	statusCode := 400
-	usrInf, err := auth.ExtractUserInfo(request)
+	statusCode := http.StatusBadRequest
+	usrInf, err := auth.ExtractUserInfo(req)
 	if err != nil {
 		msg = err.Error()
 	} else if usrInf != nil {
 		msg = fmt.Sprintf("your name is %s, your user id is %s and your phone number is %s", usrInf.Name(), usrInf.UserID(), usrInf.PhoneNumber())
-		statusCode = 200
+		statusCode = http.StatusOK
 	}
 	body, _ := json.Marshal(map[string]interface{}{"message": msg})
 	return events.APIGatewayProxyResponse{
