@@ -1,5 +1,6 @@
 package main
 
+// TODO for later: Use different model between database and api (PasswordJoin vs. IsPasswordRequired)
 type Crowdaction struct {
 	CrowdactionID string `json:"crowdactionID,omitempty"`
 	Title         string `json:"title,omitempty"`
@@ -10,5 +11,5 @@ type Crowdaction struct {
 	DateStart     string `json:"date_start,omitempty"`
 	DateEnd       string `json:"date_end,omitempty"`
 	DateLimitJoin string `json:"date_limit_join,omitempty"`
-	PasswordJoin  string `json:"code,omitempty"`
+	PasswordJoin  string `json:"password_join,omitempty"`
 }

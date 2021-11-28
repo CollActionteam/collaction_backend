@@ -20,7 +20,7 @@ import (
 const (
 
 	//do not send back the code/password, just an indication it's needed
-	codeRequired = "yes"
+	passwordRequired = "required"
 
 	//date format
 	dateFormat = "20060102"
@@ -126,7 +126,7 @@ func getListCrowdaction(req events.APIGatewayV2HTTPRequest, status string) (even
 				return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
 			}
 			if crowdaction.PasswordJoin != "" {
-				crowdaction.PasswordJoin = codeRequired
+				crowdaction.PasswordJoin = passwordRequired
 			}
 			action, err := json.Marshal(map[string]interface{}{"data": crowdaction})
 			if err != nil {
@@ -177,7 +177,7 @@ func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (e
 		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
 	}
 	if crowdaction.PasswordJoin != "" {
-		crowdaction.PasswordJoin = codeRequired
+		crowdaction.PasswordJoin = passwordRequired
 	}
 	body, err := json.Marshal(map[string]interface{}{"data": crowdaction})
 	if err != nil {
