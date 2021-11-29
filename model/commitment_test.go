@@ -19,10 +19,12 @@ var (
                     "label": "vegetarian",
                     "requires": [
                         {
-                            "label": "pescatarian"
-                        },
-                        {
-                            "label": "no beef"
+                            "label": "pescatarian",
+							"requires": [
+								{
+									"label": "no beef"
+								}
+							]
                         }
                     ]
                 },
