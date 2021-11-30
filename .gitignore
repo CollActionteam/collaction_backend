@@ -12,6 +12,9 @@ samconfig.toml
 *.dylibaz
 events/example_whoami.json
 
+# Other files (use this if you want to make backups or store private notes/scripts/etc.)
+_ignored/
+
 # Test binary, built with `go test -c`
 *.test
 

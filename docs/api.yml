@@ -1,0 +1,436 @@
+openapi: "3.0.1"
+info:
+  title: "collaction-dev"
+  version: "1.0"
+servers:
+- url: "https://api{subdomainSuffix}.{domain}/"
+  variables:
+    subdomainSuffix:
+      default: "-dev"
+    domain:
+      default: "example.org"
+
+paths:
+  /crowdactions/{crowdactionID}:
+    get:
+      tags:
+        - "Crowdaction"
+      summary: "Get details of a specific crowdaction"
+      parameters:
+        - name: "crowdactionID"
+          in: "path"
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: "Crowdaction details"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Crowdaction'
+        404:
+          description: "Crowdaction not found"
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "crowdaction does not exist"
+        500:
+          description: "Internal server error"
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "error"
+
+  /crowdactions:
+    get:
+      tags:
+        - "Crowdaction"
+      summary: "Get list of crowdactions"
+      parameters:
+        - name: "status"
+          in: "query"
+          required: false
+          schema:
+            type: string
+            enum: ["featured", "joinable", "active", "ended"]
+      responses:
+        default:
+          description: "List of crowdactions"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Crowdaction'
+        404:
+          description: "No active crowdaction found"
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "no active crowdactions found"
+        500:
+          description: "Multiple internal server errors"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  example: error
+
+  /crowdactions/{crowdactionID}/participation:
+    delete:
+      tags:
+        - "Crowdaction"
+      summary: "Stop participating in a particular crowdaction"
+      parameters:
+      - name: "crowdactionID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        default:
+          description: "Success message"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "updated"
+        500:
+          description: "Error message"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "not participating"
+      security:
+      - FirebaseAuthorizer: []
+    post:
+      tags:
+        - "Crowdaction"
+      summary: "Participate in a particular crowdaction"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                commitmentID:
+                  type: string
+      parameters:
+      - name: "crowdactionID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        default:
+          description: "Success message"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "updated"
+        500:
+          description: "Error message"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "already participating"
+      security:
+      - FirebaseAuthorizer: []
+  /profiles/{userID}:
+    post:
+      tags:
+        - "Profile"
+      summary: "Create a profile for a new user"
+      parameters:
+      - name: "userID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profile'
+      responses:
+        default:
+          description: "Profile was created successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    default: "Profile Created"
+                  data:
+                    type: string
+                    default: ""
+                  status:
+                    type: integer
+                    default: 200
+      security:
+      - FirebaseAuthorizer: []
+    put:
+      tags:
+        - "Profile"
+      summary: "Update the profile of an existing user"
+      parameters:
+      - name: "userID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profile'
+      security:
+      - FirebaseAuthorizer: []
+      responses:
+        default:
+          description: "Profile was updated successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    default: "profile update successful"
+                  data:
+                    type: string
+                    default: ""
+                  status:
+                    type: integer
+                    default: 200
+    get:
+      tags:
+        - "Profile"
+      summary: "View the profile of a user"
+      parameters:
+      - name: "userID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        default:
+          description: "Profile was found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    default: "Successfully Retrieved Profile"
+                  data:
+                    type: object
+                    properties:
+                      userid:
+                        type: string
+                        format: uuid
+                      displayname:
+                        type: string
+                        example: "Max Murphy"
+                      country:
+                        type: string
+                        example: "The Netherlands"
+                      city:
+                        type: string
+                        example: "Amsterdam"
+                      bio:
+                        type: string
+                        example: "Hi, I am Max and I am trying to eat less meat to stop animal suffering."
+                      phone:
+                        type: string
+                        example: +31612345678
+                  status:
+                    type: integer
+                    default: 200
+        404:
+          description: "Profile was not found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    default: "no user Profile found"
+                  data:
+                    type: string
+                    default: ""
+                  status:
+                    type: integer
+                    default: 404
+  /hello:
+    get:
+      tags:
+        - "Testing/Development"
+      deprecated: true
+      summary: "May be used to test if the endpoint can be reached (will be removed in the future!)"
+      responses:
+        default:
+          description: ""
+  /upload-profile-picture:
+    get:
+      tags:
+        - "Profile"
+      summary: "Fetch an upload URL (POST) for the profile picture"
+      responses:
+        default:
+          description: "Returns the URL where to upload (PUT) the square png image (250-1024px)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  upload_url:
+                    type: string
+                    format: uri
+      security:
+      - FirebaseAuthorizer: []
+  /whoami:
+    get:
+      tags:
+        - "Testing/Development"
+      deprecated: true
+      summary: "May be used to test if JWT authentication works (will be removed in the future!)"
+      responses:
+        default:
+          description: "Returns the claims that have been extracted from the JWT"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "your name is Max, your user id is 1234 and your phone number is +31612345678"
+      security:
+      - FirebaseAuthorizer: []
+  /contact:
+    post:
+      tags:
+        - "Other"
+      summary: "Send a message to CollAction"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Email'
+      responses:
+        default:
+          description: "The status code indicates if the message was successfully sent"
+        
+components:
+  securitySchemes:
+    FirebaseAuthorizer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    Email:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Email address to which the response to the inquiry should be sent
+          format: email
+        subject:
+          type: string
+          example: "Hello world"
+        message:
+          type: string
+          example: "Please respond to this email :)"
+        app_version:
+          type: string
+          pattern: '^(?:ios|android) [0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
+          example: "android 1.0.1+1"
+    Profile:
+      type: object
+      properties:
+        displayname:
+          type: string
+          example: "Max Murphy"
+        country:
+          type: string
+          example: "The Netherlands"
+        city:
+          type: string
+          example: "Amsterdam"
+        bio:
+          type: string
+          example: "Hi, I am Max and I am trying to eat less meat to stop animal suffering."
+    Crowdaction:
+      type: object
+      properties: 
+        crowdactionID:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        subcategory:
+          type: string
+        location:
+          type: string
+          example: "NL:Amsterdam"
+        date_start:
+          type: string
+          pattern: \d{4}-\d{2}-\d{2}
+          example: "2021-11-28"
+        date_end:
+          type: string
+          pattern: \d{4}-\d{2}-\d{2}
+          example: "2021-11-28"
+        date_limit_join:
+          type: string
+          pattern: \d{4}-\d{2}-\d{2}
+          example: "2021-11-28"
+        password_join:
+          description: Password or 'required' to indicate that a password is required
+          type: string

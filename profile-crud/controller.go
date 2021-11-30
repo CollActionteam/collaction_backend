@@ -34,7 +34,7 @@ func UpdateProfile(req events.APIGatewayV2HTTPRequest) (err error) {
 
 	svc := connDb()
 
-	usrInf, err := auth.ExtractUserInfoV2(req)
+	usrInf, err := auth.ExtractUserInfo(req)
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func GetProfile(req events.APIGatewayV2HTTPRequest) (*Profile, error) {
 		return nil, err
 	}
 
-	profiledata.Phone = ""
+	profiledata.Phone, profiledata.UserID = "", ""
 
 	return profiledata, nil
 }
@@ -171,7 +171,7 @@ func CreateProfile(req events.APIGatewayV2HTTPRequest) error {
 
 	svc := connDb()
 
-	usrInf, err := auth.ExtractUserInfoV2(req)
+	usrInf, err := auth.ExtractUserInfo(req)
 	if err != nil {
 		return err
 	}

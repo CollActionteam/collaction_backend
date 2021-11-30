@@ -1,6 +1,8 @@
 # CollAction backend
 Built using [AWS SAM](https://github.com/aws/serverless-application-model).
 
+An interactive documentation of the API can be found [here](https://editor.swagger.io/?url=https://raw.githubusercontent.com/CollActionteam/collaction_backend/development/docs/api.yml).
+
 ## Dependencies
 * SAM CLI - [Install the SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 * [Go installed](https://golang.org/doc/install)
@@ -14,6 +16,7 @@ Built using [AWS SAM](https://github.com/aws/serverless-application-model).
 - `process-profile-picture/` - Lambda function for moderating uploaded profile pictures and making them public. 
 - `upload-profile-picture/` - Lambda function for generating an upload URL for the profile picture. 
 - `whoami/` - Example Lambda for authenticating Firebase users. 
+- `profile-crud/` - Lambda function for creating, reading, and updating profile information
 - `template.yaml` - A template that defines the application's AWS resources.
 
 For additional information, refer to `README.md` files in these directories.
