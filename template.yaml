@@ -324,7 +324,7 @@ Resources:
   AggregateParticipationsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: participation/aggregator
+      CodeUri: controllers/participation/aggregator
       Handler: aggregator
       Runtime: go1.x
       Events:
@@ -385,13 +385,14 @@ Resources:
   ParticipationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: participation/endpoint
+      CodeUri: controllers/participation/endpoint
       Handler: endpoint
       Runtime: go1.x
       Environment:
         Variables:
           PARTICIPATION_TABLE: !Ref ParticipationTable
           PARTICIPATION_STREAM: !Ref ParticipationStream
+          CROWDACTION_TABLE: !Ref CrowdactionTable
       Events:
         ChangeParticipation:
           Type: HttpApi
@@ -400,9 +401,12 @@ Resources:
             Method: any
             ApiId: !Ref HttpApi
       Policies:
-        - DynamoDBCrudPolicy:
+        - DynamoDBCrudPolicy1:
             TableName:
               !Ref ParticipationTable
+        - DynamoDBCrudPolicy2:
+            TableName:
+              !Ref CrowdactionTable
         - Statement:
           - Sid: ParticipationStreamPutRecordPolicy
             Effect: Allow

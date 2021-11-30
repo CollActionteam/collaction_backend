@@ -1,13 +1,17 @@
-package model
+package models
 
 import (
 	"fmt"
 	"strings"
+
+	"github.com/CollActionteam/collaction_backend/utils"
 )
 
 type CommitmentOption struct {
-	Label    string             `json:"label"`
-	Requires []CommitmentOption `json:"requires,omitempty"`
+	Id          string             `json:"id"`
+	Label       string             `json:"label"`
+	Description string             `json:"description"`
+	Requires    []CommitmentOption `json:"requires,omitempty"`
 }
 
 func ValidateCommitments(commitments []string, rootOptions []CommitmentOption) error {
@@ -18,32 +22,16 @@ func ValidateCommitments(commitments []string, rootOptions []CommitmentOption) e
 	return err
 }
 
-// TODO move to shared utils module
-func indexOf(s []string, v string) int {
-	for i := 0; i < len(s); i++ {
-		if s[i] == v {
-			return i
-		}
-	}
-	return -1
-}
-
-// TODO move to shared utils module
-func remove(s *[]string, i int) {
-	(*s)[i] = (*s)[len(*s)-1]
-	*s = (*s)[:len(*s)-1]
-}
-
 func validateCommitments(commitments *[]string, rootOptions []CommitmentOption, requireAll bool) (err error) {
 	if len(rootOptions) == 1 {
 		// Is root (of subtree)
 		option := rootOptions[0]
-		if i := indexOf(*commitments, option.Label); i != -1 {
-			remove(commitments, i)
+		if i := utils.IndexOf(*commitments, option.Id); i != -1 {
+			utils.Remove(commitments, i)
 			// Validate branches
 			err = validateCommitments(commitments, option.Requires, true)
 		} else if requireAll {
-			err = fmt.Errorf("required commitment \"%s\"", option.Label)
+			err = fmt.Errorf("required commitment \"%s\"", option.Id)
 		} else {
 			// Validate branches
 			err = validateCommitments(commitments, option.Requires, false)

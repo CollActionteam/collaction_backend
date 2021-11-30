@@ -1,4 +1,4 @@
-// TODO - complete it, for now copy paste as it is from
+// TODO complete it, for now copy paste as it is from
 //https://github.com/aws/aws-sdk-go/blob/main/service/dynamodb/dynamodbiface/interface.go
 
 //https://github.com/aws/aws-sdk-go/tree/main/example/service/dynamodb/unitTest

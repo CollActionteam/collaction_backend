@@ -139,8 +139,18 @@ paths:
             schema:
               type: object
               properties:
-                commitmentID:
+                password:
                   type: string
+                  example: myEvent-myCompany2021
+                  description: |
+                    Password or or empty string if none required (or do not include field)
+                    (NOTE: This field is not required for the MVP)
+                commitments:
+                  type: array
+                  items:
+                    type: string
+                  example: ["no-meat", "no-dairy"]
+
       parameters:
       - name: "crowdactionID"
         in: "path"
@@ -403,6 +413,29 @@ components:
         bio:
           type: string
           example: "Hi, I am Max and I am trying to eat less meat to stop animal suffering."
+    CommitmentOption:
+      type: object
+      properties:
+        id:
+          type: string
+          example: vegetarian
+        label: 
+          type: string
+          example: "Becoming vegetarian"
+        description:
+          type: string
+          example: "I will not eat any meat from any animal (including fish)."
+        requires:
+          type: array
+          description: >
+            Commitments that are included in (and required by) this commitment.
+            They can also be individually selected
+          items:
+            $ref: '#/components/schemas/CommitmentOption'
+            example:
+              id: "no-beef"
+              label: "Not eating beef"
+              description: "I will avoid eating beef (Goodbye stake)."
     Crowdaction:
       type: object
       properties: 
@@ -432,5 +465,11 @@ components:
           pattern: \d{4}-\d{2}-\d{2}
           example: "2021-11-28"
         password_join:
-          description: Password or 'required' to indicate that a password is required
+          description: |
+            Password or 'required' to indicate that a password is required or empty string
+            (NOTE: This field will always contain the password or be empty for the MVP)
           type: string
+        commitment_options:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommitmentOption'
