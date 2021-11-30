@@ -1,10 +1,9 @@
-package utils
+package models
 
 import (
 	"encoding/json"
 	"testing"
 
-	"github.com/CollActionteam/collaction_backend/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -61,27 +60,27 @@ var (
 
 func TestCommitments(t *testing.T) {
 	t.Run("Deserialize commitment options from JSON", func(t *testing.T) {
-		var options []models.CommitmentOption
+		var options []CommitmentOption
 		err := json.Unmarshal(jsonCommitmentOptions, &options)
 		assert.Nil(t, err)
 	})
 
 	t.Run("Valid commitment", func(t *testing.T) {
-		var options []models.CommitmentOption
+		var options []CommitmentOption
 		json.Unmarshal(jsonCommitmentOptions, &options)
 		err := ValidateCommitments(validCommitments, options)
 		assert.Nil(t, err)
 	})
 
 	t.Run("Required commitments missing", func(t *testing.T) {
-		var options []models.CommitmentOption
+		var options []CommitmentOption
 		json.Unmarshal(jsonCommitmentOptions, &options)
 		err := ValidateCommitments(invalidCommitmentsMissing, options)
 		assert.NotNil(t, err)
 	})
 
 	t.Run("Invalid commitment", func(t *testing.T) {
-		var options []models.CommitmentOption
+		var options []CommitmentOption
 		json.Unmarshal(jsonCommitmentOptions, &options)
 		err := ValidateCommitments(invalidCommitmentsUnknown, options)
 		assert.NotNil(t, err)
