@@ -7,10 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
-const (
-	CrowdactionDateFormat = "20060102"
-)
-
 // TODO for later: Use different model between database and api (PasswordJoin vs. IsPasswordRequired)
 type Crowdaction struct {
 	CrowdactionID     string             `json:"crowdactionID,omitempty"`

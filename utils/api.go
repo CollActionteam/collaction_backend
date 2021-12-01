@@ -8,9 +8,9 @@ import (
 
 func GetMessageHttpResponse(statusCode int, msg string) events.APIGatewayProxyResponse {
 	// "Cannot go wrong"
-	json, _ := json.Marshal(map[string]interface{}{"message": msg})
+	jsonPayload, _ := json.Marshal(map[string]interface{}{"message": msg})
 	return events.APIGatewayProxyResponse{
-		Body:       string(json),
+		Body:       string(jsonPayload),
 		StatusCode: statusCode,
 	}
 }

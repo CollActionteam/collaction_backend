@@ -1,5 +1,5 @@
 {
-  "body": "{\"commitmentID\": \"2-veggie\"}",
+  "body": "{\"password\":\"myEvent-myCompany2021\", \"commitments\":[\"no-meat\", \"no-dairy\"]}",
   "pathParameters": {
       "crowdactionID": "veganMonth123"
   },

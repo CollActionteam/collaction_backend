@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/CollActionteam/collaction_backend/auth"
 	"github.com/CollActionteam/collaction_backend/models"
@@ -75,7 +74,7 @@ func registerParticipation(userID string, name string, crowdaction *models.Crowd
 		Name:          name,
 		CrowdactionID: crowdaction.CrowdactionID,
 		Commitments:   payload.Commitments,
-		Timestamp:     time.Now().Unix(),
+		Date:          utils.GetDateStringNow(),
 	})
 	if err != nil {
 		return err
@@ -126,7 +125,7 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse
 	if err != nil {
 		crowdaction, err := models.GetCrowdaction(crowdactionID, tableNameCrowdaction)
 		if err != nil {
-			if !utils.IsFutureDateString(models.CrowdactionDateFormat, crowdaction.DateLimitJoin) {
+			if !utils.IsFutureDateString(crowdaction.DateLimitJoin) {
 				err = fmt.Errorf("cannot change participation for this crowdaction anymore")
 			}
 		}
@@ -140,8 +139,25 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse
 			}
 		} else if method == "delete" {
 			err = cancelParticipation(usrInf.UserID(), crowdactionID)
+		} else if method == "get" {
+			participation, err := getParticipation(utils.CreateDBClient(), usrInf.UserID(), crowdactionID)
+			if err != nil {
+				return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+			}
+			var res events.APIGatewayProxyResponse
+			if participation == nil {
+				res = utils.GetMessageHttpResponse(http.StatusNotFound, "not participating")
+			} else {
+				// "Cannot go wrong"
+				jsonPayload, _ := json.Marshal(participation)
+				res = events.APIGatewayProxyResponse{
+					Body:       string(jsonPayload),
+					StatusCode: http.StatusOK,
+				}
+			}
+			return res, nil
 		} else {
-			return utils.GetMessageHttpResponse(http.StatusNotImplemented, "Not implemented"), nil
+			return utils.GetMessageHttpResponse(http.StatusNotImplemented, "not implemented"), nil
 		}
 	}
 	if err != nil {

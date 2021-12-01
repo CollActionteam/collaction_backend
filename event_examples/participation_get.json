@@ -14,7 +14,7 @@
           }
       },
       "http": {
-          "method": "DELETE"
+          "method": "GET"
       }
   }
 }

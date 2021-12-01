@@ -57,7 +57,7 @@ func getListCrowdaction(req events.APIGatewayV2HTTPRequest, status string) (even
 
 	for i := 0; i < dateLimit; i++ {
 
-		date := dateCurrent.AddDate(0, 0, i).Format(models.CrowdactionDateFormat)
+		date := dateCurrent.AddDate(0, 0, i).Format(utils.DateFormat)
 		switch status {
 		case "active":
 			pk = utils.PrefixPKcrowdaction_date_end + date
@@ -65,7 +65,7 @@ func getListCrowdaction(req events.APIGatewayV2HTTPRequest, status string) (even
 		case "joinable":
 			pk = utils.PrefixPKcrowdaction_date_limit_join + date
 			//add one day so the result includes the crowdactions starting on the current day as well
-			sk = dateCurrent.AddDate(0, 0, 1).Format(models.CrowdactionDateFormat)
+			sk = dateCurrent.AddDate(0, 0, 1).Format(utils.DateFormat)
 		}
 		//get items for a partition key
 		result, err := utils.GetDBItems(dbClient, pk, sk, tableName)

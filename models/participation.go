@@ -5,7 +5,7 @@ type ParticipationRecord struct {
 	Name          string   `json:"name"`
 	CrowdactionID string   `json:"crowdactionID"`
 	Commitments   []string `json:"commitments,omitempty"`
-	Timestamp     int64    `json:"timestamp"` // TODO use date instead?
+	Date          string   `json:"date"`
 }
 
 type ParticipationEvent struct {
