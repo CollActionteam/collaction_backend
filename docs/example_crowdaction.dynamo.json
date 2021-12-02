@@ -35,6 +35,20 @@
   "password_join": {
     "S": "myEvent-myCompany2021"
   },
+  "top_participants": {
+    "L": [
+      {
+        "M": {
+          "name": {
+            "S": "Peter Parker"
+          },
+		      "userID": {
+            "S": "6620cf87-44ed-456e-9798-d5cbeb7fa10a"
+          }
+        }
+      }
+    ]
+  },
   "commitment_options": {
     "L": [
       {

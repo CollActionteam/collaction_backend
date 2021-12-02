@@ -522,3 +522,14 @@ components:
             $ref: '#/components/schemas/CommitmentOption'
         participant_count:
           type: integer
+        top_participants:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "Peter Parker"
+              userID:
+                type: string
+                example: "6620cf87-44ed-456e-9798-d5cbeb7fa10a"

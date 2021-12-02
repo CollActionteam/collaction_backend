@@ -116,6 +116,9 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse
 		var payload JoinPayload
 		err = json.Unmarshal([]byte(req.Body), &payload)
 		if err == nil {
+			if len(payload.Commitments) == 0 {
+				return utils.GetMessageHttpResponse(http.StatusBadRequest, "cannot participate without commitments"), nil
+			}
 			err = registerParticipation(usrInf.UserID(), usrInf.Name(), crowdaction, payload)
 		}
 	} else if method == "delete" {
