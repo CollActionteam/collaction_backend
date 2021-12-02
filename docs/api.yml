@@ -520,3 +520,5 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CommitmentOption'
+        participant_count:
+          type: integer

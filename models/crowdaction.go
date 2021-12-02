@@ -20,13 +20,14 @@ type Crowdaction struct {
 	DateLimitJoin     string             `json:"date_limit_join,omitempty"`
 	PasswordJoin      string             `json:"password_join,omitempty"`
 	CommitmentOptions []CommitmentOption `json:"commitment_options,omitempty"`
+	ParticipantCount  int                `json:"participant_count,omitempty"`
 }
 
 func GetCrowdaction(crowdactionID string, tableName string) (*Crowdaction, error) {
 	var crowdaction Crowdaction
 	dbClient := utils.CreateDBClient()
-	val := utils.PrefixPKcrowdactionID + crowdactionID
-	out, err := utils.GetDBItem(dbClient, val, tableName)
+	k := utils.PrefixPKcrowdactionID + crowdactionID
+	out, err := utils.GetDBItem(dbClient, tableName, k, k)
 	if err != nil {
 		return nil, err
 	}

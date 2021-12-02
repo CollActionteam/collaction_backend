@@ -38,7 +38,7 @@ type pkError struct {
 }
 
 var (
-	tableName = os.Getenv("CROWDACTION_TABLE")
+	tableName = os.Getenv("TABLE_NAME")
 	dbClient  *dynamodb.DynamoDB
 )
 
@@ -137,8 +137,8 @@ func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (e
 
 	var crowdaction models.Crowdaction
 
-	val := utils.PrefixPKcrowdactionID + crowdactionID
-	out, err := utils.GetDBItem(dbClient, val, tableName)
+	k := utils.PrefixPKcrowdactionID + crowdactionID
+	out, err := utils.GetDBItem(dbClient, tableName, k, k)
 
 	if err != nil {
 		body, err := json.Marshal(map[string]interface{}{"message": err.Error()})
