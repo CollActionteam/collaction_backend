@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -29,7 +29,7 @@ const (
 	//item has PK="prt#<userID>" and SK="prt#<crowdactionID>"
 	//(we want strong consistency when listing the users participation)
 	PrefixPKparticipationUserID        = "prt#" + "usr#" // TODO refactor
-	PrefixSKparticipationCrowdactionID = "prt" + PrefixPKcrowdactionID
+	PrefixSKparticipationCrowdactionID = "prt#" + PrefixPKcrowdactionID
 )
 
 func CreateDBClient() *dynamodb.DynamoDB {
@@ -37,7 +37,7 @@ func CreateDBClient() *dynamodb.DynamoDB {
 	return dynamodb.New(sess)
 }
 
-func GetDBItem(dbClient *dynamodb.DynamoDB, tableName string, pk string, sk string) (*dynamodb.GetItemOutput, error) {
+func GetDBItem(dbClient *dynamodb.DynamoDB, tableName string, pk string, sk string) (map[string]*dynamodb.AttributeValue, error) {
 	result, err := dbClient.GetItem(&dynamodb.GetItemInput{
 		TableName: &tableName,
 		Key: map[string]*dynamodb.AttributeValue{
@@ -51,32 +51,42 @@ func GetDBItem(dbClient *dynamodb.DynamoDB, tableName string, pk string, sk stri
 	})
 
 	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == dynamodb.ErrCodeResourceNotFoundException {
+				err = nil // Just return nil (not found is not an error)
+			}
+		}
 		return nil, err
 	}
-
-	if result.Item == nil {
-		msg := "could not find record '" + pk + "'"
-		return nil, errors.New(msg)
+	if result == nil {
+		return nil, nil
 	}
-
-	return result, nil
+	return result.Item, nil
 }
 
 func PutDBItem(dbClient *dynamodb.DynamoDB, tableName string, pk string, sk string, record interface{}) error {
 	av, err := dynamodbattribute.MarshalMap(record)
+	if err != nil {
+		return err
+	}
 	if _, hasKey := av["pk"]; hasKey {
 		return fmt.Errorf("record must not have a field with the label \"pk\"")
 	}
 	if _, hasKey := av["sk"]; hasKey {
 		return fmt.Errorf("record must not have a field with the label \"sk\"")
 	}
-	*av["pk"] = dynamodb.AttributeValue{S: aws.String(pk)}
-	*av["sk"] = dynamodb.AttributeValue{S: aws.String(sk)}
+	av["pk"] = &dynamodb.AttributeValue{S: aws.String(pk)}
+	av["sk"] = &dynamodb.AttributeValue{S: aws.String(sk)}
 	if err != nil {
 		_, err = dbClient.PutItem(&dynamodb.PutItemInput{
 			TableName: &tableName,
 			Item:      av,
 		})
+	}
+	// TODO remove
+	fmt.Println("Inserted the following item into", tableName, "(error", err, ")")
+	for k, v := range av {
+		fmt.Println(k, ":", v)
 	}
 	return err
 }

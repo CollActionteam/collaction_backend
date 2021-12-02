@@ -138,7 +138,7 @@ func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (e
 	var crowdaction models.Crowdaction
 
 	k := utils.PrefixPKcrowdactionID + crowdactionID
-	out, err := utils.GetDBItem(dbClient, tableName, k, k)
+	item, err := utils.GetDBItem(dbClient, tableName, k, k)
 
 	if err != nil {
 		body, err := json.Marshal(map[string]interface{}{"message": err.Error()})
@@ -151,7 +151,7 @@ func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (e
 		}, nil
 	}
 
-	if out.Item == nil {
+	if item == nil {
 		body, err := json.Marshal(map[string]string{"message": "crowdaction does not exist"})
 		if err != nil {
 			return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
@@ -162,7 +162,7 @@ func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (e
 		}, nil
 	}
 
-	err = dynamodbattribute.UnmarshalMap(out.Item, &crowdaction)
+	err = dynamodbattribute.UnmarshalMap(item, &crowdaction)
 	if err != nil {
 		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
 	}

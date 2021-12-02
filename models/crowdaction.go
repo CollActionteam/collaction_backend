@@ -27,14 +27,14 @@ func GetCrowdaction(crowdactionID string, tableName string) (*Crowdaction, error
 	var crowdaction Crowdaction
 	dbClient := utils.CreateDBClient()
 	k := utils.PrefixPKcrowdactionID + crowdactionID
-	out, err := utils.GetDBItem(dbClient, tableName, k, k)
+	item, err := utils.GetDBItem(dbClient, tableName, k, k)
 	if err != nil {
 		return nil, err
 	}
-	if out.Item == nil {
+	if item == nil {
 		return nil, fmt.Errorf("crowdaction not found")
 	}
-	err = dynamodbattribute.UnmarshalMap(out.Item, &crowdaction)
+	err = dynamodbattribute.UnmarshalMap(item, &crowdaction)
 	if err != nil {
 		return nil, err
 	}

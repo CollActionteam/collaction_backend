@@ -274,7 +274,7 @@ Resources:
           - AttributeName: "pk"
             KeyType: "RANGE"
           Projection:
-            ProjectionType: "ALL"
+            ProjectionType: "ALL" # Data duplication is less costly than additional per primary key lookups (?)
           ProvisionedThroughput:
             ReadCapacityUnits: 5
             WriteCapacityUnits: 5
@@ -324,24 +324,24 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
 
-  ParticipationStream:
-    Type: AWS::Kinesis::Stream
-    Properties:
-      ShardCount: 5
-
-  AggregateParticipationsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: controllers/participation/aggregator
-      Handler: aggregator
-      Runtime: go1.x
-      Events:
-        Stream:
-          Type: Kinesis
-          Properties:
-            Stream: !GetAtt ParticipationStream.Arn
-            BatchSize: 100
-            StartingPosition: LATEST
+#  ParticipationStream:
+#    Type: AWS::Kinesis::Stream
+#    Properties:
+#      ShardCount: 5
+#
+#  AggregateParticipationsFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: controllers/participation/aggregator
+#      Handler: aggregator
+#      Runtime: go1.x
+#      Events:
+#        Stream:
+#          Type: Kinesis
+#          Properties:
+#            Stream: !GetAtt ParticipationStream.Arn
+#            BatchSize: 100
+#            StartingPosition: LATEST
 
   ParticipationFunction:
     Type: AWS::Serverless::Function
@@ -351,7 +351,7 @@ Resources:
       Runtime: go1.x
       Environment:
         Variables:
-          PARTICIPATION_STREAM: !Ref ParticipationStream
+#          PARTICIPATION_STREAM: !Ref ParticipationStream
           TABLE_NAME: !Ref SingleTable
       Events:
         ChangeParticipation:
@@ -361,15 +361,15 @@ Resources:
             Method: any
             ApiId: !Ref HttpApi
       Policies:
-        - DynamoDBCrudPolicy2:
+        - DynamoDBCrudPolicy:
             TableName:
               !Ref SingleTable
-        - Statement:
-          - Sid: ParticipationStreamPutRecordPolicy
-            Effect: Allow
-            Action:
-            - kinesis:PutRecord
-            Resource: '*'
+#        - Statement:
+#          - Sid: ParticipationStreamPutRecordPolicy
+#            Effect: Allow
+#            Action:
+#            - kinesis:PutRecord
+#            Resource: '*'
             
   ProfileCRUDFunction:
     Type: AWS::Serverless::Function

@@ -30,16 +30,19 @@ var (
 func getParticipation(dbClient *dynamodb.DynamoDB, userID string, crowdactionID string) (*models.ParticipationRecord, error) {
 	pk := utils.PrefixPKparticipationUserID + userID
 	sk := utils.PrefixSKparticipationCrowdactionID + crowdactionID
-	out, err := utils.GetDBItem(dbClient, tableName, pk, sk)
-	if out.Item == nil || err != nil {
+	item, err := utils.GetDBItem(dbClient, tableName, pk, sk)
+	if item == nil || err != nil {
 		return nil, err
 	}
 	var r models.ParticipationRecord
-	err = dynamodbattribute.UnmarshalMap(out.Item, r)
+	err = dynamodbattribute.UnmarshalMap(item, r)
 	return &r, err
 }
 
 func registerParticipation(userID string, name string, crowdaction *models.Crowdaction, payload JoinPayload) error {
+	if !utils.IsFutureDateString(crowdaction.DateLimitJoin) {
+		return fmt.Errorf("cannot change participation for this crowdaction anymore")
+	}
 	/* TODO Password not required when joining for MVP
 	if crowdaction.PasswordJoin != "" && crowdaction.PasswordJoin != payload.Password {
 		return fmt.Errorf("invalid password")
@@ -74,9 +77,12 @@ func registerParticipation(userID string, name string, crowdaction *models.Crowd
 	return err
 }
 
-func cancelParticipation(userID string, crowdactionID string) error {
+func cancelParticipation(userID string, crowdaction *models.Crowdaction) error {
+	if !utils.IsFutureDateString(crowdaction.DateLimitJoin) {
+		return fmt.Errorf("cannot change participation for this crowdaction anymore")
+	}
 	dbClient := utils.CreateDBClient()
-	part, err := getParticipation(dbClient, userID, crowdactionID)
+	part, err := getParticipation(dbClient, userID, crowdaction.CrowdactionID)
 	if err != nil {
 		return err
 	}
@@ -84,7 +90,7 @@ func cancelParticipation(userID string, crowdactionID string) error {
 		return errors.New("not participating")
 	}
 	pk := utils.PrefixPKparticipationUserID + userID
-	sk := utils.PrefixSKparticipationCrowdactionID + crowdactionID
+	sk := utils.PrefixSKparticipationCrowdactionID + crowdaction.CrowdactionID
 	err = utils.DeleteDBItem(dbClient, tableName, pk, sk)
 	/* TODO replace with SQS
 	if err == nil {
@@ -97,46 +103,44 @@ func cancelParticipation(userID string, crowdactionID string) error {
 func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	method := strings.ToLower(req.RequestContext.HTTP.Method)
 	crowdactionID := req.PathParameters["crowdactionID"]
-	var crowdaction models.Crowdaction
+	var crowdaction *models.Crowdaction
 	usrInf, err := auth.ExtractUserInfo(req)
 	if err != nil {
-		crowdaction, err := models.GetCrowdaction(crowdactionID, tableName)
+		return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+	}
+	crowdaction, _ = models.GetCrowdaction(crowdactionID, tableName)
+	if crowdaction == nil {
+		return utils.GetMessageHttpResponse(http.StatusNotFound, "crowdaction not found"), nil
+	}
+	if method == "post" {
+		var payload JoinPayload
+		err = json.Unmarshal([]byte(req.Body), &payload)
+		if err == nil {
+			err = registerParticipation(usrInf.UserID(), usrInf.Name(), crowdaction, payload)
+		}
+	} else if method == "delete" {
+		err = cancelParticipation(usrInf.UserID(), crowdaction)
+	} else if method == "get" {
+		participation, err := getParticipation(utils.CreateDBClient(), usrInf.UserID(), crowdactionID)
 		if err != nil {
-			if !utils.IsFutureDateString(crowdaction.DateLimitJoin) {
-				err = fmt.Errorf("cannot change participation for this crowdaction anymore")
-			}
+			return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
 		}
-	}
-	if err == nil {
-		if method == "post" {
-			var payload JoinPayload
-			err = json.Unmarshal([]byte(req.Body), &payload)
-			if err == nil {
-				err = registerParticipation(usrInf.UserID(), usrInf.Name(), &crowdaction, payload)
-			}
-		} else if method == "delete" {
-			err = cancelParticipation(usrInf.UserID(), crowdactionID)
-		} else if method == "get" {
-			participation, err := getParticipation(utils.CreateDBClient(), usrInf.UserID(), crowdactionID)
-			if err != nil {
-				return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
-			}
-			var res events.APIGatewayProxyResponse
-			if participation == nil {
-				res = utils.GetMessageHttpResponse(http.StatusNotFound, "not participating")
-			} else {
-				// "Cannot go wrong"
-				jsonPayload, _ := json.Marshal(participation)
-				res = events.APIGatewayProxyResponse{
-					Body:       string(jsonPayload),
-					StatusCode: http.StatusOK,
-				}
-			}
-			return res, nil
+		var res events.APIGatewayProxyResponse
+		if participation == nil {
+			res = utils.GetMessageHttpResponse(http.StatusNotFound, "not participating")
 		} else {
-			return utils.GetMessageHttpResponse(http.StatusNotImplemented, "not implemented"), nil
+			// "Cannot go wrong"
+			jsonPayload, _ := json.Marshal(participation)
+			res = events.APIGatewayProxyResponse{
+				Body:       string(jsonPayload),
+				StatusCode: http.StatusOK,
+			}
 		}
+		return res, nil
+	} else {
+		return utils.GetMessageHttpResponse(http.StatusNotImplemented, "not implemented"), nil
 	}
+
 	if err != nil {
 		return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
 	} else {
