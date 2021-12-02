@@ -35,7 +35,7 @@ func getParticipation(dbClient *dynamodb.DynamoDB, userID string, crowdactionID 
 		return nil, err
 	}
 	var r models.ParticipationRecord
-	err = dynamodbattribute.UnmarshalMap(item, r)
+	err = dynamodbattribute.UnmarshalMap(item, &r)
 	return &r, err
 }
 

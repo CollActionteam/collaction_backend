@@ -77,17 +77,10 @@ func PutDBItem(dbClient *dynamodb.DynamoDB, tableName string, pk string, sk stri
 	}
 	av["pk"] = &dynamodb.AttributeValue{S: aws.String(pk)}
 	av["sk"] = &dynamodb.AttributeValue{S: aws.String(sk)}
-	if err != nil {
-		_, err = dbClient.PutItem(&dynamodb.PutItemInput{
-			TableName: &tableName,
-			Item:      av,
-		})
-	}
-	// TODO remove
-	fmt.Println("Inserted the following item into", tableName, "(error", err, ")")
-	for k, v := range av {
-		fmt.Println(k, ":", v)
-	}
+	_, err = dbClient.PutItem(&dynamodb.PutItemInput{
+		TableName: aws.String(tableName),
+		Item:      av,
+	})
 	return err
 }
 
