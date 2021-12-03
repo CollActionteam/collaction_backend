@@ -1,5 +1,4 @@
 {
-  "body": "{\"password\":\"myEvent-myCompany2021\", \"commitments\":[\"no-beef\"]}",
   "pathParameters": {
       "crowdactionID": "veganMonth123"
   },
@@ -15,7 +14,7 @@
           }
       },
       "http": {
-          "method": "POST"
+          "method": "GET"
       }
   }
 }

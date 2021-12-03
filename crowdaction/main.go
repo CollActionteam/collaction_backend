@@ -1,3 +1,8 @@
+/* TODO Refactor!
+ * - Move all functions relating to accessing the database to the models package.
+ * - Move all constants to the utils package.
+ */
+
 package main
 
 import (
@@ -8,13 +13,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/CollActionteam/collaction_backend/models"
+	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
 
 const (
@@ -22,26 +26,10 @@ const (
 	//do not send back the code/password, just an indication it's needed
 	passwordRequired = "required"
 
-	//date format
-	dateFormat = "20060102"
-
 	//for the time being let's consider 30 days how far in future we retrieve crowdactions
 	//could use a parameter store here
 	//example: current date = 2021.12.01 => retrieve up to and including crowdaction end date=2021.12.30
 	dateLimit = 30
-
-	//access pattern getCrowdaction
-	//item has PK="act#<crowdactionID>" and SK="act#<crowdactionID>"
-	prefixPKcrowdactionID = "act#"
-	prefixSKcrowdactionID = "act#"
-
-	//access pattern getActiveCrowdactions
-	//item has PK="act_end#date_end" and SK="act#<crowdactionID>"
-	prefixPKcrowdaction_date_end = "act_end#"
-
-	//access pattern getEligibleToJoinCrowdactions
-	//item has PK="act_join#date_limit_join" and SK="date_start#act#<crowdactionID>"
-	prefixPKcrowdaction_date_limit_join = "act_join#"
 )
 
 type pkError struct {
@@ -50,7 +38,7 @@ type pkError struct {
 }
 
 var (
-	tableName = os.Getenv("CROWDACTION_TABLE")
+	tableName = os.Getenv("TABLE_NAME")
 	dbClient  *dynamodb.DynamoDB
 )
 
@@ -59,7 +47,7 @@ func getListCrowdaction(req events.APIGatewayV2HTTPRequest, status string) (even
 
 	var pk, sk string
 	var items []*dynamodb.QueryOutput
-	var crowdaction Crowdaction
+	var crowdaction models.Crowdaction
 	var errors []string
 
 	mapErr := make(map[string]error)
@@ -69,18 +57,18 @@ func getListCrowdaction(req events.APIGatewayV2HTTPRequest, status string) (even
 
 	for i := 0; i < dateLimit; i++ {
 
-		date := dateCurrent.AddDate(0, 0, i).Format(dateFormat)
+		date := dateCurrent.AddDate(0, 0, i).Format(utils.DateFormat)
 		switch status {
 		case "active":
-			pk = prefixPKcrowdaction_date_end + date
+			pk = utils.PrefixPKcrowdaction_date_end + date
 			sk = ""
 		case "joinable":
-			pk = prefixPKcrowdaction_date_limit_join + date
+			pk = utils.PrefixPKcrowdaction_date_limit_join + date
 			//add one day so the result includes the crowdactions starting on the current day as well
-			sk = dateCurrent.AddDate(0, 0, 1).Format(dateFormat)
+			sk = dateCurrent.AddDate(0, 0, 1).Format(utils.DateFormat)
 		}
 		//get items for a partition key
-		result, err := getItems(pk, sk)
+		result, err := utils.GetDBItems(dbClient, pk, sk, tableName)
 		//error handling https://play.golang.org/p/D5xTeZP9VnU
 		if err != nil {
 			mapErr[pk] = err
@@ -125,9 +113,11 @@ func getListCrowdaction(req events.APIGatewayV2HTTPRequest, status string) (even
 			if err != nil {
 				return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
 			}
+			/* TODO Send password for handling in app for MVP
 			if crowdaction.PasswordJoin != "" {
 				crowdaction.PasswordJoin = passwordRequired
 			}
+			*/
 			action, err := json.Marshal(map[string]interface{}{"data": crowdaction})
 			if err != nil {
 				return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
@@ -145,10 +135,10 @@ func getListCrowdaction(req events.APIGatewayV2HTTPRequest, status string) (even
 //get details about a crowd action
 func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 
-	var crowdaction Crowdaction
+	var crowdaction models.Crowdaction
 
-	val := prefixPKcrowdactionID + crowdactionID
-	out, err := getItem(val)
+	k := utils.PrefixPKcrowdactionID + crowdactionID
+	item, err := utils.GetDBItem(dbClient, tableName, k, k)
 
 	if err != nil {
 		body, err := json.Marshal(map[string]interface{}{"message": err.Error()})
@@ -161,7 +151,7 @@ func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (e
 		}, nil
 	}
 
-	if out.Item == nil {
+	if item == nil {
 		body, err := json.Marshal(map[string]string{"message": "crowdaction does not exist"})
 		if err != nil {
 			return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
@@ -172,13 +162,15 @@ func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (e
 		}, nil
 	}
 
-	err = dynamodbattribute.UnmarshalMap(out.Item, &crowdaction)
+	err = dynamodbattribute.UnmarshalMap(item, &crowdaction)
 	if err != nil {
 		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
 	}
+	/* TODO Send password for handling in app for MVP
 	if crowdaction.PasswordJoin != "" {
 		crowdaction.PasswordJoin = passwordRequired
 	}
+	*/
 	body, err := json.Marshal(map[string]interface{}{"data": crowdaction})
 	if err != nil {
 		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusBadRequest}, nil
@@ -190,69 +182,6 @@ func getCrowdaction(crowdactionID string, req events.APIGatewayV2HTTPRequest) (e
 
 }
 
-func dynamodbClient() *dynamodb.DynamoDB {
-	sess := session.Must(session.NewSession())
-	return dynamodb.New(sess)
-}
-
-func getItem(val string) (*dynamodb.GetItemOutput, error) {
-
-	result, err := dbClient.GetItem(&dynamodb.GetItemInput{
-		TableName: &tableName,
-		Key: map[string]*dynamodb.AttributeValue{
-			"pk": {
-				S: aws.String(val),
-			},
-			"sk": {
-				S: aws.String(val),
-			},
-		},
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if result.Item == nil {
-		msg := "could not find crowdaction '" + val + "'"
-		return nil, errors.New(msg)
-	}
-
-	return result, nil
-}
-
-func getItems(pk, sk string) (*dynamodb.QueryOutput, error) {
-
-	var keyCond expression.KeyConditionBuilder
-
-	if sk == "" {
-		keyCond = expression.Key("pk").Equal(expression.Value(pk))
-	} else {
-		keyCond = expression.KeyAnd(
-			expression.Key("pk").Equal(expression.Value(pk)),
-			expression.Key("sk").LessThan(expression.Value(sk)),
-		)
-	}
-
-	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
-	if err != nil {
-		return nil, err
-	}
-
-	input := &dynamodb.QueryInput{
-		TableName:                 &tableName,
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		KeyConditionExpression:    expr.KeyCondition(),
-	}
-
-	result, err := dbClient.Query(input)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
 func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 
 	var (
@@ -260,7 +189,7 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse
 		err  error
 	)
 
-	dbClient = dynamodbClient()
+	dbClient = utils.CreateDBClient()
 
 	crowdactionID := req.PathParameters["crowdactionID"]
 

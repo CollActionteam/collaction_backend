@@ -1,0 +1,89 @@
+{
+  "pk": {
+    "S": "act#veganMonth123"
+  },
+  "sk": {
+    "S": "act#veganMonth123"
+  },
+  "crowdactionID": {
+    "S": "veganMonth123"
+  },
+  "title": {
+    "S": "Vegan month 2021"
+  },
+  "description": {
+    "S": "Let's be vegan for a month"
+  },
+  "category": {
+    "S": "sustainability"
+  },
+  "subcategory": {
+    "S": "food"
+  },
+  "location": {
+    "S": "NL:Amsterdam"
+  },
+  "date_start": {
+    "S": "2021-11-28"
+  },
+  "date_end": {
+    "S": "2021-12-28"
+  },
+  "date_limit_join": {
+    "S": "2021-12-15"
+  },
+  "password_join": {
+    "S": "myEvent-myCompany2021"
+  },
+  "top_participants": {
+    "L": [
+      {
+        "M": {
+          "name": {
+            "S": "Peter Parker"
+          },
+		      "userID": {
+            "S": "6620cf87-44ed-456e-9798-d5cbeb7fa10a"
+          }
+        }
+      }
+    ]
+  },
+  "commitment_options": {
+    "L": [
+      {
+        "M": {
+          "id": {
+            "S": "vegetarian"
+          },
+          "label": {
+            "S": "Becoming vegetarian"
+          },
+          "description": {
+            "S": "I will not eat any meat from any animal (including fish)."
+          },
+          "requires": {
+            "L": [
+              {
+                "M": {
+                  "id": {
+                    "S": "no-beef"
+                  },
+                  "label": {
+                    "S": "Not eating beef"
+                  },
+                  "description": {
+                    "S": "I will avoid eating beef (Goodbye stake)."
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "participant_count": {
+    "N": "0"
+  }
+}

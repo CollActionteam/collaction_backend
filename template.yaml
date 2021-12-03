@@ -250,26 +250,34 @@ Resources:
             Bucket: !Ref ProfilePictureUploadBucket
             Events: s3:ObjectCreated:*
 
-  CrowdactionTable:
+  SingleTable:
     Type: AWS::DynamoDB::Table
     Properties:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
       AttributeDefinitions:
-        -
-          AttributeName: "pk"
+        - AttributeName: "pk"
           AttributeType: "S"
-        -
-          AttributeName: "sk"
+        - AttributeName: "sk"
           AttributeType: "S"
       KeySchema:
-        -
-          AttributeName: "pk"
+        - AttributeName: "pk"
           KeyType: "HASH"
-        -
-          AttributeName: "sk"
+        - AttributeName: "sk"
           KeyType: "RANGE"
+      GlobalSecondaryIndexes:
+        - IndexName: "invertedIndex"
+          KeySchema:
+          - AttributeName: "sk"
+            KeyType: "HASH"
+          - AttributeName: "pk"
+            KeyType: "RANGE"
+          Projection:
+            ProjectionType: "ALL" # Data duplication is less costly than additional per primary key lookups (?)
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
 
   CrowdactionFunction:
     Type: AWS::Serverless::Function
@@ -296,11 +304,11 @@ Resources:
               Authorizer: "NONE"
       Environment:
         Variables:
-          CROWDACTION_TABLE: !Ref CrowdactionTable
+          TABLE_NAME: !Ref SingleTable
       Policies:
         - DynamoDBCrudPolicy:
             TableName:
-              !Ref CrowdactionTable
+              !Ref SingleTable
 
   WhoamiFunction:
     Type: AWS::Serverless::Function
@@ -316,82 +324,35 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
 
-  ParticipationStream:
-    Type: AWS::Kinesis::Stream
-    Properties:
-      ShardCount: 5
-
-  AggregateParticipationsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: participation/aggregator
-      Handler: aggregator
-      Runtime: go1.x
-      Events:
-        Stream:
-          Type: Kinesis
-          Properties:
-            Stream: !GetAtt ParticipationStream.Arn
-            BatchSize: 100
-            StartingPosition: LATEST
-
-  ParticipationTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-      AttributeDefinitions:
-        - AttributeName: "userID"
-          AttributeType: "S"
-        - AttributeName: "crowdactionID"
-          AttributeType: "S"
-        - AttributeName: "timestamp"
-          AttributeType: "N"
-      KeySchema:
-            - AttributeName: "userID"
-              KeyType: "HASH"
-            - AttributeName: "crowdactionID"
-              KeyType: "RANGE"
-      GlobalSecondaryIndexes:
-        - IndexName: "participantCrowdactions"
-          KeySchema:
-          - AttributeName: "userID"
-            KeyType: "HASH"
-          - AttributeName: "timestamp"
-            KeyType: "RANGE"
-          Projection:
-            NonKeyAttributes:
-              - "crowdactionID"
-            ProjectionType: "INCLUDE"
-          ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
-        - IndexName: "crowdactionParticipants"
-          KeySchema:
-            - AttributeName: "crowdactionID"
-              KeyType: "HASH"
-            - AttributeName: "timestamp"
-              KeyType: "RANGE"
-          Projection:
-            NonKeyAttributes:
-              - "userID"
-              - "name"
-            ProjectionType: "INCLUDE"
-          ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
+#  ParticipationStream:
+#    Type: AWS::Kinesis::Stream
+#    Properties:
+#      ShardCount: 5
+#
+#  AggregateParticipationsFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: controllers/participation/aggregator
+#      Handler: aggregator
+#      Runtime: go1.x
+#      Events:
+#        Stream:
+#          Type: Kinesis
+#          Properties:
+#            Stream: !GetAtt ParticipationStream.Arn
+#            BatchSize: 100
+#            StartingPosition: LATEST
 
   ParticipationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: participation/endpoint
+      CodeUri: controllers/participation/endpoint
       Handler: endpoint
       Runtime: go1.x
       Environment:
         Variables:
-          PARTICIPATION_TABLE: !Ref ParticipationTable
-          PARTICIPATION_STREAM: !Ref ParticipationStream
+#          PARTICIPATION_STREAM: !Ref ParticipationStream
+          TABLE_NAME: !Ref SingleTable
       Events:
         ChangeParticipation:
           Type: HttpApi
@@ -402,13 +363,13 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName:
-              !Ref ParticipationTable
-        - Statement:
-          - Sid: ParticipationStreamPutRecordPolicy
-            Effect: Allow
-            Action:
-            - kinesis:PutRecord
-            Resource: '*'
+              !Ref SingleTable
+#        - Statement:
+#          - Sid: ParticipationStreamPutRecordPolicy
+#            Effect: Allow
+#            Action:
+#            - kinesis:PutRecord
+#            Resource: '*'
             
   ProfileCRUDFunction:
     Type: AWS::Serverless::Function
@@ -431,6 +392,7 @@ Resources:
             TableName:
               !Ref ProfileTable
 
+  # TODO use table SingleTabel instead
   ProfileTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
@@ -451,5 +413,5 @@ Outputs:
     Description: "CloudFront distribution endpoint URL for static files"
     Value: !Sub "https://static${SubdomainSuffixParameter}.${DomainParameter}/"
   TableName:
-    Value: !Ref  CrowdactionTable
+    Value: !Ref  SingleTable
     Description: Table name of the newly created DynamoDB table
