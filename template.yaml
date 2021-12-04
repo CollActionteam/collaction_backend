@@ -182,6 +182,7 @@ Resources:
               Action:
                 - 'ses:SendEmail'
                 - 'ses:SendRawEmail'
+                - 'ssm:GetParameter'
               Resource: '*'
   ProfilePictureUploadBucket:
     Type: 'AWS::S3::Bucket'
