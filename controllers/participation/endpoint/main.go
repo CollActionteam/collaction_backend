@@ -78,7 +78,7 @@ func registerParticipation(userID string, name string, crowdaction *models.Crowd
 }
 
 func cancelParticipation(userID string, crowdaction *models.Crowdaction) error {
-	if !utils.IsFutureDateString(crowdaction.DateLimitJoin) {
+	if !utils.IsFutureDateString(crowdaction.DateEnd) {
 		return fmt.Errorf("cannot change participation for this crowdaction anymore")
 	}
 	dbClient := utils.CreateDBClient()
