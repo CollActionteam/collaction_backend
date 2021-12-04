@@ -324,24 +324,29 @@ Resources:
             Method: get
             ApiId: !Ref HttpApi
 
-#  ParticipationStream:
-#    Type: AWS::Kinesis::Stream
-#    Properties:
-#      ShardCount: 5
-#
-#  AggregateParticipationsFunction:
-#    Type: AWS::Serverless::Function
-#    Properties:
-#      CodeUri: controllers/participation/aggregator
-#      Handler: aggregator
-#      Runtime: go1.x
-#      Events:
-#        Stream:
-#          Type: Kinesis
-#          Properties:
-#            Stream: !GetAtt ParticipationStream.Arn
-#            BatchSize: 100
-#            StartingPosition: LATEST
+  ParticipationQueue:
+    Type: AWS::SQS::Queue
+
+  AggregateParticipationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: controllers/participation/aggregator
+      Handler: aggregator
+      Runtime: go1.x
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref SingleTable
+      Events:
+        ParticipationEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ParticipationQueue.Arn
+            BatchSize: 100
+            MaximumBatchingWindowInSeconds: 300 #5min
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref SingleTable
 
   ParticipationFunction:
     Type: AWS::Serverless::Function
@@ -351,7 +356,7 @@ Resources:
       Runtime: go1.x
       Environment:
         Variables:
-#          PARTICIPATION_STREAM: !Ref ParticipationStream
+          PARTICIPATION_QUEUE: !Ref ParticipationQueue
           TABLE_NAME: !Ref SingleTable
       Events:
         ChangeParticipation:
@@ -364,12 +369,12 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName:
               !Ref SingleTable
-#        - Statement:
-#          - Sid: ParticipationStreamPutRecordPolicy
-#            Effect: Allow
-#            Action:
-#            - kinesis:PutRecord
-#            Resource: '*'
+        - Statement:
+          - Sid: ParticipationQueuePutRecordPolicy
+            Effect: Allow
+            Action:
+            - sqs:SendMessage
+            Resource: !GetAtt ParticipationQueue.Arn
             
   ProfileCRUDFunction:
     Type: AWS::Serverless::Function

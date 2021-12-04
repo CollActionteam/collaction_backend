@@ -30,6 +30,9 @@ const (
 	//(we want strong consistency when listing the users participation)
 	PrefixPKparticipationUserID        = "prt#" + "usr#" // TODO refactor
 	PrefixSKparticipationCrowdactionID = "prt#" + PrefixPKcrowdactionID
+
+	PartitionKey = "pk"
+	SortKey      = "sk"
 )
 
 func CreateDBClient() *dynamodb.DynamoDB {
@@ -41,10 +44,10 @@ func GetDBItem(dbClient *dynamodb.DynamoDB, tableName string, pk string, sk stri
 	result, err := dbClient.GetItem(&dynamodb.GetItemInput{
 		TableName: &tableName,
 		Key: map[string]*dynamodb.AttributeValue{
-			"pk": {
+			PartitionKey: {
 				S: aws.String(pk),
 			},
-			"sk": {
+			SortKey: {
 				S: aws.String(sk),
 			},
 		},
@@ -69,14 +72,14 @@ func PutDBItem(dbClient *dynamodb.DynamoDB, tableName string, pk string, sk stri
 	if err != nil {
 		return err
 	}
-	if _, hasKey := av["pk"]; hasKey {
+	if _, hasKey := av[PartitionKey]; hasKey {
 		return fmt.Errorf("record must not have a field with the label \"pk\"")
 	}
-	if _, hasKey := av["sk"]; hasKey {
+	if _, hasKey := av[SortKey]; hasKey {
 		return fmt.Errorf("record must not have a field with the label \"sk\"")
 	}
-	av["pk"] = &dynamodb.AttributeValue{S: aws.String(pk)}
-	av["sk"] = &dynamodb.AttributeValue{S: aws.String(sk)}
+	av[PartitionKey] = &dynamodb.AttributeValue{S: aws.String(pk)}
+	av[SortKey] = &dynamodb.AttributeValue{S: aws.String(sk)}
 	_, err = dbClient.PutItem(&dynamodb.PutItemInput{
 		TableName: aws.String(tableName),
 		Item:      av,
@@ -88,10 +91,10 @@ func DeleteDBItem(dbClient *dynamodb.DynamoDB, tableName string, pk string, sk s
 	_, err := dbClient.DeleteItem(&dynamodb.DeleteItemInput{
 		TableName: &tableName,
 		Key: map[string]*dynamodb.AttributeValue{
-			"pk": {
+			PartitionKey: {
 				S: aws.String(pk),
 			},
-			"sk": {
+			SortKey: {
 				S: aws.String(sk),
 			},
 		},
@@ -104,11 +107,11 @@ func GetDBItems(dbClient *dynamodb.DynamoDB, pk string, sk string, tableName str
 	var keyCond expression.KeyConditionBuilder
 
 	if sk == "" {
-		keyCond = expression.Key("pk").Equal(expression.Value(pk))
+		keyCond = expression.Key(PartitionKey).Equal(expression.Value(pk))
 	} else {
 		keyCond = expression.KeyAnd(
-			expression.Key("pk").Equal(expression.Value(pk)),
-			expression.Key("sk").LessThan(expression.Value(sk)),
+			expression.Key(PartitionKey).Equal(expression.Value(pk)),
+			expression.Key(SortKey).LessThan(expression.Value(sk)),
 		)
 	}
 

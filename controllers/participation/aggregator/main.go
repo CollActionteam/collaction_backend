@@ -4,10 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/CollActionteam/collaction_backend/models"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+)
+
+var (
+	tableName = os.Getenv("TABLE_NAME")
 )
 
 func groupEvents(
@@ -24,46 +29,33 @@ func groupEvents(
 	}
 }
 
-func updateCollectiveCommitment(crowdactionID string, commitmentID string, changedBy int) {
-	// TODO Use atomic counter (https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_UpdateItem.html#API_UpdateItem_Examples)
-	fmt.Printf("Change participation count of %s (commitment %s) by %d\n", crowdactionID, commitmentID, changedBy)
-}
-
-func handler(ctx context.Context, kinesisEvent events.KinesisEvent) error {
-	var err error
-
+func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 	events := []models.ParticipationEvent{}
-
-	for _, record := range kinesisEvent.Records {
-		kinesisRecord := record.Kinesis
-		dataBytes := kinesisRecord.Data
+	for _, record := range sqsEvent.Records {
 		var event models.ParticipationEvent
-		err = json.Unmarshal(dataBytes, &event)
+		fmt.Printf("Received SQS Message: %s\n", record.Body) // TODO remove!
+		err := json.Unmarshal([]byte(record.Body), &event)
 		if err != nil {
-			fmt.Print(err.Error())
+			fmt.Println(err.Error())
 		} else {
 			events = append(events, event)
 		}
 	}
-
 	eventsByCrowdaction := make(map[string]([]models.ParticipationEvent))
 	groupEvents(events, eventsByCrowdaction, func(e models.ParticipationEvent) string { return e.CrowdactionID })
-
-	/* TODO update code for new ParticipationEvent type
 	for crowdactionID, crowdactionEvents := range eventsByCrowdaction {
-		eventsByCommitment := make(map[string]([]models.ParticipationEvent))
-		groupEvents(crowdactionEvents, eventsByCommitment, func(e models.ParticipationEvent) string { return e.CommitmentID })
-
-		for commitmentID, commitmentEvents := range eventsByCommitment {
-			aggregated := 0
-			for _, e := range commitmentEvents {
-				aggregated += e.Count
-			}
-			updateCollectiveCommitment(crowdactionID, commitmentID, aggregated)
+		participantCountChangedBy := 0
+		for _, event := range crowdactionEvents {
+			participantCountChangedBy += event.Count
 		}
+		err := models.ChangeCrowdactionParticipantCountBy(crowdactionID, tableName, participantCountChangedBy)
+		if err != nil {
+			fmt.Println(err.Error())
+		} else {
+			fmt.Printf("Change participation count of %s by %d\n", crowdactionID, participantCountChangedBy)
+		}
+		// TODO count individual commitments and store them in the crowdaction record
 	}
-	*/
-
 	return nil
 }
 

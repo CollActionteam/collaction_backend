@@ -23,9 +23,20 @@ type JoinPayload struct {
 }
 
 var (
-	tableName  = os.Getenv("TABLE_NAME")
-	streamName = os.Getenv("PARTICIPATION_STREAM")
+	tableName = os.Getenv("TABLE_NAME")
+	queueUrl  = os.Getenv("PARTICIPATION_QUEUE")
 )
+
+func recordEvent(userID string, crowdactionID string, commitments []string, count int) error {
+	qc := utils.CreateQueueClient()
+	event := models.ParticipationEvent{
+		UserID:        userID,
+		CrowdactionID: crowdactionID,
+		Commitments:   commitments,
+		Count:         count,
+	}
+	return utils.SendQueueMessage(qc, queueUrl, event)
+}
 
 func getParticipation(dbClient *dynamodb.DynamoDB, userID string, crowdactionID string) (*models.ParticipationRecord, error) {
 	pk := utils.PrefixPKparticipationUserID + userID
@@ -69,11 +80,9 @@ func registerParticipation(userID string, name string, crowdaction *models.Crowd
 		Commitments:   payload.Commitments,
 		Date:          utils.GetDateStringNow(),
 	})
-	/* TODO replace with SQS
 	if err == nil {
-		err = recordEvent(sess, userID, crowdaction.CrowdactionID, payload.Commitments, +1)
+		err = recordEvent(userID, crowdaction.CrowdactionID, payload.Commitments, +1)
 	}
-	*/
 	return err
 }
 
@@ -92,11 +101,9 @@ func cancelParticipation(userID string, crowdaction *models.Crowdaction) error {
 	pk := utils.PrefixPKparticipationUserID + userID
 	sk := utils.PrefixSKparticipationCrowdactionID + crowdaction.CrowdactionID
 	err = utils.DeleteDBItem(dbClient, tableName, pk, sk)
-	/* TODO replace with SQS
 	if err == nil {
-		err = recordEvent(sess, userID, crowdactionID, part.Commitments, -1)
+		err = recordEvent(userID, crowdaction.CrowdactionID, part.Commitments, -1)
 	}
-	*/
 	return err
 }
 
