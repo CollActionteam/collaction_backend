@@ -2,8 +2,11 @@ package models
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/CollActionteam/collaction_backend/utils"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
@@ -45,5 +48,26 @@ func GetCrowdaction(crowdactionID string, tableName string) (*Crowdaction, error
 		return nil, err
 	}
 	return &crowdaction, nil
+}
 
+func ChangeCrowdactionParticipantCountBy(crowdactionID string, tableName string, count int) error {
+	dbClient := utils.CreateDBClient()
+	_, err := dbClient.UpdateItem(&dynamodb.UpdateItemInput{
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":c": {
+				N: aws.String(strconv.Itoa(count)),
+			},
+		},
+		TableName: aws.String(tableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			utils.PartitionKey: {
+				S: aws.String(utils.PrefixPKcrowdactionID + crowdactionID),
+			},
+			utils.SortKey: {
+				S: aws.String(utils.PrefixSKcrowdactionID + crowdactionID),
+			},
+		},
+		UpdateExpression: aws.String("set participant_count = participant_count + :c"),
+	})
+	return err
 }
