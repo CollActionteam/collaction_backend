@@ -485,7 +485,7 @@ components:
               description: "I will avoid eating beef (Goodbye stake)."
     Crowdaction:
       type: object
-      properties: 
+      properties:
         crowdactionID:
           type: string
           example: sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
@@ -499,7 +499,7 @@ components:
           type: string
         location:
           type: string
-          example: "NL:Amsterdam"
+          example: "NL#Amsterdam"
         date_start:
           type: string
           pattern: \d{4}-\d{2}-\d{2}
@@ -534,3 +534,10 @@ components:
               userID:
                 type: string
                 example: "6620cf87-44ed-456e-9798-d5cbeb7fa10a"
+        images:
+          type: object
+          properties:
+            card:
+              type: string
+            banner:
+              type: string

@@ -21,7 +21,7 @@
     "S": "food"
   },
   "location": {
-    "S": "NL:Amsterdam"
+    "S": "NL#Amsterdam"
   },
   "date_start": {
     "S": "2021-12-01"
@@ -42,7 +42,7 @@
           "name": {
             "S": "Peter Parker"
           },
-		      "userID": {
+          "userID": {
             "S": "6620cf87-44ed-456e-9798-d5cbeb7fa10a"
           }
         }
