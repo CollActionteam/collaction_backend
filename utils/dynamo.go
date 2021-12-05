@@ -8,49 +8,45 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
 
 const (
-	//access pattern getCrowdaction
-	//item has PK="act#<crowdactionID>" and SK="act#<crowdactionID>"
-	PrefixPKcrowdactionID = "act#"
-	PrefixSKcrowdactionID = "act#"
-
-	//access pattern getActiveCrowdactions
-	//item has PK="act_end#date_end" and SK="act#<crowdactionID>"
-	PrefixPKcrowdaction_date_end = "act_end#"
-
-	//access pattern getEligibleToJoinCrowdactions
-	//item has PK="act_join#date_limit_join" and SK="date_start#act#<crowdactionID>"
-	PrefixPKcrowdaction_date_limit_join = "act_join#"
-
-	//access pattern getParticipation
-	//item has PK="prt#<userID>" and SK="prt#<crowdactionID>"
-	//(we want strong consistency when listing the users participation)
-	PrefixPKparticipationUserID        = "prt#" + "usr#" // TODO refactor
-	PrefixSKparticipationCrowdactionID = "prt#" + PrefixPKcrowdactionID
-
 	PartitionKey = "pk"
 	SortKey      = "sk"
+
+	CrowdactionsPageLength = 50
+	PKCrowdaction          = "act"
+
+	//access pattern getParticipation
+	//item has PK="prt#usr#<userID>" and SK="prt#act#<crowdactionID>"
+	//(we want strong consistency when listing the users participation)
+	prefixParticipationKey              = "prt#"
+	PrefixParticipationPK_UserID        = prefixParticipationKey + "usr#"
+	PrefixParticipationSK_CrowdactionID = prefixParticipationKey + PKCrowdaction + "#"
 )
+
+type PrimaryKey map[string]*dynamodb.AttributeValue
 
 func CreateDBClient() *dynamodb.DynamoDB {
 	sess := session.Must(session.NewSession())
 	return dynamodb.New(sess)
 }
 
+func GetPrimaryKey(pk string, sk string) PrimaryKey {
+	return PrimaryKey{
+		PartitionKey: {
+			S: aws.String(pk),
+		},
+		SortKey: {
+			S: aws.String(sk),
+		},
+	}
+}
+
 func GetDBItem(dbClient *dynamodb.DynamoDB, tableName string, pk string, sk string) (map[string]*dynamodb.AttributeValue, error) {
 	result, err := dbClient.GetItem(&dynamodb.GetItemInput{
 		TableName: &tableName,
-		Key: map[string]*dynamodb.AttributeValue{
-			PartitionKey: {
-				S: aws.String(pk),
-			},
-			SortKey: {
-				S: aws.String(sk),
-			},
-		},
+		Key:       GetPrimaryKey(pk, sk),
 	})
 
 	if err != nil {
@@ -90,46 +86,7 @@ func PutDBItem(dbClient *dynamodb.DynamoDB, tableName string, pk string, sk stri
 func DeleteDBItem(dbClient *dynamodb.DynamoDB, tableName string, pk string, sk string) error {
 	_, err := dbClient.DeleteItem(&dynamodb.DeleteItemInput{
 		TableName: &tableName,
-		Key: map[string]*dynamodb.AttributeValue{
-			PartitionKey: {
-				S: aws.String(pk),
-			},
-			SortKey: {
-				S: aws.String(sk),
-			},
-		},
+		Key:       GetPrimaryKey(pk, sk),
 	})
 	return err
-}
-
-func GetDBItems(dbClient *dynamodb.DynamoDB, pk string, sk string, tableName string) (*dynamodb.QueryOutput, error) {
-
-	var keyCond expression.KeyConditionBuilder
-
-	if sk == "" {
-		keyCond = expression.Key(PartitionKey).Equal(expression.Value(pk))
-	} else {
-		keyCond = expression.KeyAnd(
-			expression.Key(PartitionKey).Equal(expression.Value(pk)),
-			expression.Key(SortKey).LessThan(expression.Value(sk)),
-		)
-	}
-
-	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
-	if err != nil {
-		return nil, err
-	}
-
-	input := &dynamodb.QueryInput{
-		TableName:                 &tableName,
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		KeyConditionExpression:    expr.KeyCondition(),
-	}
-
-	result, err := dbClient.Query(input)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
 }

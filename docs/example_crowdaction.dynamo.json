@@ -1,12 +1,12 @@
 {
   "pk": {
-    "S": "act#veganMonth123"
+    "S": "act"
   },
   "sk": {
-    "S": "act#veganMonth123"
+    "S": "sustainability#food#veganMonth21-12"
   },
   "crowdactionID": {
-    "S": "veganMonth123"
+    "S": "sustainability#food#veganMonth21-12"
   },
   "title": {
     "S": "Vegan month 2021"
@@ -24,13 +24,13 @@
     "S": "NL:Amsterdam"
   },
   "date_start": {
-    "S": "2021-11-28"
+    "S": "2021-12-01"
   },
   "date_end": {
-    "S": "2021-12-28"
+    "S": "2021-12-31"
   },
   "date_limit_join": {
-    "S": "2021-12-15"
+    "S": "2021-12-20"
   },
   "password_join": {
     "S": "myEvent-myCompany2021"
