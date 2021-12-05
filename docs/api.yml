@@ -8,7 +8,7 @@ servers:
     subdomainSuffix:
       default: "-dev"
     domain:
-      default: "example.org"
+      default: "collaction.org"
 
 paths:
   /crowdactions/{crowdactionID}:
@@ -488,6 +488,7 @@ components:
       properties: 
         crowdactionID:
           type: string
+          example: sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
         title:
           type: string
         description:

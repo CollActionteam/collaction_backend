@@ -39,8 +39,8 @@ func recordEvent(userID string, crowdactionID string, commitments []string, coun
 }
 
 func getParticipation(dbClient *dynamodb.DynamoDB, userID string, crowdactionID string) (*models.ParticipationRecord, error) {
-	pk := utils.PrefixPKparticipationUserID + userID
-	sk := utils.PrefixSKparticipationCrowdactionID + crowdactionID
+	pk := utils.PrefixParticipationPK_UserID + userID
+	sk := utils.PrefixParticipationSK_CrowdactionID + crowdactionID
 	item, err := utils.GetDBItem(dbClient, tableName, pk, sk)
 	if item == nil || err != nil {
 		return nil, err
@@ -71,8 +71,8 @@ func registerParticipation(userID string, name string, crowdaction *models.Crowd
 	if err != nil {
 		return err
 	}
-	pk := utils.PrefixPKparticipationUserID + userID
-	sk := utils.PrefixSKparticipationCrowdactionID + crowdaction.CrowdactionID
+	pk := utils.PrefixParticipationPK_UserID + userID
+	sk := utils.PrefixParticipationSK_CrowdactionID + crowdaction.CrowdactionID
 	err = utils.PutDBItem(dbClient, tableName, pk, sk, models.ParticipationRecord{
 		UserID:        userID,
 		Name:          name,
@@ -98,8 +98,8 @@ func cancelParticipation(userID string, crowdaction *models.Crowdaction) error {
 	if part == nil {
 		return errors.New("not participating")
 	}
-	pk := utils.PrefixPKparticipationUserID + userID
-	sk := utils.PrefixSKparticipationCrowdactionID + crowdaction.CrowdactionID
+	pk := utils.PrefixParticipationPK_UserID + userID
+	sk := utils.PrefixParticipationSK_CrowdactionID + crowdaction.CrowdactionID
 	err = utils.DeleteDBItem(dbClient, tableName, pk, sk)
 	if err == nil {
 		err = recordEvent(userID, crowdaction.CrowdactionID, part.Commitments, -1)

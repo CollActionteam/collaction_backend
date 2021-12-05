@@ -358,6 +358,7 @@ Resources:
       Environment:
         Variables:
           PARTICIPATION_QUEUE: !Ref ParticipationQueue
+          # Maybe use a different table to remove the overhead form the GSI on the other data
           TABLE_NAME: !Ref SingleTable
       Events:
         ChangeParticipation:
