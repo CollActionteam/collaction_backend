@@ -15,6 +15,11 @@ type CrowdactionParticipant struct {
 	UserID string `json:"userID,omitempty"`
 }
 
+type CrowdactionImages struct {
+	Card   string `json:"card,omitempty"`
+	Banner string `json:"banner,omitempty"`
+}
+
 // TODO for later: Use different model between database and api (PasswordJoin vs. IsPasswordRequired)
 type Crowdaction struct {
 	CrowdactionID     string                   `json:"crowdactionID,omitempty"`
@@ -30,6 +35,7 @@ type Crowdaction struct {
 	CommitmentOptions []CommitmentOption       `json:"commitment_options,omitempty"`
 	ParticipantCount  int                      `json:"participant_count,omitempty"`
 	TopParticipants   []CrowdactionParticipant `json:"top_participants,omitempty"`
+	Images            CrowdactionImages        `json:"images,omitempty"`
 }
 
 func GetCrowdaction(crowdactionID string, tableName string) (*Crowdaction, error) {

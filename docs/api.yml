@@ -538,7 +538,5 @@ components:
           properties:
             card:
               type: string
-              example: <url link>
             banner:
               type: string
-              example: <url link>
