@@ -77,6 +77,7 @@ func registerParticipation(userID string, name string, crowdaction *models.Crowd
 		UserID:        userID,
 		Name:          name,
 		CrowdactionID: crowdaction.CrowdactionID,
+		Title:         crowdaction.Title,
 		Commitments:   payload.Commitments,
 		Date:          utils.GetDateStringNow(),
 	})
