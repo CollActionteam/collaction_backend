@@ -85,5 +85,15 @@
   },
   "participant_count": {
     "N": "0"
+  },
+  "images": {
+    "M": {
+      "card": {
+        "S": "https://images.unsplash.com/photo-1488459716781-31db52582fe9?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=640"
+      },
+      "banner": {
+        "S": "https://images.unsplash.com/photo-1488459716781-31db52582fe9?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=640"
+      }
+    }
   }
 }
