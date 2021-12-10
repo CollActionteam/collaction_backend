@@ -10,6 +10,8 @@ func IndexOf(s []string, v string) int {
 }
 
 func Remove(s *[]string, i int) {
-	(*s)[i] = (*s)[len(*s)-1]
+	for ; i < len(*s)-1; i++ {
+		(*s)[i] = (*s)[i+1]
+	}
 	*s = (*s)[:len(*s)-1]
 }
