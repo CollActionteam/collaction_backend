@@ -15,9 +15,12 @@ type CommitmentOption struct {
 }
 
 func ValidateCommitments(commitments []string, rootOptions []CommitmentOption) error {
-	err := validateCommitments(&commitments, rootOptions, false)
-	if err == nil && len(commitments) > 0 {
-		err = fmt.Errorf("commitments \"%s\" not in options", strings.Join(commitments, ", "))
+	// Work with copy because the commitments should not be modified, since they must be used later
+	commitmentsCopy := make([]string, len(commitments))
+	copy(commitmentsCopy, commitments)
+	err := validateCommitments(&commitmentsCopy, rootOptions, false)
+	if err == nil && len(commitmentsCopy) > 0 {
+		err = fmt.Errorf("commitments \"%s\" not in options", strings.Join(commitmentsCopy, ", "))
 	}
 	return err
 }
