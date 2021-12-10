@@ -1,7 +1,7 @@
 {
   "body": "{\"password\":\"myEvent-myCompany2021\", \"commitments\":[\"no-beef\"]}",
   "pathParameters": {
-      "crowdactionID": "veganMonth123"
+      "crowdactionID": "sustainability#food#veganMonth21-12"
   },
   "requestContext": {
       "authorizer": {

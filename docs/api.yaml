@@ -98,7 +98,7 @@ paths:
     get:
       tags:
         - "Crowdaction"
-      summary: "Get participating in a particular crowdaction"
+      summary: "Get existing participation in a particular crowdaction"
       parameters:
       - name: "crowdactionID"
         in: "path"

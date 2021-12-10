@@ -121,8 +121,10 @@ Resources:
       ApiMappingKey: ""
       DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
       ApiId: !Ref HttpApi
-      Stage: !Ref Stage
-    DependsOn: HttpApiDomainName
+      Stage: !Ref HttpApi.Stage
+    DependsOn: 
+      - HttpApiDomainName
+      - HttpApi
 
   HttpApi:
     Type: AWS::Serverless::HttpApi
@@ -137,6 +139,7 @@ Resources:
               issuer: !Sub https://securetoken.google.com/${FirebaseProjectId}
         DefaultAuthorizer: FirebaseAuthorizer
       StageName: !Ref Stage
+      # TODO revisite
       CorsConfiguration:
         AllowMethods: [GET]
         AllowOrigins: [http://localhost:8080]
