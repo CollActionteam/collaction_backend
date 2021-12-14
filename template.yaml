@@ -378,13 +378,13 @@ Resources:
         Type: String
 
 Outputs:
-  # HttpApiHelloWorld:
-  #   Description: "API Gateway endpoint URL for deployed stage for Hello World function"
-  #   Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/hello"
-  # CustomDomainHttpApiHelloWorld:
-  #   Condition: shouldUseCustomDomainNames
-  #   Description: "API Gateway endpoint URL for deployed stage for Hello World function"
-  #   Value: !Sub "https://api${SubdomainSuffixParameter}.${DomainParameter}/hello"
+  HttpApiCrowdactions:
+    Description: "API Gateway endpoint URL for deployed stage for Crowd Actions function"
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/crowdactions"
+  CustomDomainHttpApiCrowdactions:
+    Condition: shouldUseCustomDomainNames
+    Description: "API Gateway endpoint URL for deployed stage for Crowd Actions function"
+    Value: !Sub "https://api${SubdomainSuffixParameter}.${DomainParameter}/crowdactions"
   CustomDomainStaticEndpoint:
     Condition: shouldUseCustomDomainNames
     Description: "CloudFront distribution endpoint URL for static files"
