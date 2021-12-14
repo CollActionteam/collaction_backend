@@ -144,25 +144,6 @@ Resources:
         AllowMethods: [GET]
         AllowOrigins: [http://localhost:8080]
   
-  HelloWorldFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-    Properties:
-      CodeUri: hello-world/
-      Handler: hello-world
-      Runtime: go1.x
-      Architectures:
-        - x86_64
-      Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
-      Events:
-        HelloWorld:
-          Type: HttpApi # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-          Properties:
-            Path: /hello
-            Method: get
-            ApiId: !Ref HttpApi
-            Auth:
-              Authorizer: "NONE"
-
   EmailContactFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -314,20 +295,6 @@ Resources:
             TableName:
               !Ref SingleTable
 
-  WhoamiFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: whoami/
-      Handler: whoami
-      Runtime: go1.x
-      Events:
-        Whoami:
-          Type: HttpApi
-          Properties:
-            Path: /whoami
-            Method: get
-            ApiId: !Ref HttpApi
-
   ParticipationQueue:
     Type: AWS::SQS::Queue
 
@@ -411,13 +378,13 @@ Resources:
         Type: String
 
 Outputs:
-  HttpApiHelloWorld:
-    Description: "API Gateway endpoint URL for deployed stage for Hello World function"
-    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/hello"
-  CustomDomainHttpApiHelloWorld:
+  HttpApiCrowdactions:
+    Description: "API Gateway endpoint URL for deployed stage for Crowd Actions function"
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/crowdactions"
+  CustomDomainHttpApiCrowdactions:
     Condition: shouldUseCustomDomainNames
-    Description: "API Gateway endpoint URL for deployed stage for Hello World function"
-    Value: !Sub "https://api${SubdomainSuffixParameter}.${DomainParameter}/hello"
+    Description: "API Gateway endpoint URL for deployed stage for Crowd Actions function"
+    Value: !Sub "https://api${SubdomainSuffixParameter}.${DomainParameter}/crowdactions"
   CustomDomainStaticEndpoint:
     Condition: shouldUseCustomDomainNames
     Description: "CloudFront distribution endpoint URL for static files"

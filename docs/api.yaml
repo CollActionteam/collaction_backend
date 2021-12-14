@@ -359,15 +359,6 @@ paths:
                   status:
                     type: integer
                     default: 404
-  /hello:
-    get:
-      tags:
-        - "Testing/Development"
-      deprecated: true
-      summary: "May be used to test if the endpoint can be reached (will be removed in the future!)"
-      responses:
-        default:
-          description: ""
   /upload-profile-picture:
     get:
       tags:
@@ -384,25 +375,6 @@ paths:
                   upload_url:
                     type: string
                     format: uri
-      security:
-      - FirebaseAuthorizer: []
-  /whoami:
-    get:
-      tags:
-        - "Testing/Development"
-      deprecated: true
-      summary: "May be used to test if JWT authentication works (will be removed in the future!)"
-      responses:
-        default:
-          description: "Returns the claims that have been extracted from the JWT"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "your name is Max, your user id is 1234 and your phone number is +31612345678"
       security:
       - FirebaseAuthorizer: []
   /contact:
