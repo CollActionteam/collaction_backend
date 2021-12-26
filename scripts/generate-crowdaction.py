@@ -87,7 +87,7 @@ if len(country) > 0:
         'name': 'city',
         'default': 'Amsterdam',
         'message': 'City (optional)',
-    }])['city']
+    }])['city'].strip()
 
 
 def confirm(question, default=False):
@@ -105,7 +105,7 @@ if confirm('Requires password'):
         'type': 'input',
         'message': 'Password',
         'name': 'password',
-    }])['password']
+    }])['password'].strip()
 
 
 def get_date_str(message):
