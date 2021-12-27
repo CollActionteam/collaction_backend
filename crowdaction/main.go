@@ -54,12 +54,8 @@ func getCrowdactions(status string) (events.APIGatewayProxyResponse, error) {
 		if err != nil {
 			return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
 		}
-		str, err := utils.UnescapeUTF8(string(body))
-		if err != nil {
-			return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
-		}
 		return events.APIGatewayProxyResponse{
-			Body:       str,
+			Body:       string(body),
 			StatusCode: http.StatusOK,
 		}, nil
 	}
