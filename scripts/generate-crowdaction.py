@@ -76,8 +76,8 @@ answers = prompt([
     }
 ])
 
-category = answers['category'].strip()
-subcategory = answers['subcategory'].strip()
+category = answers['category'].strip().lower()
+subcategory = answers['subcategory'].strip().lower()
 crowdaction_id = f'{category}#{subcategory}#{str(uuid.uuid4())[:8]}'
 country = answers['country'].strip()
 city = ''
