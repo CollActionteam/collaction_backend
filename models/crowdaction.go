@@ -29,20 +29,20 @@ type CrowdactionImages struct {
 
 // TODO for later: Use different model between database and api (PasswordJoin vs. IsPasswordRequired)
 type Crowdaction struct {
-	CrowdactionID     string                   `json:"crowdactionID,omitempty"`
-	Title             string                   `json:"title,omitempty"`
-	Description       string                   `json:"description,omitempty"`
-	Category          string                   `json:"category,omitempty"`
-	Subcategory       string                   `json:"subcategory,omitempty"`
-	Location          string                   `json:"location,omitempty"`
-	DateStart         string                   `json:"date_start,omitempty"`      // Must match KeyDateStart
-	DateEnd           string                   `json:"date_end,omitempty"`        // Must match KeyDateEnd
-	DateLimitJoin     string                   `json:"date_limit_join,omitempty"` // Must match KeyDateLimitJoin
-	PasswordJoin      string                   `json:"password_join,omitempty"`
-	CommitmentOptions []CommitmentOption       `json:"commitment_options,omitempty"`
-	ParticipantCount  int                      `json:"participant_count,omitempty"`
-	TopParticipants   []CrowdactionParticipant `json:"top_participants,omitempty"`
-	Images            CrowdactionImages        `json:"images,omitempty"`
+	CrowdactionID     string                   `json:"crowdactionID"`
+	Title             string                   `json:"title"`
+	Description       string                   `json:"description"`
+	Category          string                   `json:"category"`
+	Subcategory       string                   `json:"subcategory"`
+	Location          string                   `json:"location"`
+	DateStart         string                   `json:"date_start"`      // Must match KeyDateStart
+	DateEnd           string                   `json:"date_end"`        // Must match KeyDateEnd
+	DateLimitJoin     string                   `json:"date_limit_join"` // Must match KeyDateLimitJoin
+	PasswordJoin      string                   `json:"password_join"`
+	CommitmentOptions []CommitmentOption       `json:"commitment_options"`
+	ParticipantCount  int                      `json:"participant_count"`
+	TopParticipants   []CrowdactionParticipant `json:"top_participants"`
+	Images            CrowdactionImages        `json:"images"`
 }
 
 func GetCrowdaction(crowdactionID string, tableName string) (*Crowdaction, error) {
