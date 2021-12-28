@@ -2,8 +2,6 @@
 .aws-sam
 samconfig.toml
 
-# from https://github.com/github/gitignore/blob/master/Go.gitignore
-
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -15,21 +13,16 @@ events/example_whoami.json
 # Other files (use this if you want to make backups or store private notes/scripts/etc.)
 _ignored/
 
+# DynamoDB items
+*.dynamodb.json
+
 # Test binary, built with `go test -c`
 *.test
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
-
-# end of https://github.com/github/gitignore/blob/master/Go.gitignore
-
-# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode
-# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode
-
-### VisualStudioCode ###
+# VisualStudioCode
 .vscode/*
 .vscode/settings.json
 .vscode/tasks.json
@@ -37,10 +30,10 @@ _ignored/
 .vscode/extensions.json
 *.code-workspace
 
-### VisualStudioCode Patch ###
+# VisualStudioCode Patch
 # Ignore all local history of files
 .history
 .ionide
 
-# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode
+# MacOS
 .DS_Store
