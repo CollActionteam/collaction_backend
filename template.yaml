@@ -1,39 +1,394 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  sam-test-app
-
-  Sample SAM Template for sam-test-app
-
+  CollAction backend
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 10
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+    NoEcho: true
+    AllowedValues:
+      - dev
+      - prod
+  FirebaseProjectId:
+    Type: String
+    NoEcho: true
+  DomainParameter:
+    Type: String
+    NoEcho: true
+    Description: "Domain name without subdomains (If this is empty no custom (sub-)domains are set up)"
+  SubdomainSuffixParameter:
+    Type: String
+    NoEcho: true
+    Description: "Suffix to apply to all subdomains within this stack"
+  HostedZoneIdParameter:
+    Type: String
+    NoEcho: true
+    Description: "Hosted Zone Id of the specified domain (Only for custom domain)"
+  AcmCertificateArnParameter:
+    Type: String
+    NoEcho: true
+    Description: "ARN of certificate for CloudFront in region us-east-1 (Only for custom domain)"
+  
+Conditions:
+  shouldUseCustomDomainNames: !Not [!Equals [!Ref DomainParameter, ""]]
 
 Resources:
-  HelloWorldFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+
+  DnsRecords: 
+    Type: AWS::Route53::RecordSetGroup
+    Condition: shouldUseCustomDomainNames
     Properties:
-      CodeUri: hello_world/
-      Handler: app.lambda_handler
-      Runtime: python3.7
+      HostedZoneId: !Ref HostedZoneIdParameter
+      RecordSets:
+        - Name: !Sub "static${SubdomainSuffixParameter}.${DomainParameter}"
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2 # Fixed value according to documentation (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-route53.html)
+            DNSName: !GetAtt StaticContentDistribution.DomainName
+        - Name: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
+          Type: A
+          AliasTarget:
+            HostedZoneId: !GetAtt HttpApiDomainName.RegionalHostedZoneId
+            DNSName: !GetAtt HttpApiDomainName.RegionalDomainName
+
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Condition: shouldUseCustomDomainNames
+    Properties:
+      DomainName: !Sub "*.${DomainParameter}"
+      SubjectAlternativeNames:
+        - !Ref DomainParameter
+        - !Sub "*.${DomainParameter}"
+      DomainValidationOptions:
+        - DomainName: !Ref DomainParameter
+          HostedZoneId:
+            Ref: HostedZoneIdParameter
+      ValidationMethod: DNS
+
+  CloudFrontOriginIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Condition: shouldUseCustomDomainNames
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: "origin identity for static content distribution"
+
+  StaticContentDistribution:
+    Type: AWS::CloudFront::Distribution
+    Condition: shouldUseCustomDomainNames
+    Properties: 
+      DistributionConfig:
+        DefaultCacheBehavior:
+          AllowedMethods: [HEAD, DELETE, POST, GET, OPTIONS, PUT, PATCH]
+          TargetOriginId: StaticBucketOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+        Enabled: true
+        Aliases:
+          - !Sub "static${SubdomainSuffixParameter}.${DomainParameter}"
+        Origins:
+          - Id: StaticBucketOrigin
+            DomainName: !Sub ${StaticHostingBucket}.s3.${ AWS::Region }.amazonaws.com
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginIdentity}'
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AcmCertificateArnParameter
+          MinimumProtocolVersion: TLSv1.1_2016
+          SslSupportMethod: sni-only
+
+  HttpApiDomainName:
+    Type: AWS::ApiGatewayV2::DomainName
+    Condition: shouldUseCustomDomainNames
+    Properties: 
+      DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
+      DomainNameConfigurations: 
+        - EndpointType: REGIONAL
+          CertificateArn: !Ref Certificate
+
+  HttpApiMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Condition: shouldUseCustomDomainNames
+    Properties: 
+      ApiMappingKey: ""
+      DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
+      ApiId: !Ref HttpApi
+      Stage: !Ref HttpApi.Stage
+    DependsOn: 
+      - HttpApiDomainName
+      - HttpApi
+
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Auth:
+        Authorizers:
+          FirebaseAuthorizer:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              audience:
+                - !Ref FirebaseProjectId
+              issuer: !Sub https://securetoken.google.com/${FirebaseProjectId}
+        DefaultAuthorizer: FirebaseAuthorizer
+      StageName: !Ref Stage
+      # TODO revisite
+      CorsConfiguration:
+        AllowMethods: [GET]
+        AllowOrigins: [http://localhost:8080]
+  
+  EmailContactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: email_contact/
+      Handler: email_contact
+      Runtime: go1.x
       Events:
-        HelloWorld:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+        Contact:
+          Type: HttpApi
           Properties:
-            Path: /hello
+            Path: /contact
+            Method: post
+            ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'ses:SendEmail'
+                - 'ses:SendRawEmail'
+                - 'ssm:GetParameter'
+              Resource: '*'
+  ProfilePictureUploadBucket:
+    Type: 'AWS::S3::Bucket'
+
+  StaticHostingBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        # TODO does not seem to work using CloudFront
+        # RoutingRules:
+        #   - RoutingRuleCondition:
+        #       HttpErrorCodeReturnedEquals: '403'
+        #       KeyPrefixEquals: profile-pictures/
+        #     RedirectRule:
+        #       ReplaceKeyWith: profile-pictures/anonymous.png
+
+  UploadProfilePictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: upload-profile-picture/
+      Handler: upload-profile-picture
+      Runtime: go1.x
+      Environment:
+        Variables:
+          BUCKET: !Ref ProfilePictureUploadBucket
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action: 
+              - s3:PutObject*
+            Resource: '*'
+      Events:
+        ProfilePictureUpload:
+          Type: HttpApi
+          Properties:
+            Path: /upload-profile-picture
             Method: get
+            ApiId: !Ref HttpApi
+
+  ProcessProfilePictureFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: process-profile-picture/
+      Handler: process-profile-picture
+      Runtime: go1.x
+      Environment:
+        Variables:
+          # Beware of recursive execution! Double check referenced buckets!
+          OUTPUT_BUCKET_NAME: !Ref StaticHostingBucket
+          KEY_PREIFX: profile-pictures/
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action: 
+              - s3:GetObject*
+              - s3:PutObject*
+              - s3:DeleteObject*
+              - rekognition:DetectModerationLabels
+            Resource: '*'
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket: !Ref ProfilePictureUploadBucket
+            Events: s3:ObjectCreated:*
+
+  SingleTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      AttributeDefinitions:
+        - AttributeName: "pk"
+          AttributeType: "S"
+        - AttributeName: "sk"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "pk"
+          KeyType: "HASH"
+        - AttributeName: "sk"
+          KeyType: "RANGE"
+      GlobalSecondaryIndexes:
+        - IndexName: "invertedIndex"
+          KeySchema:
+          - AttributeName: "sk"
+            KeyType: "HASH"
+          - AttributeName: "pk"
+            KeyType: "RANGE"
+          Projection:
+            ProjectionType: "ALL" # Data duplication is less costly than additional per primary key lookups (?)
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+
+  CrowdactionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: crowdaction/
+      Handler: crowdaction
+      Runtime: go1.x
+      Events:
+        FetchCrowdaction:
+          Type: HttpApi
+          Properties:
+            Path: /crowdactions/{crowdactionID}
+            Method: get
+            ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
+        FetchCrowdactions:
+          Type: HttpApi
+          Properties:
+            Path: /crowdactions
+            Method: get
+            ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref SingleTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref SingleTable
+
+  ParticipationQueue:
+    Type: AWS::SQS::Queue
+
+  AggregateParticipationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: controllers/participation/aggregator
+      Handler: aggregator
+      Runtime: go1.x
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref SingleTable
+      Events:
+        ParticipationEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ParticipationQueue.Arn
+            BatchSize: 100
+            MaximumBatchingWindowInSeconds: 300 #5min
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref SingleTable
+
+  ParticipationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: controllers/participation/endpoint
+      Handler: endpoint
+      Runtime: go1.x
+      Environment:
+        Variables:
+          PARTICIPATION_QUEUE: !Ref ParticipationQueue
+          # Maybe use a different table to remove the overhead form the GSI on the other data
+          TABLE_NAME: !Ref SingleTable
+      Events:
+        ChangeParticipation:
+          Type: HttpApi
+          Properties:
+            Path: /crowdactions/{crowdactionID}/participation
+            Method: any
+            ApiId: !Ref HttpApi
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref SingleTable
+        - Statement:
+          - Sid: ParticipationQueuePutRecordPolicy
+            Effect: Allow
+            Action:
+            - sqs:SendMessage
+            Resource: !GetAtt ParticipationQueue.Arn
+            
+  ProfileCRUDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: profile-crud/
+      Handler: profile-crud
+      Runtime: go1.x
+      Events:
+        ProfileCRUDHandler:
+          Type: HttpApi
+          Properties:
+            Path: /profiles/{userID}
+            Method: any
+            ApiId: !Ref HttpApi
+      Environment:
+        Variables:
+          PROFILE_TABLE: !Ref ProfileTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref ProfileTable
+
+  # TODO use table SingleTabel instead
+  ProfileTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: userid
+        Type: String
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  HttpApiCrowdactions:
+    Description: "API Gateway endpoint URL for deployed stage for Crowd Actions function"
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/crowdactions"
+  CustomDomainHttpApiCrowdactions:
+    Condition: shouldUseCustomDomainNames
+    Description: "API Gateway endpoint URL for deployed stage for Crowd Actions function"
+    Value: !Sub "https://api${SubdomainSuffixParameter}.${DomainParameter}/crowdactions"
+  CustomDomainStaticEndpoint:
+    Condition: shouldUseCustomDomainNames
+    Description: "CloudFront distribution endpoint URL for static files"
+    Value: !Sub "https://static${SubdomainSuffixParameter}.${DomainParameter}/"
+  TableName:
+    Value: !Ref  SingleTable
+    Description: Table name of the newly created DynamoDB table
