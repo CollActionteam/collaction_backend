@@ -9,7 +9,7 @@ name: CICD
 
 on:
   push:
-    branches: [development]
+    branches: [master, development]
   pull_request:
     types: [opened, synchronize]
 
