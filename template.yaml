@@ -228,6 +228,7 @@ Resources:
               - s3:PutObject*
               - s3:DeleteObject*
               - rekognition:DetectModerationLabels
+              - cloudfront:CreateInvalidation
             Resource: '*'
       Events:
         S3Event:

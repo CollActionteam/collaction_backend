@@ -159,6 +159,10 @@ func handler(e events.S3Event) {
 		// Invalidate CDN cache
 		cloudfrontDist := os.Getenv("CLOUDFRONT_DISTRIBUTION")
 		if len(cloudfrontDist) > 0 {
+			if !strings.HasPrefix(path, "/") {
+				// Path must start with "/"
+				path = fmt.Sprintf("/%s", path)
+			}
 			err = utils.InvalidateCache(cloudfrontDist, path)
 			if err != nil {
 				log.Println(err.Error())
