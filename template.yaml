@@ -219,6 +219,7 @@ Resources:
           # Beware of recursive execution! Double check referenced buckets!
           OUTPUT_BUCKET_NAME: !Ref StaticHostingBucket
           KEY_PREIFX: profile-pictures/
+          CLOUDFRONT_DISTRIBUTION: !Ref StaticContentDistribution
       Policies:
         - Statement:
           - Effect: Allow
@@ -227,6 +228,7 @@ Resources:
               - s3:PutObject*
               - s3:DeleteObject*
               - rekognition:DetectModerationLabels
+              - cloudfront:CreateInvalidation
             Resource: '*'
       Events:
         S3Event:

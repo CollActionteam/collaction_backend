@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -143,15 +144,31 @@ func handler(e events.S3Event) {
 
 		// Upload image
 		keyPrefix := os.Getenv("KEY_PREIFX")
+		path := fmt.Sprintf("%s%s", keyPrefix, key)
 		_, err = clientS3.PutObject(&s3.PutObjectInput{
 			Body:        bytes.NewReader(imgBytes),
 			Bucket:      aws.String(outputBucketName),
-			Key:         aws.String(fmt.Sprintf("%s%s", keyPrefix, key)),
+			Key:         aws.String(path),
 			ContentType: aws.String("image/png"),
 			ACL:         aws.String("public-read"),
 		})
 		if err != nil {
 			log.Println(err.Error())
+		}
+
+		// Invalidate CDN cache
+		cloudfrontDist := os.Getenv("CLOUDFRONT_DISTRIBUTION")
+		if len(cloudfrontDist) > 0 {
+			if !strings.HasPrefix(path, "/") {
+				// Path must start with "/"
+				path = fmt.Sprintf("/%s", path)
+			}
+			err = utils.InvalidateCache(cloudfrontDist, path)
+			if err != nil {
+				log.Println(err.Error())
+			}
+		} else {
+			log.Println("No CloudFront distribution to invalidate")
 		}
 	}
 
