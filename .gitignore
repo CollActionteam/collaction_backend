@@ -37,3 +37,4 @@ _ignored/
 
 # MacOS
 .DS_Store
+.idea
