@@ -3,12 +3,12 @@ info:
   title: "collaction-dev"
   version: "1.0"
 servers:
-- url: "https://api{subdomainSuffix}.{domain}/"
-  variables:
-    subdomainSuffix:
-      default: "-dev"
-    domain:
-      default: "collaction.org"
+  - url: "https://api{subdomainSuffix}.{domain}/"
+    variables:
+      subdomainSuffix:
+        default: "-dev"
+      domain:
+        default: "collaction.org"
 
 paths:
   /crowdactions/{crowdactionID}:
@@ -31,12 +31,12 @@ paths:
                 type: object
                 properties:
                   data:
-                    $ref: '#/components/schemas/Crowdaction'
+                    $ref: "#/components/schemas/Crowdaction"
         404:
           description: "Crowdaction not found"
           content:
             application/json:
-              schema: 
+              schema:
                 type: object
                 properties:
                   message:
@@ -46,7 +46,7 @@ paths:
           description: "Internal server error"
           content:
             application/json:
-              schema: 
+              schema:
                 type: object
                 properties:
                   message:
@@ -73,12 +73,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Crowdaction'
+                  $ref: "#/components/schemas/Crowdaction"
         404:
           description: "No active crowdaction found"
           content:
             application/json:
-              schema: 
+              schema:
                 type: object
                 properties:
                   message:
@@ -100,11 +100,11 @@ paths:
         - "Crowdaction"
       summary: "Get existing participation in a particular crowdaction"
       parameters:
-      - name: "crowdactionID"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "crowdactionID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         default:
           description: "Success message"
@@ -141,17 +141,17 @@ paths:
                     type: string
                     example: "not participating"
       security:
-      - FirebaseAuthorizer: []
+        - FirebaseAuthorizer: []
     delete:
       tags:
         - "Crowdaction"
       summary: "Stop participating in a particular crowdaction"
       parameters:
-      - name: "crowdactionID"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "crowdactionID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         default:
           description: "Success message"
@@ -174,7 +174,7 @@ paths:
                     type: string
                     example: "not participating"
       security:
-      - FirebaseAuthorizer: []
+        - FirebaseAuthorizer: []
     post:
       tags:
         - "Crowdaction"
@@ -199,11 +199,11 @@ paths:
                   example: ["no-meat", "no-dairy"]
 
       parameters:
-      - name: "crowdactionID"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "crowdactionID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         default:
           description: "Success message"
@@ -226,24 +226,24 @@ paths:
                     type: string
                     example: "already participating"
       security:
-      - FirebaseAuthorizer: []
+        - FirebaseAuthorizer: []
   /profiles/{userID}:
     post:
       tags:
         - "Profile"
       summary: "Create a profile for a new user"
       parameters:
-      - name: "userID"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "userID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Profile'
+              $ref: "#/components/schemas/Profile"
       responses:
         default:
           description: "Profile was created successfully"
@@ -262,25 +262,25 @@ paths:
                     type: integer
                     default: 200
       security:
-      - FirebaseAuthorizer: []
+        - FirebaseAuthorizer: []
     put:
       tags:
         - "Profile"
       summary: "Update the profile of an existing user"
       parameters:
-      - name: "userID"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "userID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Profile'
+              $ref: "#/components/schemas/Profile"
       security:
-      - FirebaseAuthorizer: []
+        - FirebaseAuthorizer: []
       responses:
         default:
           description: "Profile was updated successfully"
@@ -303,11 +303,11 @@ paths:
         - "Profile"
       summary: "View the profile of a user"
       parameters:
-      - name: "userID"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "userID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         default:
           description: "Profile was found"
@@ -376,7 +376,7 @@ paths:
                     type: string
                     format: uri
       security:
-      - FirebaseAuthorizer: []
+        - FirebaseAuthorizer: []
   /contact:
     post:
       tags:
@@ -387,18 +387,145 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Email'
+              $ref: "#/components/schemas/Email"
       responses:
         default:
           description: "The status code indicates if the message was successfully sent"
-        
+  /cms/crowdactions:
+    post:
+      tags:
+        - "CMS"
+      summary: "Create a draft for a new crowdaction"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category, title]
+              properties:
+                category:
+                  type: string
+                subcategory:
+                  type: string
+                title:
+                  type: string
+      responses:
+        default:
+          description: "Returns the crowdactionID for the new crowdaction that was created"
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "sustainability#food#88615462-2789-4159-8659-2ecfd33ef305"
+      security:
+        - FirebaseAuthorizer: []
+    get:
+      tags:
+        - "CMS"
+      summary: "Fetch list of all crowdactions that can be edited"
+      responses:
+        default:
+          description: "Returns a list of all crowdactions that can be edited"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    crowdactionID:
+                      type: string
+                      example: "sustainability#food#88615462-2789-4159-8659-2ecfd33ef305"
+                    title:
+                      type: string
+                    status:
+                      type: string
+                      enum: [published, unpublished, incomplete-draft]
+      security:
+        - FirebaseAuthorizer: []
+  /cms/crowdactions/{crowdactionID}:
+    get:
+      tags:
+        - "CMS"
+      summary: "Fetch a crowdaction (draft)"
+      responses:
+        default:
+          description: "Returns crowdaction (draft)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Crowdaction"
+      security:
+        - FirebaseAuthorizer: []
+    put:
+      tags:
+        - "CMS"
+      summary: "Edit a crowdaction"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Crowdaction"
+      responses:
+        default:
+          description: "Crowdaction content was changed"
+        400:
+          description: "Requested changes are not allowed (e.g. change image URL)"
+      security:
+        - FirebaseAuthorizer: []
+  /cms/crowdactions/{crowdactionID}/status:
+    post:
+      tags:
+        - "CMS"
+      summary: "(Un-)Publish a crowdaction"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              enum: [published, unpublished]
+      responses:
+        default:
+          description: "(Un-)Publish a crowdaction"
+        400:
+          description: "Not possible (e.g. trying to publish incomplete draft)"
+      security:
+        - FirebaseAuthorizer: []
+  /cms/crowdactions/{crowdactionID}/upload-picture:
+    get:
+      tags:
+        - "CMS"
+      summary: "Fetch an upload URL (POST) for a crowdaction picture"
+      parameters:
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum:
+              - banner
+              - card
+      responses:
+        default:
+          description: "Returns the URL where to upload (PUT) the square png image"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  upload_url:
+                    type: string
+                    format: uri
+      security:
+        - FirebaseAuthorizer: []
+
 components:
   securitySchemes:
     FirebaseAuthorizer:
       type: http
       scheme: bearer
       bearerFormat: JWT
-  
+
   schemas:
     Email:
       type: object
@@ -438,7 +565,7 @@ components:
         id:
           type: string
           example: vegetarian
-        label: 
+        label:
           type: string
           example: "Becoming vegetarian"
         description:
@@ -450,7 +577,7 @@ components:
             Commitments that are included in (and required by) this commitment.
             They can also be individually selected
           items:
-            $ref: '#/components/schemas/CommitmentOption'
+            $ref: "#/components/schemas/CommitmentOption"
             example:
               id: "no-beef"
               label: "Not eating beef"
@@ -492,7 +619,7 @@ components:
         commitment_options:
           type: array
           items:
-            $ref: '#/components/schemas/CommitmentOption'
+            $ref: "#/components/schemas/CommitmentOption"
         participant_count:
           type: integer
         top_participants:
