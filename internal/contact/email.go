@@ -17,23 +17,27 @@ type ConfigManager interface {
 	GetParameter(name string) (string, error)
 }
 
-type Contact struct {
-	EmailRepository EmailRepository
-	ConfigManager   ConfigManager
-	Stage           string
+type Service interface {
+	SendEmail(ctx context.Context, data models.EmailContactRequest) error
 }
 
-func NewContactService(emailRepository EmailRepository, configManager ConfigManager, stage string) *Contact {
-	return &Contact{EmailRepository: emailRepository, ConfigManager: configManager, Stage: stage}
+type contact struct {
+	emailRepository EmailRepository
+	configManager   ConfigManager
+	stage           string
 }
 
-func (e *Contact) SendEmail(ctx context.Context, data models.EmailContactRequest) error {
-	recipient, err := e.ConfigManager.GetParameter(fmt.Sprintf(constants.RecipientEmail, e.Stage))
+func NewContactService(emailRepository EmailRepository, configManager ConfigManager, stage string) Service {
+	return &contact{emailRepository: emailRepository, configManager: configManager, stage: stage}
+}
+
+func (e *contact) SendEmail(ctx context.Context, data models.EmailContactRequest) error {
+	recipient, err := e.configManager.GetParameter(fmt.Sprintf(constants.RecipientEmail, e.stage))
 	if err != nil {
 		return err
 	}
 
-	return e.EmailRepository.Send(ctx, models.EmailData{
+	return e.emailRepository.Send(ctx, models.EmailData{
 		Recipient:  recipient,
 		Message:    fmt.Sprintf("%s %s %s", data.Message, separator, data.AppVersion),
 		Subject:    data.Subject,

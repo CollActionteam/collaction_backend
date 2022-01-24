@@ -1,7 +1,6 @@
 package http
 
 import (
-	"context"
 	"github.com/CollActionteam/collaction_backend/internal/contact"
 	"github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/CollActionteam/collaction_backend/pkg/repository"
@@ -9,12 +8,8 @@ import (
 	"net/http"
 )
 
-type ContactService interface {
-	SendEmail(ctx context.Context, data models.EmailContactRequest) error
-}
-
 type ContactHandler struct {
-	service ContactService
+	service contact.Service
 }
 
 func NewContactHandler() *ContactHandler {
