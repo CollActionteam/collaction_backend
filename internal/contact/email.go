@@ -7,7 +7,8 @@ import (
 	"github.com/CollActionteam/collaction_backend/internal/models"
 )
 
-const separator = "### app version:"
+const Separator = "### app version:"
+const EmailMessageFormat = "%s %s %s"
 
 type EmailRepository interface {
 	Send(ctx context.Context, data models.EmailData) error
@@ -39,7 +40,7 @@ func (e *contact) SendEmail(ctx context.Context, data models.EmailContactRequest
 
 	return e.emailRepository.Send(ctx, models.EmailData{
 		Recipient:  recipient,
-		Message:    fmt.Sprintf("%s %s %s", data.Message, separator, data.AppVersion),
+		Message:    fmt.Sprintf(EmailMessageFormat, data.Message, Separator, data.AppVersion),
 		Subject:    data.Subject,
 		Sender:     data.Email,
 		ReplyEmail: data.Email,
