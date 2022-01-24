@@ -147,7 +147,7 @@ Resources:
   EmailContactFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: pkg/handler/sam/emailContact
+      CodeUri: pkg/handler/aws/emailContact
       Handler: emailContact
       Runtime: go1.x
       Events:
