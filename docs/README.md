@@ -8,18 +8,8 @@ An interactive documentation of the API can be found [here](https://editor.swagg
 * [Go installed](https://golang.org/doc/install)
 * Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community)
 
-## Project structure
-- `auth/` - Package for extracting user information from requests
-- `email-contact/` - Contact form Lambda function
-- `hello-world/` - Example Lambda function.
-- `events/` - Invocation events that you can use to invoke the function.
-- `process-profile-picture/` - Lambda function for moderating uploaded profile pictures and making them public. 
-- `upload-profile-picture/` - Lambda function for generating an upload URL for the profile picture. 
-- `whoami/` - Example Lambda for authenticating Firebase users. 
-- `profile-crud/` - Lambda function for creating, reading, and updating profile information
-- `template.yaml` - A template that defines the application's AWS resources.
-
-For additional information, refer to `README.md` files in these directories.
+## Architecture
+The project will use a Hexagonal/Port-Adapter architecture.
 
 ## Run locally
 Build and run the entire application using the following commands:
@@ -31,7 +21,7 @@ In order to connect from another device append `--host 0.0.0.0` to the second co
 
 You can also run a single function using an event file.
 ```bash
-sam local invoke HelloWorldFunction --event events/event.json
+sam local invoke SomeFunction --event event_examples/some_event.json
 ```
 
 ## Unit tests
