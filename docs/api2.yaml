@@ -3,15 +3,15 @@ info:
   title: "collaction-dev"
   version: "1.0"
 servers:
-- url: "https://api{subdomainSuffix}.{domain}/"
-  variables:
-    subdomainSuffix:
-      default: "-dev"
-    domain:
-      default: "collaction.org"
+  - url: "https://api{subdomainSuffix}.{domain}/"
+    variables:
+      subdomainSuffix:
+        default: "-dev"
+      domain:
+        default: "collaction.org"
 
 paths:
-  /crowdactions/{crowdactionID}:f
+  /crowdactions/{crowdactionID}:
     get:
       tags:
         - "Crowdaction"
@@ -22,6 +22,13 @@ paths:
           required: true
           schema:
             type: string
+        - in: query
+          name: password
+          description: Only include if crowdaction requires password
+          required: false
+          schema:
+            type: string
+            format: password
       responses:
         200:
           description: "Crowdaction details"
@@ -30,28 +37,43 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                    default: success
                   data:
-                    $ref: '#/components/schemas/Crowdaction'
+                    allOf:
+                      - type: object
+                        properties:
+                          crowdactionID:
+                            type: string
+                            example: sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
+                      - $ref: "#/components/schemas/CrowdactionDetails"
+        401:
+          description: "Unauthorized (Invalid password)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example: { "password": "Invalid or missing password" }
         404:
           description: "Crowdaction not found"
           content:
             application/json:
-              schema: 
+              schema:
                 type: object
                 properties:
-                  message:
+                  status:
                     type: string
-                    example: "crowdaction does not exist"
-        500:
-          description: "Internal server error"
-          content:
-            application/json:
-              schema: 
-                type: object
-                properties:
-                  message:
+                    default: fail
+                  data:
                     type: string
-                    example: "error"
+                    example: { "password": "crowdaction does not exist" }
 
   /crowdactions:
     get:
@@ -71,28 +93,21 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Crowdaction'
-        404:
-          description: "No active crowdaction found"
-          content:
-            application/json:
-              schema: 
                 type: object
                 properties:
-                  message:
+                  status:
                     type: string
-                    example: "no active crowdactions found"
-        500:
-          description: "Multiple internal server errors"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-                  example: error
+                    default: success
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - type: object
+                          properties:
+                            crowdactionID:
+                              type: string
+                              example: sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
+                        - $ref: "#/components/schemas/CrowdactionListItem"
 
   /crowdactions/{crowdactionID}/participation:
     get:
@@ -100,11 +115,11 @@ paths:
         - "Crowdaction"
       summary: "Get existing participation in a particular crowdaction"
       parameters:
-      - name: "crowdactionID"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "crowdactionID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         200:
           description: "Success message"
@@ -113,45 +128,36 @@ paths:
               schema:
                 type: object
                 properties:
-                  userID:
+                  status:
                     type: string
-                  name:
-                    type: string
-                    description: "Displayname of the user"
-                  crowdactionID:
-                    type: string
-                  commitments:
-                    type: array
-                    items:
-                      type: string
-                    example: ["vegetarian", "no-dairy"]
-                    description: Array of commitment ids
-                  date:
-                    type: string
-                    pattern: \d{4}-\d{2}-\d{2}
-                    example: "2006-01-02"
+                    default: success
+                  data:
+                    $ref: "#/components/schemas/Participation"
         404:
-          description: "Not found (not participating)"
+          description: "Not found (Not participating)"
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
+                  status:
                     type: string
-                    example: "not participating"
+                    default: fail
+                  data:
+                    type: object
+                    default: { "crowdactionID": "not participating" }
       security:
-      - FirebaseAuthorizer: []
+        - FirebaseAuthorizer: []
     delete:
       tags:
         - "Crowdaction"
       summary: "Stop participating in a particular crowdaction"
       parameters:
-      - name: "crowdactionID"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "crowdactionID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         200:
           description: "Success message"
@@ -160,25 +166,43 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
+                  status:
                     type: string
-                    example: "updated"
-        500:
-          description: "Error message"
+                    default: success
+                  data:
+                    default: null
+        404:
+          description: "Not found (Not participating)"
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
+                  status:
                     type: string
-                    example: "not participating"
+                    default: fail
+                  data:
+                    type: object
+                    default: { "crowdactionID": "not participating" }
       security:
-      - FirebaseAuthorizer: []
+        - FirebaseAuthorizer: []
     post:
       tags:
         - "Crowdaction"
       summary: "Participate in a particular crowdaction"
+      parameters:
+        - in: query
+          name: password
+          description: Only include if crowdaction requires password
+          required: false
+          schema:
+            type: string
+            format: password
+        - name: "crowdactionID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       requestBody:
         required: true
         content:
@@ -186,64 +210,83 @@ paths:
             schema:
               type: object
               properties:
-                password:
-                  type: string
-                  example: myEvent-myCompany2021
-                  description: |
-                    Password or or empty string if none required (or do not include field)
-                    (NOTE: This field is not required for the MVP)
                 commitments:
                   type: array
                   items:
                     type: string
                   example: ["no-meat", "no-dairy"]
-
-      parameters:
-      - name: "crowdactionID"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
       responses:
-        200:
+        201:
           description: "Success message"
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
+                  status:
                     type: string
-                    example: "updated"
-        500:
-          description: "Error message"
+                    default: success
+                  data:
+                    default: null
+        400:
+          description: "Bad request (Invalid commitments)"
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
+                  status:
                     type: string
-                    example: "already participating"
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      { "commitments": 'Required commitment "no-beef" missing' }
+        401:
+          description: "Unauthorized (Invalid password)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example: { "password": "Invalid or missing password" }
+        409:
+          description: "Conflict"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    default: { "crowdactionID": "already participating" }
       security:
-      - FirebaseAuthorizer: []
+        - FirebaseAuthorizer: []
   /profiles/{userID}:
     post:
       tags:
         - "Profile"
       summary: "Create a profile for a new user"
       parameters:
-      - name: "userID"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "userID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Profile'
+              $ref: "#/components/schemas/Profile"
       responses:
         201:
           description: "Profile was created successfully"
@@ -253,7 +296,6 @@ paths:
                 type: object
                 properties:
                   data:
-                    type: object
                     default: null
                   status:
                     type: string
@@ -285,25 +327,25 @@ paths:
                     type: object
                     example: { "displayname": "Name must not be empty" }
       security:
-      - FirebaseAuthorizer: []
+        - FirebaseAuthorizer: []
     put:
       tags:
         - "Profile"
       summary: "Update the profile of an existing user"
       parameters:
-      - name: "userID"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "userID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Profile'
+              $ref: "#/components/schemas/Profile"
       security:
-      - FirebaseAuthorizer: []
+        - FirebaseAuthorizer: []
       responses:
         200:
           description: "Profile was updated successfully"
@@ -313,7 +355,6 @@ paths:
                 type: object
                 properties:
                   data:
-                    type: object
                     default: null
                   status:
                     type: string
@@ -344,17 +385,17 @@ paths:
                   data:
                     type: object
                     example: { "displayname": "Name must not be empty" }
-            
+
     get:
       tags:
         - "Profile"
       summary: "View the profile of a user"
       parameters:
-      - name: "userID"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "userID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         200:
           description: "Profile was found"
@@ -367,7 +408,7 @@ paths:
                     type: string
                     default: success
                   data:
-                    $ref: '#/components/schemas/Profile'
+                    $ref: "#/components/schemas/Profile"
         404:
           description: "Profile was not found"
           content:
@@ -404,7 +445,7 @@ paths:
                         type: string
                         format: uri
       security:
-      - FirebaseAuthorizer: []
+        - FirebaseAuthorizer: []
   /contact:
     post:
       tags:
@@ -418,7 +459,7 @@ paths:
               type: object
               properties:
                 data:
-                  $ref: '#/components/schemas/Email'
+                  $ref: "#/components/schemas/Email"
                 nonce:
                   type: string
                   example: c2dlcjIzc3NndnJzdnIyM
@@ -437,7 +478,6 @@ paths:
                     type: string
                     default: success
                   data:
-                    type: object
                     default: null
         400:
           description: "Bad request"
@@ -452,14 +492,14 @@ paths:
                   data:
                     type: object
                     example: { "email": "Not a valid email address" }
-        
+
 components:
   securitySchemes:
     FirebaseAuthorizer:
       type: http
       scheme: bearer
       bearerFormat: JWT
-  
+
   schemas:
     Email:
       type: object
@@ -484,12 +524,8 @@ components:
         displayname:
           type: string
           example: "Max Murphy"
-        country:
-          type: string
-          example: "The Netherlands"
-        city:
-          type: string
-          example: "Amsterdam"
+        location:
+          $ref: "#/components/schemas/Location"
         bio:
           type: string
           example: "Hi, I am Max and I am trying to eat less meat to stop animal suffering."
@@ -499,7 +535,7 @@ components:
         id:
           type: string
           example: vegetarian
-        label: 
+        label:
           type: string
           example: "Becoming vegetarian"
         description:
@@ -511,17 +547,14 @@ components:
             Commitments that are included in (and required by) this commitment.
             They can also be individually selected
           items:
-            $ref: '#/components/schemas/CommitmentOption'
+            $ref: "#/components/schemas/CommitmentOption"
             example:
               id: "no-beef"
               label: "Not eating beef"
               description: "I will avoid eating beef (Goodbye stake)."
-    Crowdaction:
+    CrowdactionDetails:
       type: object
       properties:
-        crowdactionID:
-          type: string
-          example: sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
         title:
           type: string
         description:
@@ -531,23 +564,81 @@ components:
         subcategory:
           type: string
         location:
-          type: string
-          example: "NL#Amsterdam"
-        date_start:
-          $ref: '#/components/schemas/Date'
-        date_end:
-          $ref: '#/components/schemas/Date'
-        date_limit_join:
-          $ref: '#/components/schemas/Date'
-        password_join:
-          description: |
-            Password or 'required' to indicate that a password is required or empty string
-            (NOTE: This field will always contain the password or be empty for the MVP)
-          type: string
+          $ref: "#/components/schemas/Location"
+        dates:
+          $ref: "#/components/schemas/CrowdactionDates"
+        password_required:
+          type: boolean
         commitment_options:
           type: array
           items:
-            $ref: '#/components/schemas/CommitmentOption'
+            $ref: "#/components/schemas/CommitmentOption"
+        participation:
+          $ref: "#/components/schemas/Date"
+        images:
+          type: object
+          properties:
+            banner:
+              $ref: "#/components/schemas/Image"
+    CrowdactionListItem:
+      type: object
+      properties:
+        title:
+          type: string
+        category:
+          type: string
+        subcategory:
+          type: string
+        location:
+          $ref: "#/components/schemas/Location"
+        dates:
+          $ref: "#/components/schemas/CrowdactionDates"
+        password_required:
+          type: boolean
+        participation:
+          $ref: "#/components/schemas/ParticipationSummary"
+        images:
+          type: object
+          properties:
+            card:
+              $ref: "#/components/schemas/Image"
+    CrowdactionDates:
+      type: object
+      description: Whatever comes first between `end` and `join_before` applies for the latter
+      properties:
+        start:
+          $ref: "#/components/schemas/Date"
+        end:
+          $ref: "#/components/schemas/Date"
+        join_before:
+          $ref: "#/components/schemas/Date"
+    Image:
+      type: object
+      properties:
+        url:
+          type: string
+          example: https://picsum.photos/300/200
+          format: uri
+        blur_hash:
+          type: string
+          example: LEHV6nWB2yk8pyo0adR*.7kCMdnj
+          description: (see https://blurha.sh/)
+    Date:
+      type: string
+      pattern: \d{4}-\d{2}-\d{2}
+      example: "2021-11-28"
+    Location:
+      type: object
+      properties:
+        country:
+          type: string
+          example: NL
+        city:
+          type: string
+          example: Amsterdam
+    ParticipationSummary:
+      type: object
+      properties:
         participant_count:
           type: integer
         top_participants:
@@ -560,26 +651,26 @@ components:
                 example: "Peter Parker"
               userID:
                 type: string
-                example: "6620cf87-44ed-456e-9798-d5cbeb7fa10a"
-        images:
-          type: object
-          properties:
-            card:
-              $ref: '#/components/schemas/Image'
-            banner:
-              $ref: '#/components/schemas/Image'
-    Image:
+                format: uuid
+    Participation:
       type: object
       properties:
-        url: 
+        userID:
           type: string
-          example: https://picsum.photos/300/200
-          format: uri
-        blur_hash:
+        name:
           type: string
-          example: LEHV6nWB2yk8pyo0adR*.7kCMdnj
-          description: (see https://blurha.sh/)
-    Date:
-      type: string
-      pattern: \d{4}-\d{2}-\d{2}
-      example: "2021-11-28"
+          description: "Displayname of the user"
+        crowdactionID:
+          type: string
+          example: sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
+        title:
+          type: string
+          description: "Title of the crowdactions"
+        commitments:
+          type: array
+          items:
+            type: string
+          example: ["vegetarian", "no-dairy"]
+          description: Array of commitment ids
+        date:
+          $ref: "#/components/schemas/Date"
