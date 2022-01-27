@@ -1,6 +1,6 @@
-openapi: "3.0.1"
+openapi: 3.0.1
 info:
-  title: "collaction-dev"
+  title: collaction-dev
   version: "1.0"
 servers:
   - url: "https://api{subdomainSuffix}.{domain}/"
@@ -8,17 +8,16 @@ servers:
       subdomainSuffix:
         default: "-dev"
       domain:
-        default: "collaction.org"
-
+        default: collaction.org
 paths:
-  /crowdactions/{crowdactionID}:
+  "/crowdactions/{crowdactionID}":
     get:
       tags:
-        - "Crowdaction"
-      summary: "Get details of a specific crowdaction"
+        - Crowdaction
+      summary: Get details of a specific crowdaction
       parameters:
-        - name: "crowdactionID"
-          in: "path"
+        - name: crowdactionID
+          in: path
           required: true
           schema:
             type: string
@@ -30,8 +29,8 @@ paths:
             type: string
             format: password
       responses:
-        200:
-          description: "Crowdaction details"
+        "200":
+          description: Crowdaction details
           content:
             application/json:
               schema:
@@ -46,10 +45,11 @@ paths:
                         properties:
                           crowdactionID:
                             type: string
-                            example: sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
+                            example: >-
+                              sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
                       - $ref: "#/components/schemas/CrowdactionDetails"
-        401:
-          description: "Unauthorized (Invalid password)"
+        "401":
+          description: Unauthorized (Invalid password)
           content:
             application/json:
               schema:
@@ -60,9 +60,10 @@ paths:
                     default: fail
                   data:
                     type: string
-                    example: { "password": "Invalid or missing password" }
-        404:
-          description: "Crowdaction not found"
+                    example:
+                      password: Invalid or missing password
+        "404":
+          description: Crowdaction not found
           content:
             application/json:
               schema:
@@ -73,23 +74,27 @@ paths:
                     default: fail
                   data:
                     type: string
-                    example: { "password": "crowdaction does not exist" }
-
+                    example:
+                      password: crowdaction does not exist
   /crowdactions:
     get:
       tags:
-        - "Crowdaction"
-      summary: "Get list of crowdactions"
+        - Crowdaction
+      summary: Get list of crowdactions
       parameters:
-        - name: "status"
-          in: "query"
+        - name: status
+          in: query
           required: false
           schema:
             type: string
-            enum: ["featured", "joinable", "active", "ended"]
+            enum:
+              - featured
+              - joinable
+              - active
+              - ended
       responses:
-        200:
-          description: "List of crowdactions"
+        "200":
+          description: List of crowdactions
           content:
             application/json:
               schema:
@@ -106,23 +111,23 @@ paths:
                           properties:
                             crowdactionID:
                               type: string
-                              example: sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
+                              example: >-
+                                sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
                         - $ref: "#/components/schemas/CrowdactionListItem"
-
-  /crowdactions/{crowdactionID}/participation:
+  "/crowdactions/{crowdactionID}/participation":
     get:
       tags:
-        - "Crowdaction"
-      summary: "Get existing participation in a particular crowdaction"
+        - Crowdaction
+      summary: Get existing participation in a particular crowdaction
       parameters:
-        - name: "crowdactionID"
-          in: "path"
+        - name: crowdactionID
+          in: path
           required: true
           schema:
-            type: "string"
+            type: string
       responses:
-        200:
-          description: "Success message"
+        "200":
+          description: Success message
           content:
             application/json:
               schema:
@@ -133,8 +138,8 @@ paths:
                     default: success
                   data:
                     $ref: "#/components/schemas/Participation"
-        404:
-          description: "Not found (Not participating)"
+        "404":
+          description: Not found (Not participating)
           content:
             application/json:
               schema:
@@ -145,22 +150,23 @@ paths:
                     default: fail
                   data:
                     type: object
-                    default: { "crowdactionID": "not participating" }
+                    default:
+                      crowdactionID: not participating
       security:
         - FirebaseAuthorizer: []
     delete:
       tags:
-        - "Crowdaction"
-      summary: "Stop participating in a particular crowdaction"
+        - Crowdaction
+      summary: Stop participating in a particular crowdaction
       parameters:
-        - name: "crowdactionID"
-          in: "path"
+        - name: crowdactionID
+          in: path
           required: true
           schema:
-            type: "string"
+            type: string
       responses:
-        200:
-          description: "Success message"
+        "200":
+          description: Success message
           content:
             application/json:
               schema:
@@ -171,8 +177,8 @@ paths:
                     default: success
                   data:
                     default: null
-        404:
-          description: "Not found (Not participating)"
+        "404":
+          description: Not found (Not participating)
           content:
             application/json:
               schema:
@@ -183,13 +189,14 @@ paths:
                     default: fail
                   data:
                     type: object
-                    default: { "crowdactionID": "not participating" }
+                    default:
+                      crowdactionID: not participating
       security:
         - FirebaseAuthorizer: []
     post:
       tags:
-        - "Crowdaction"
-      summary: "Participate in a particular crowdaction"
+        - Crowdaction
+      summary: Participate in a particular crowdaction
       parameters:
         - in: query
           name: password
@@ -198,11 +205,11 @@ paths:
           schema:
             type: string
             format: password
-        - name: "crowdactionID"
-          in: "path"
+        - name: crowdactionID
+          in: path
           required: true
           schema:
-            type: "string"
+            type: string
       requestBody:
         required: true
         content:
@@ -214,10 +221,12 @@ paths:
                   type: array
                   items:
                     type: string
-                  example: ["no-meat", "no-dairy"]
+                  example:
+                    - no-meat
+                    - no-dairy
       responses:
-        201:
-          description: "Success message"
+        "201":
+          description: Success message
           content:
             application/json:
               schema:
@@ -228,8 +237,8 @@ paths:
                     default: success
                   data:
                     default: null
-        400:
-          description: "Bad request (Invalid commitments)"
+        "400":
+          description: Bad request (Invalid commitments)
           content:
             application/json:
               schema:
@@ -241,9 +250,9 @@ paths:
                   data:
                     type: string
                     example:
-                      { "commitments": 'Required commitment "no-beef" missing' }
-        401:
-          description: "Unauthorized (Invalid password)"
+                      commitments: Required commitment "no-beef" missing
+        "401":
+          description: Unauthorized (Invalid password)
           content:
             application/json:
               schema:
@@ -254,9 +263,10 @@ paths:
                     default: fail
                   data:
                     type: string
-                    example: { "password": "Invalid or missing password" }
-        409:
-          description: "Conflict"
+                    example:
+                      password: Invalid or missing password
+        "409":
+          description: Conflict
           content:
             application/json:
               schema:
@@ -267,20 +277,21 @@ paths:
                     default: fail
                   data:
                     type: string
-                    default: { "crowdactionID": "already participating" }
+                    default:
+                      crowdactionID: already participating
       security:
         - FirebaseAuthorizer: []
-  /profiles/{userID}:
+  "/profiles/{userID}":
     post:
       tags:
-        - "Profile"
-      summary: "Create a profile for a new user"
+        - Profile
+      summary: Create a profile for a new user
       parameters:
-        - name: "userID"
-          in: "path"
+        - name: userID
+          in: path
           required: true
           schema:
-            type: "string"
+            type: string
       requestBody:
         required: true
         content:
@@ -288,8 +299,8 @@ paths:
             schema:
               $ref: "#/components/schemas/Profile"
       responses:
-        201:
-          description: "Profile was created successfully"
+        "201":
+          description: Profile was created successfully
           content:
             application/json:
               schema:
@@ -300,8 +311,8 @@ paths:
                   status:
                     type: string
                     default: success
-        409:
-          description: "Conflict"
+        "400":
+          description: Bad request (Validation failed)
           content:
             application/json:
               schema:
@@ -309,12 +320,13 @@ paths:
                 properties:
                   status:
                     type: string
-                    default: "fail"
+                    default: fail
                   data:
                     type: object
-                    default: { "userID": "Profile already exists" }
-        400:
-          description: "Bad request (Validation failed)"
+                    example:
+                      displayname: Name must not be empty
+        "409":
+          description: Conflict
           content:
             application/json:
               schema:
@@ -322,22 +334,23 @@ paths:
                 properties:
                   status:
                     type: string
-                    default: "fail"
+                    default: fail
                   data:
                     type: object
-                    example: { "displayname": "Name must not be empty" }
+                    default:
+                      userID: Profile already exists
       security:
         - FirebaseAuthorizer: []
     put:
       tags:
-        - "Profile"
-      summary: "Update the profile of an existing user"
+        - Profile
+      summary: Update the profile of an existing user
       parameters:
-        - name: "userID"
-          in: "path"
+        - name: userID
+          in: path
           required: true
           schema:
-            type: "string"
+            type: string
       requestBody:
         required: true
         content:
@@ -347,8 +360,8 @@ paths:
       security:
         - FirebaseAuthorizer: []
       responses:
-        200:
-          description: "Profile was updated successfully"
+        "200":
+          description: Profile was updated successfully
           content:
             application/json:
               schema:
@@ -359,8 +372,8 @@ paths:
                   status:
                     type: string
                     default: success
-        404:
-          description: "Profile was not found"
+        "400":
+          description: Bad request (Validation failed)
           content:
             application/json:
               schema:
@@ -368,12 +381,13 @@ paths:
                 properties:
                   status:
                     type: string
-                    default: "fail"
+                    default: fail
                   data:
                     type: object
-                    default: { "userID": "No such profile" }
-        400:
-          description: "Bad request (Validation failed)"
+                    example:
+                      displayname: Name must not be empty
+        "404":
+          description: Profile was not found
           content:
             application/json:
               schema:
@@ -381,24 +395,24 @@ paths:
                 properties:
                   status:
                     type: string
-                    default: "fail"
+                    default: fail
                   data:
                     type: object
-                    example: { "displayname": "Name must not be empty" }
-
+                    default:
+                      userID: No such profile
     get:
       tags:
-        - "Profile"
-      summary: "View the profile of a user"
+        - Profile
+      summary: View the profile of a user
       parameters:
-        - name: "userID"
-          in: "path"
+        - name: userID
+          in: path
           required: true
           schema:
-            type: "string"
+            type: string
       responses:
-        200:
-          description: "Profile was found"
+        "200":
+          description: Profile was found
           content:
             application/json:
               schema:
@@ -409,8 +423,8 @@ paths:
                     default: success
                   data:
                     $ref: "#/components/schemas/Profile"
-        404:
-          description: "Profile was not found"
+        "404":
+          description: Profile was not found
           content:
             application/json:
               schema:
@@ -418,18 +432,21 @@ paths:
                 properties:
                   status:
                     type: string
-                    default: "fail"
+                    default: fail
                   data:
                     type: object
-                    default: { "userID": "No such profile" }
+                    default:
+                      userID: No such profile
   /upload-profile-picture:
     get:
       tags:
-        - "Profile"
-      summary: "Fetch an upload URL (POST) for the profile picture"
+        - Profile
+      summary: Fetch an upload URL (POST) for the profile picture
       responses:
-        200:
-          description: "Returns the URL where to upload (PUT) the square png image (250-1024px)"
+        "200":
+          description: >-
+            Returns the URL where to upload (PUT) the square png image
+            (250-1024px)
           content:
             application/json:
               schema:
@@ -449,8 +466,8 @@ paths:
   /contact:
     post:
       tags:
-        - "Other"
-      summary: "Send a message to CollAction"
+        - Other
+      summary: Send a message to CollAction
       requestBody:
         required: true
         content:
@@ -467,8 +484,8 @@ paths:
                     Nonce for PoW, see http://www.hashcash.org/
                     (Not yet implemented -> field will be ignored if present)
       responses:
-        200:
-          description: "The status code indicates if the message was successfully sent"
+        "200":
+          description: The status code indicates if the message was successfully sent
           content:
             application/json:
               schema:
@@ -479,8 +496,8 @@ paths:
                     default: success
                   data:
                     default: null
-        400:
-          description: "Bad request"
+        "400":
+          description: Bad request
           content:
             application/json:
               schema:
@@ -491,67 +508,15 @@ paths:
                     example: fail
                   data:
                     type: object
-                    example: { "email": "Not a valid email address" }
-
+                    example:
+                      email: Not a valid email address
 components:
   securitySchemes:
     FirebaseAuthorizer:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
   schemas:
-    Email:
-      type: object
-      properties:
-        email:
-          type: string
-          description: Email address to which the response to the inquiry should be sent
-          format: email
-        subject:
-          type: string
-          example: "Hello world"
-        message:
-          type: string
-          example: "Please respond to this email :)"
-        app_version:
-          type: string
-          pattern: '^(?:ios|android) [0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
-          example: "android 1.0.1+1"
-    Profile:
-      type: object
-      properties:
-        displayname:
-          type: string
-          example: "Max Murphy"
-        location:
-          $ref: "#/components/schemas/Location"
-        bio:
-          type: string
-          example: "Hi, I am Max and I am trying to eat less meat to stop animal suffering."
-    CommitmentOption:
-      type: object
-      properties:
-        id:
-          type: string
-          example: vegetarian
-        label:
-          type: string
-          example: "Becoming vegetarian"
-        description:
-          type: string
-          example: "I will not eat any meat from any animal (including fish)."
-        requires:
-          type: array
-          description: >
-            Commitments that are included in (and required by) this commitment.
-            They can also be individually selected
-          items:
-            $ref: "#/components/schemas/CommitmentOption"
-            example:
-              id: "no-beef"
-              label: "Not eating beef"
-              description: "I will avoid eating beef (Goodbye stake)."
     CrowdactionDetails:
       type: object
       properties:
@@ -604,7 +569,9 @@ components:
               $ref: "#/components/schemas/Image"
     CrowdactionDates:
       type: object
-      description: Whatever comes first between `end` and `join_before` applies for the latter
+      description: >-
+        Whatever comes first between `end` and `join_before` applies for the
+        latter
       properties:
         start:
           $ref: "#/components/schemas/Date"
@@ -612,21 +579,6 @@ components:
           $ref: "#/components/schemas/Date"
         join_before:
           $ref: "#/components/schemas/Date"
-    Image:
-      type: object
-      properties:
-        url:
-          type: string
-          example: https://picsum.photos/300/200
-          format: uri
-        blur_hash:
-          type: string
-          example: LEHV6nWB2yk8pyo0adR*.7kCMdnj
-          description: (see https://blurha.sh/)
-    Date:
-      type: string
-      pattern: \d{4}-\d{2}-\d{2}
-      example: "2021-11-28"
     Location:
       type: object
       properties:
@@ -636,6 +588,33 @@ components:
         city:
           type: string
           example: Amsterdam
+    CommitmentOption:
+      type: object
+      properties:
+        id:
+          type: string
+          example: vegetarian
+        label:
+          type: string
+          example: Becoming vegetarian
+        description:
+          type: string
+          example: I will not eat any meat from any animal (including fish).
+        requires:
+          type: array
+          description: >
+            Commitments that are included in (and required by) this commitment.
+            They can also be individually selected
+          items:
+            $ref: "#/components/schemas/CommitmentOption"
+            example:
+              id: no-beef
+              label: Not eating beef
+              description: I will avoid eating beef (Goodbye stake).
+    Date:
+      type: string
+      pattern: '\d{4}-\d{2}-\d{2}'
+      example: "2021-11-28"
     ParticipationSummary:
       type: object
       properties:
@@ -648,10 +627,21 @@ components:
             properties:
               name:
                 type: string
-                example: "Peter Parker"
+                example: Peter Parker
               userID:
                 type: string
                 format: uuid
+    Image:
+      type: object
+      properties:
+        url:
+          type: string
+          example: "https://picsum.photos/300/200"
+          format: uri
+        blur_hash:
+          type: string
+          example: LEHV6nWB2yk8pyo0adR*.7kCMdnj
+          description: "(see https://blurha.sh/)"
     Participation:
       type: object
       properties:
@@ -659,18 +649,50 @@ components:
           type: string
         name:
           type: string
-          description: "Displayname of the user"
+          description: Displayname of the user
         crowdactionID:
           type: string
-          example: sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
+          example: "sustainability#food#88615462-2789-4159-8659-2ecfd33ef305"
         title:
           type: string
-          description: "Title of the crowdactions"
+          description: Title of the crowdactions
         commitments:
           type: array
           items:
             type: string
-          example: ["vegetarian", "no-dairy"]
+          example:
+            - vegetarian
+            - no-dairy
           description: Array of commitment ids
         date:
           $ref: "#/components/schemas/Date"
+    Profile:
+      type: object
+      properties:
+        displayname:
+          type: string
+          example: Max Murphy
+        location:
+          $ref: "#/components/schemas/Location"
+        bio:
+          type: string
+          example: >-
+            Hi, I am Max and I am trying to eat less meat to stop animal
+            suffering.
+    Email:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Email address to which the response to the inquiry should be sent
+          format: email
+        subject:
+          type: string
+          example: Hello world
+        message:
+          type: string
+          example: "Please respond to this email :)"
+        app_version:
+          type: string
+          pattern: '^(?:ios|android) [0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
+          example: android 1.0.1+1
