@@ -11,7 +11,7 @@ servers:
       default: "collaction.org"
 
 paths:
-  /crowdactions/{crowdactionID}:
+  /crowdactions/{crowdactionID}:f
     get:
       tags:
         - "Crowdaction"
@@ -23,7 +23,7 @@ paths:
           schema:
             type: string
       responses:
-        default:
+        200:
           description: "Crowdaction details"
           content:
             application/json:
@@ -66,7 +66,7 @@ paths:
             type: string
             enum: ["featured", "joinable", "active", "ended"]
       responses:
-        default:
+        200:
           description: "List of crowdactions"
           content:
             application/json:
@@ -106,7 +106,7 @@ paths:
         schema:
           type: "string"
       responses:
-        default:
+        200:
           description: "Success message"
           content:
             application/json:
@@ -153,7 +153,7 @@ paths:
         schema:
           type: "string"
       responses:
-        default:
+        200:
           description: "Success message"
           content:
             application/json:
@@ -205,7 +205,7 @@ paths:
         schema:
           type: "string"
       responses:
-        default:
+        200:
           description: "Success message"
           content:
             application/json:
@@ -245,22 +245,45 @@ paths:
             schema:
               $ref: '#/components/schemas/Profile'
       responses:
-        default:
+        201:
           description: "Profile was created successfully"
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    default: "Profile Created"
                   data:
-                    type: string
-                    default: ""
+                    type: object
+                    default: null
                   status:
-                    type: integer
-                    default: 200
+                    type: string
+                    default: success
+        409:
+          description: "Conflict"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: "fail"
+                  data:
+                    type: object
+                    default: { "userID": "Profile already exists" }
+        400:
+          description: "Bad request (Validation failed)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: "fail"
+                  data:
+                    type: object
+                    example: { "displayname": "Name must not be empty" }
       security:
       - FirebaseAuthorizer: []
     put:
@@ -282,22 +305,46 @@ paths:
       security:
       - FirebaseAuthorizer: []
       responses:
-        default:
+        200:
           description: "Profile was updated successfully"
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    default: "profile update successful"
                   data:
-                    type: string
-                    default: ""
+                    type: object
+                    default: null
                   status:
-                    type: integer
-                    default: 200
+                    type: string
+                    default: success
+        404:
+          description: "Profile was not found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: "fail"
+                  data:
+                    type: object
+                    default: { "userID": "No such profile" }
+        400:
+          description: "Bad request (Validation failed)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: "fail"
+                  data:
+                    type: object
+                    example: { "displayname": "Name must not be empty" }
+            
     get:
       tags:
         - "Profile"
@@ -309,40 +356,18 @@ paths:
         schema:
           type: "string"
       responses:
-        default:
+        200:
           description: "Profile was found"
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    default: "Successfully Retrieved Profile"
-                  data:
-                    type: object
-                    properties:
-                      userid:
-                        type: string
-                        format: uuid
-                      displayname:
-                        type: string
-                        example: "Max Murphy"
-                      country:
-                        type: string
-                        example: "The Netherlands"
-                      city:
-                        type: string
-                        example: "Amsterdam"
-                      bio:
-                        type: string
-                        example: "Hi, I am Max and I am trying to eat less meat to stop animal suffering."
-                      phone:
-                        type: string
-                        example: +31612345678
                   status:
-                    type: integer
-                    default: 200
+                    type: string
+                    default: success
+                  data:
+                    $ref: '#/components/schemas/Profile'
         404:
           description: "Profile was not found"
           content:
@@ -350,22 +375,19 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    default: "no user Profile found"
-                  data:
-                    type: string
-                    default: ""
                   status:
-                    type: integer
-                    default: 404
+                    type: string
+                    default: "fail"
+                  data:
+                    type: object
+                    default: { "userID": "No such profile" }
   /upload-profile-picture:
     get:
       tags:
         - "Profile"
       summary: "Fetch an upload URL (POST) for the profile picture"
       responses:
-        default:
+        200:
           description: "Returns the URL where to upload (PUT) the square png image (250-1024px)"
           content:
             application/json:
@@ -404,7 +426,7 @@ paths:
                     Nonce for PoW, see http://www.hashcash.org/
                     (Not yet implemented -> field will be ignored if present)
       responses:
-        default:
+        200:
           description: "The status code indicates if the message was successfully sent"
           content:
             application/json:
@@ -413,10 +435,10 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: success
+                    default: success
                   data:
                     type: object
-                    example: null
+                    default: null
         400:
           description: "Bad request"
           content:
@@ -552,6 +574,7 @@ components:
         url: 
           type: string
           example: https://picsum.photos/300/200
+          format: uri
         blur_hash:
           type: string
           example: LEHV6nWB2yk8pyo0adR*.7kCMdnj
