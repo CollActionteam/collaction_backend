@@ -372,9 +372,15 @@ paths:
               schema:
                 type: object
                 properties:
-                  upload_url:
+                  status:
                     type: string
-                    format: uri
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      upload_url:
+                        type: string
+                        format: uri
       security:
       - FirebaseAuthorizer: []
   /contact:
@@ -387,10 +393,43 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Email'
+              type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/Email'
+                nonce:
+                  type: string
+                  example: c2dlcjIzc3NndnJzdnIyM
+                  description: |
+                    Nonce for PoW, see http://www.hashcash.org/
+                    (Not yet implemented -> field will be ignored if present)
       responses:
         default:
           description: "The status code indicates if the message was successfully sent"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    example: null
+        400:
+          description: "Bad request"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    example: { "email": "Not a valid email address" }
         
 components:
   securitySchemes:
@@ -473,17 +512,11 @@ components:
           type: string
           example: "NL#Amsterdam"
         date_start:
-          type: string
-          pattern: \d{4}-\d{2}-\d{2}
-          example: "2021-11-28"
+          $ref: '#/components/schemas/Date'
         date_end:
-          type: string
-          pattern: \d{4}-\d{2}-\d{2}
-          example: "2021-11-28"
+          $ref: '#/components/schemas/Date'
         date_limit_join:
-          type: string
-          pattern: \d{4}-\d{2}-\d{2}
-          example: "2021-11-28"
+          $ref: '#/components/schemas/Date'
         password_join:
           description: |
             Password or 'required' to indicate that a password is required or empty string
@@ -510,6 +543,20 @@ components:
           type: object
           properties:
             card:
-              type: string
+              $ref: '#/components/schemas/Image'
             banner:
-              type: string
+              $ref: '#/components/schemas/Image'
+    Image:
+      type: object
+      properties:
+        url: 
+          type: string
+          example: https://picsum.photos/300/200
+        blur_hash:
+          type: string
+          example: LEHV6nWB2yk8pyo0adR*.7kCMdnj
+          description: (see https://blurha.sh/)
+    Date:
+      type: string
+      pattern: \d{4}-\d{2}-\d{2}
+      example: "2021-11-28"
