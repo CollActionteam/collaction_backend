@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"net/http"
+
 	"github.com/CollActionteam/collaction_backend/internal/contact"
 	"github.com/CollActionteam/collaction_backend/internal/models"
 	awsRepository "github.com/CollActionteam/collaction_backend/pkg/repository/aws"
@@ -10,7 +13,6 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/go-playground/validator/v10"
-	"net/http"
 )
 
 func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -18,6 +20,8 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 	if err := json.Unmarshal([]byte(req.Body), &request); err != nil {
 		return errToResponse(err, http.StatusBadRequest), nil
 	}
+
+	fmt.Println("Hello World")
 
 	validate := validator.New()
 	if err := validate.StructCtx(ctx, request); err != nil {
