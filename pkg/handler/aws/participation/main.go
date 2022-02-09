@@ -17,19 +17,19 @@ import (
 	"strings"
 )
 
-func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	method := strings.ToLower(req.RequestContext.HTTP.Method)
 	crowdactionID := req.PathParameters["crowdactionID"]
 	var crowdaction *models.Crowdaction
 
 	usrInf, err := auth.ExtractUserInfo(req)
 	if err != nil {
-		return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
 	}
 
 	crowdaction, _ = models.GetCrowdaction(crowdactionID, constants.TableName)
 	if crowdaction == nil {
-		return utils.GetMessageHttpResponse(http.StatusNotFound, "crowdaction not found"), nil
+		return utils.CreateMessageHttpResponse(http.StatusNotFound, "crowdaction not found"), nil
 	}
 
 	participationRepository := repository.NewParticipation(aws.NewDynamo())
@@ -41,7 +41,7 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 		err = json.Unmarshal([]byte(req.Body), &payload)
 		if err == nil {
 			if len(payload.Commitments) == 0 {
-				return utils.GetMessageHttpResponse(http.StatusBadRequest, "cannot participate without commitments"), nil
+				return utils.CreateMessageHttpResponse(http.StatusBadRequest, "cannot participate without commitments"), nil
 			}
 			err = participationService.RegisterParticipation(ctx, usrInf.UserID(), usrInf.Name(), crowdaction, payload)
 		}
@@ -50,29 +50,29 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 	case "get":
 		participation, err := participationService.GetParticipation(ctx, usrInf.UserID(), crowdactionID)
 		if err != nil {
-			return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+			return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
 		}
-		var res events.APIGatewayProxyResponse
+		var res events.APIGatewayV2HTTPResponse
 		if participation == nil {
-			res = utils.GetMessageHttpResponse(http.StatusNotFound, "not participating")
+			res = utils.CreateMessageHttpResponse(http.StatusNotFound, "not participating")
 		} else {
 			// "Cannot go wrong"
 			jsonPayload, _ := json.Marshal(participation)
-			res = events.APIGatewayProxyResponse{
+			res = events.APIGatewayV2HTTPResponse{
 				Body:       string(jsonPayload),
 				StatusCode: http.StatusOK,
 			}
 		}
 		return res, nil
 	default:
-		return utils.GetMessageHttpResponse(http.StatusNotImplemented, "not implemented"), nil
+		return utils.CreateMessageHttpResponse(http.StatusNotImplemented, "not implemented"), nil
 
 	}
 
 	if err != nil {
-		return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
 	} else {
-		return utils.GetMessageHttpResponse(http.StatusOK, "updated"), nil
+		return utils.CreateMessageHttpResponse(http.StatusOK, "updated"), nil
 	}
 
 }
