@@ -52,18 +52,16 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 		if err != nil {
 			return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
 		}
-		var res events.APIGatewayV2HTTPResponse
 		if participation == nil {
-			res = utils.CreateMessageHttpResponse(http.StatusNotFound, "not participating")
-		} else {
-			// "Cannot go wrong"
-			jsonPayload, _ := json.Marshal(participation)
-			res = events.APIGatewayV2HTTPResponse{
-				Body:       string(jsonPayload),
-				StatusCode: http.StatusOK,
-			}
+			return utils.CreateMessageHttpResponse(http.StatusNotFound, "not participating"), nil
 		}
-		return res, nil
+		// "Cannot go wrong"
+		jsonPayload, _ := json.Marshal(participation)
+		return events.APIGatewayV2HTTPResponse{
+			Body:       string(jsonPayload),
+			StatusCode: http.StatusOK,
+		}, nil
+
 	default:
 		return utils.CreateMessageHttpResponse(http.StatusNotImplemented, "not implemented"), nil
 
