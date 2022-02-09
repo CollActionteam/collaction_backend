@@ -69,9 +69,8 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 
 	if err != nil {
 		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
-	} else {
-		return utils.CreateMessageHttpResponse(http.StatusOK, "updated"), nil
 	}
+	return utils.CreateMessageHttpResponse(http.StatusOK, "updated"), nil
 
 }
 
