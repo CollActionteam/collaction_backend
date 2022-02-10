@@ -37,6 +37,11 @@ func (h *ParticipationHandler) createParticipation(ctx context.Context, req even
 	if len(payload.Commitments) == 0 {
 		return utils.CreateMessageHttpResponse(http.StatusBadRequest, "cannot participate without commitments"), nil
 	}
+
+	if err := models.ValidateCommitments(payload.Commitments, crowdaction.CommitmentOptions); err != nil {
+		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+	}
+
 	if err := h.service.RegisterParticipation(ctx, userID, name, crowdaction, payload); err != nil {
 		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
 	}

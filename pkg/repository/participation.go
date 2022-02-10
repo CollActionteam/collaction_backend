@@ -44,11 +44,6 @@ func (s *participation) Register(ctx context.Context, userID string, name string
 		return fmt.Errorf("invalid password")
 	}
 	*/
-	err := models.ValidateCommitments(payload.Commitments, crowdaction.CommitmentOptions)
-	if err != nil {
-		return err
-	}
-
 	part, err := s.Get(ctx, userID, crowdaction.CrowdactionID)
 	if part != nil {
 		err = errors.New("already participating")
