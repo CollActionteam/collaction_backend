@@ -1,8 +1,6 @@
 # ==================================================
 # This is the main worflow for testing, building and
 # deploying the app.
-#   The following is not yet implemented:
-#    - Deploying to prod (run on master, config for prod)
 # ==================================================
 
 name: CICD
