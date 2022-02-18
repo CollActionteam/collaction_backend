@@ -490,6 +490,12 @@ paths:
   /cms/crowdactions:
     parameters:
       - $ref: "#/components/parameters/ApiVersionParameter"
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          example: draft
     get:
       tags:
         - CMS
