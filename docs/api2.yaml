@@ -560,7 +560,7 @@ paths:
     get:
       tags:
         - CMS
-      summary: Get details of a specific crowdaction
+      summary: Get the details of a specific crowdaction
       parameters:
         - $ref: "#/components/parameters/ApiVersionParameter"
         - name: crowdactionID
