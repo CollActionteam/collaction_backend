@@ -493,7 +493,7 @@ paths:
     get:
       tags:
         - CMS
-      summary: List created crowdactions
+      summary: List crowdactions
       responses:
         "200":
           description: Successfully listed crowdactions
