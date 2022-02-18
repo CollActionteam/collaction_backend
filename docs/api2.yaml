@@ -612,7 +612,7 @@ paths:
     put:
       tags:
         - CMS
-      summary: Get details of a specific crowdaction
+      summary: Update the details of a specific crowdaction
       parameters:
         - $ref: "#/components/parameters/ApiVersionParameter"
         - name: crowdactionID
