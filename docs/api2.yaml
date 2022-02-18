@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: collaction-dev
-  version: "1.0"
+  version: "1.1"
 servers:
   - url: "https://api{subdomainSuffix}.{domain}/"
     variables:
