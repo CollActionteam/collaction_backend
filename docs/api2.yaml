@@ -516,7 +516,7 @@ paths:
     post:
       tags:
         - CMS
-      summary: Created new crowdaction draft
+      summary: Create a draft crowdaction
       requestBody:
         required: true
         content:
