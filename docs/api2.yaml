@@ -616,10 +616,11 @@ paths:
                 reason:
                   type: string
                   enum:
-                    - spam
-                    - hatespeach
-                    - falsehood
+                    - discrimination
                     - doxing
+                    - falsehood
+                    - hate_speech
+                    - spam
       responses:
         "200":
           description: Reported
