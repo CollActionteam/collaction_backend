@@ -1,22 +1,22 @@
 openapi: 3.0.1
 info:
   title: collaction-dev
-  version: '1.0'
+  version: "1.0"
 servers:
-  - url: 'https://api{subdomainSuffix}.{domain}/'
+  - url: "https://api{subdomainSuffix}.{domain}/"
     variables:
       subdomainSuffix:
-        default: '-dev'
+        default: "-dev"
       domain:
         default: collaction.org
 paths:
-  '/crowdactions/{crowdactionID}':
+  "/crowdactions/{crowdactionID}":
     get:
       tags:
         - Crowdaction
       summary: Get details of a specific crowdaction
       parameters:
-        - $ref: '#/components/parameters/ApiVersionParameter'
+        - $ref: "#/components/parameters/ApiVersionParameter"
         - name: crowdactionID
           in: path
           required: true
@@ -30,7 +30,7 @@ paths:
             type: string
             format: password
       responses:
-        '200':
+        "200":
           description: Crowdaction details
           content:
             application/json:
@@ -48,8 +48,8 @@ paths:
                             type: string
                             example: >-
                               sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
-                      - $ref: '#/components/schemas/CrowdactionDetails'
-        '401':
+                      - $ref: "#/components/schemas/CrowdactionDetails"
+        "401":
           description: Unauthorized (Invalid password)
           content:
             application/json:
@@ -63,9 +63,9 @@ paths:
                     type: string
                     example:
                       password: Invalid or missing password
-        '403':
-          $ref: '#/components/responses/UnsupportedClientVersion'
-        '404':
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
           description: Crowdaction not found
           content:
             application/json:
@@ -85,7 +85,7 @@ paths:
         - Crowdaction
       summary: Get list of crowdactions
       parameters:
-        - $ref: '#/components/parameters/ApiVersionParameter'
+        - $ref: "#/components/parameters/ApiVersionParameter"
         - name: status
           in: query
           required: false
@@ -97,7 +97,7 @@ paths:
               - active
               - ended
       responses:
-        '200':
+        "200":
           description: List of crowdactions
           content:
             application/json:
@@ -117,12 +117,12 @@ paths:
                               type: string
                               example: >-
                                 sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
-                        - $ref: '#/components/schemas/CrowdactionListItem'
-        '403':
-          $ref: '#/components/responses/UnsupportedClientVersion'
-  '/crowdactions/{crowdactionID}/participation':
+                        - $ref: "#/components/schemas/CrowdactionListItem"
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+  "/crowdactions/{crowdactionID}/participation":
     parameters:
-      - $ref: '#/components/parameters/ApiVersionParameter'
+      - $ref: "#/components/parameters/ApiVersionParameter"
       - name: crowdactionID
         in: path
         required: true
@@ -133,7 +133,7 @@ paths:
         - Crowdaction
       summary: Get existing participation in a particular crowdaction
       responses:
-        '200':
+        "200":
           description: Success message
           content:
             application/json:
@@ -144,10 +144,10 @@ paths:
                     type: string
                     default: success
                   data:
-                    $ref: '#/components/schemas/Participation'
-        '403':
-          $ref: '#/components/responses/UnsupportedClientVersion'
-        '404':
+                    $ref: "#/components/schemas/Participation"
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
           description: Not found (Not participating)
           content:
             application/json:
@@ -168,7 +168,7 @@ paths:
         - Crowdaction
       summary: Stop participating in a particular crowdaction
       responses:
-        '200':
+        "200":
           description: Success message
           content:
             application/json:
@@ -180,9 +180,9 @@ paths:
                     default: success
                   data:
                     default: null
-        '403':
-          $ref: '#/components/responses/UnsupportedClientVersion'
-        '404':
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
           description: Not found (Not participating)
           content:
             application/json:
@@ -225,7 +225,7 @@ paths:
                     - no-meat
                     - no-dairy
       responses:
-        '201':
+        "201":
           description: Success message
           content:
             application/json:
@@ -237,7 +237,7 @@ paths:
                     default: success
                   data:
                     default: null
-        '400':
+        "400":
           description: Bad request (Invalid commitments)
           content:
             application/json:
@@ -251,7 +251,7 @@ paths:
                     type: string
                     example:
                       commitments: Required commitment "no-beef" missing
-        '401':
+        "401":
           description: Unauthorized (Invalid password)
           content:
             application/json:
@@ -265,9 +265,9 @@ paths:
                     type: string
                     example:
                       password: Invalid or missing password
-        '403':
-          $ref: '#/components/responses/UnsupportedClientVersion'
-        '409':
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "409":
           description: Conflict
           content:
             application/json:
@@ -283,13 +283,13 @@ paths:
                       crowdactionID: already participating
       security:
         - FirebaseAuthorizer: []
-  '/crowdactions/{crowdactionID}/comments':
+  "/crowdactions/{crowdactionID}/comments":
     get:
       tags:
         - Crowdaction
       summary: Get comments a specific crowdaction
       parameters:
-        - $ref: '#/components/parameters/ApiVersionParameter'
+        - $ref: "#/components/parameters/ApiVersionParameter"
         - name: crowdactionID
           in: path
           required: true
@@ -303,7 +303,7 @@ paths:
             type: string
             format: password
       responses:
-        '200':
+        "200":
           description: Comments
           content:
             application/json:
@@ -316,8 +316,8 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Comment'
-        '401':
+                      $ref: "#/components/schemas/Comment"
+        "401":
           description: Unauthorized (Invalid password)
           content:
             application/json:
@@ -331,9 +331,9 @@ paths:
                     type: string
                     example:
                       password: Invalid or missing password
-        '403':
-          $ref: '#/components/responses/UnsupportedClientVersion'
-        '404':
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
           description: Crowdaction not found
           content:
             application/json:
@@ -361,7 +361,7 @@ paths:
                 comment:
                   type: string
       responses:
-        '201':
+        "201":
           description: Comment created
           content:
             application/json:
@@ -376,7 +376,7 @@ paths:
                     properties:
                       commentID:
                         type: string
-        '401':
+        "401":
           description: Unauthorized (Invalid password)
           content:
             application/json:
@@ -390,9 +390,9 @@ paths:
                     type: string
                     example:
                       password: Invalid or missing password
-        '403':
-          $ref: '#/components/responses/UnsupportedClientVersion'
-        '404':
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
           description: Crowdaction not found
           content:
             application/json:
@@ -408,10 +408,266 @@ paths:
                       password: crowdaction does not exist
       security:
         - FirebaseAuthorizer: []
-
-  '/profiles/{userID}':
+  "/crowdactions/{crowdactionID}/comments/{commentID}":
+    put:
+      tags:
+        - Crowdaction
+      summary: Edit a specific comment on a specific crowdaction
+      parameters:
+        - $ref: "#/components/parameters/ApiVersionParameter"
+        - name: crowdactionID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: commentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: password
+          description: Only include if crowdaction requires password
+          required: false
+          schema:
+            type: string
+            format: password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  data:
+                    default: null
+        "401":
+          description: Unauthorized (Invalid password)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      password: Invalid or missing password
+        "400":
+          description: Bad request (Tried to edit foreign comment)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      userID: You can only edit your own comments
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
+          description: Crowdaction or comment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      crowdactionID: crowdaction does not exist
+      security:
+        - FirebaseAuthorizer: []
+    delete:
+      tags:
+        - Crowdaction
+      summary: Delete a specific comment on a specific crowdaction
+      parameters:
+        - $ref: "#/components/parameters/ApiVersionParameter"
+        - name: crowdactionID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: commentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: password
+          description: Only include if crowdaction requires password
+          required: false
+          schema:
+            type: string
+            format: password
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  data:
+                    default: null
+        "401":
+          description: Unauthorized (Invalid password)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      password: Invalid or missing password
+        "400":
+          description: Bad request (Tried to delete foreign comment)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      userID: You can only delete your own comments
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
+          description: Crowdaction or comment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      crowdactionID: crowdaction does not exist
+      security:
+        - FirebaseAuthorizer: []
+  "/crowdactions/{crowdactionID}/comments/{commentID}/report":
+    post:
+      tags:
+        - Crowdaction
+      summary: Report a specific comment on a specific crowdaction
+      parameters:
+        - $ref: "#/components/parameters/ApiVersionParameter"
+        - name: crowdactionID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: commentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: password
+          description: Only include if crowdaction requires password
+          required: false
+          schema:
+            type: string
+            format: password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  enum:
+                    - spam
+                    - hatespeach
+                    - falsehood
+                    - doxing
+      responses:
+        "200":
+          description: Reported
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  data:
+                    default: null
+        "401":
+          description: Unauthorized (Invalid password)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      password: Invalid or missing password
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
+          description: Crowdaction or comment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      crowdactionID: crowdaction does not exist
+      security:
+        - FirebaseAuthorizer: []
+  "/profiles/{userID}":
     parameters:
-      - $ref: '#/components/parameters/ApiVersionParameter'
+      - $ref: "#/components/parameters/ApiVersionParameter"
       - name: userID
         in: path
         required: true
@@ -426,9 +682,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Profile'
+              $ref: "#/components/schemas/Profile"
       responses:
-        '201':
+        "201":
           description: Profile was created successfully
           content:
             application/json:
@@ -440,7 +696,7 @@ paths:
                   status:
                     type: string
                     default: success
-        '400':
+        "400":
           description: Bad request (Validation failed)
           content:
             application/json:
@@ -454,9 +710,9 @@ paths:
                     type: object
                     example:
                       displayname: Name must not be empty
-        '403':
-          $ref: '#/components/responses/UnsupportedClientVersion'
-        '409':
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "409":
           description: Conflict
           content:
             application/json:
@@ -481,11 +737,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Profile'
+              $ref: "#/components/schemas/Profile"
       security:
         - FirebaseAuthorizer: []
       responses:
-        '200':
+        "200":
           description: Profile was updated successfully
           content:
             application/json:
@@ -497,7 +753,7 @@ paths:
                   status:
                     type: string
                     default: success
-        '400':
+        "400":
           description: Bad request (Validation failed)
           content:
             application/json:
@@ -511,9 +767,9 @@ paths:
                     type: object
                     example:
                       displayname: Name must not be empty
-        '403':
-          $ref: '#/components/responses/UnsupportedClientVersion'
-        '404':
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
           description: Profile was not found
           content:
             application/json:
@@ -532,7 +788,7 @@ paths:
         - Profile
       summary: View the profile of a user
       responses:
-        '200':
+        "200":
           description: Profile was found
           content:
             application/json:
@@ -543,10 +799,10 @@ paths:
                     type: string
                     default: success
                   data:
-                    $ref: '#/components/schemas/Profile'
-        '403':
-          $ref: '#/components/responses/UnsupportedClientVersion'
-        '404':
+                    $ref: "#/components/schemas/Profile"
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
           description: Profile was not found
           content:
             application/json:
@@ -562,13 +818,13 @@ paths:
                       userID: No such profile
   /upload-profile-picture:
     parameters:
-      - $ref: '#/components/parameters/ApiVersionParameter'
+      - $ref: "#/components/parameters/ApiVersionParameter"
     get:
       tags:
         - Profile
       summary: Fetch an upload URL (POST) for the profile picture
       responses:
-        '200':
+        "200":
           description: >-
             Returns the URL where to upload (PUT) the square png image
             (250-1024px)
@@ -586,13 +842,13 @@ paths:
                       upload_url:
                         type: string
                         format: uri
-        '403':
-          $ref: '#/components/responses/UnsupportedClientVersion'
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
       security:
         - FirebaseAuthorizer: []
   /contact:
     parameters:
-      - $ref: '#/components/parameters/ApiVersionParameter'
+      - $ref: "#/components/parameters/ApiVersionParameter"
     post:
       tags:
         - Other
@@ -605,7 +861,7 @@ paths:
               type: object
               properties:
                 data:
-                  $ref: '#/components/schemas/Email'
+                  $ref: "#/components/schemas/Email"
                 nonce:
                   type: string
                   example: c2dlcjIzc3NndnJzdnIyM
@@ -613,7 +869,7 @@ paths:
                     Nonce for PoW, see http://www.hashcash.org/
                     (Not yet implemented -> field will be ignored if present)
       responses:
-        '200':
+        "200":
           description: The status code indicates if the message was successfully sent
           content:
             application/json:
@@ -625,7 +881,7 @@ paths:
                     default: success
                   data:
                     default: null
-        '400':
+        "400":
           description: Bad request
           content:
             application/json:
@@ -639,8 +895,8 @@ paths:
                     type: object
                     example:
                       email: Not a valid email address
-        '403':
-          $ref: '#/components/responses/UnsupportedClientVersion'
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
 components:
   parameters:
     ApiVersionParameter:
@@ -653,7 +909,7 @@ components:
       schema:
         type: string
         pattern: '^[0-9]+\.[0-9]+$'
-        example: '1.0'
+        example: "1.0"
   responses:
     UnsupportedClientVersion:
       description: Forbidden (Client version unsupported)
@@ -687,22 +943,22 @@ components:
         subcategory:
           type: string
         location:
-          $ref: '#/components/schemas/Location'
+          $ref: "#/components/schemas/Location"
         dates:
-          $ref: '#/components/schemas/CrowdactionDates'
+          $ref: "#/components/schemas/CrowdactionDates"
         password_required:
           type: boolean
         commitment_options:
           type: array
           items:
-            $ref: '#/components/schemas/CommitmentOption'
+            $ref: "#/components/schemas/CommitmentOption"
         participation:
-          $ref: '#/components/schemas/Date'
+          $ref: "#/components/schemas/Date"
         images:
           type: object
           properties:
             banner:
-              $ref: '#/components/schemas/Image'
+              $ref: "#/components/schemas/Image"
     CrowdactionListItem:
       type: object
       properties:
@@ -713,18 +969,18 @@ components:
         subcategory:
           type: string
         location:
-          $ref: '#/components/schemas/Location'
+          $ref: "#/components/schemas/Location"
         dates:
-          $ref: '#/components/schemas/CrowdactionDates'
+          $ref: "#/components/schemas/CrowdactionDates"
         password_required:
           type: boolean
         participation:
-          $ref: '#/components/schemas/ParticipationSummary'
+          $ref: "#/components/schemas/ParticipationSummary"
         images:
           type: object
           properties:
             card:
-              $ref: '#/components/schemas/Image'
+              $ref: "#/components/schemas/Image"
     CrowdactionDates:
       type: object
       description: >-
@@ -732,11 +988,11 @@ components:
         latter
       properties:
         start:
-          $ref: '#/components/schemas/Date'
+          $ref: "#/components/schemas/Date"
         end:
-          $ref: '#/components/schemas/Date'
+          $ref: "#/components/schemas/Date"
         join_before:
-          $ref: '#/components/schemas/Date'
+          $ref: "#/components/schemas/Date"
     Location:
       type: object
       properties:
@@ -764,7 +1020,7 @@ components:
             Commitments that are included in (and required by) this commitment.
             They can also be individually selected
           items:
-            $ref: '#/components/schemas/CommitmentOption'
+            $ref: "#/components/schemas/CommitmentOption"
             example:
               id: no-beef
               label: Not eating beef
@@ -772,7 +1028,7 @@ components:
     Date:
       type: string
       pattern: '\d{4}-\d{2}-\d{2}'
-      example: '2021-11-28'
+      example: "2021-11-28"
     ParticipationSummary:
       type: object
       properties:
@@ -794,12 +1050,12 @@ components:
       properties:
         url:
           type: string
-          example: 'https://picsum.photos/300/200'
+          example: "https://picsum.photos/300/200"
           format: uri
         blur_hash:
           type: string
           example: LEHV6nWB2yk8pyo0adR*.7kCMdnj
-          description: '(see https://blurha.sh/)'
+          description: "(see https://blurha.sh/)"
     Participation:
       type: object
       properties:
@@ -810,7 +1066,7 @@ components:
           description: Displayname of the user
         crowdactionID:
           type: string
-          example: 'sustainability#food#88615462-2789-4159-8659-2ecfd33ef305'
+          example: "sustainability#food#88615462-2789-4159-8659-2ecfd33ef305"
         title:
           type: string
           description: Title of the crowdactions
@@ -823,7 +1079,7 @@ components:
             - no-dairy
           description: Array of commitment ids
         date:
-          $ref: '#/components/schemas/Date'
+          $ref: "#/components/schemas/Date"
     Profile:
       type: object
       properties:
@@ -831,7 +1087,7 @@ components:
           type: string
           example: Max Murphy
         location:
-          $ref: '#/components/schemas/Location'
+          $ref: "#/components/schemas/Location"
         bio:
           type: string
           example: >-
@@ -849,7 +1105,7 @@ components:
           example: Hello world
         message:
           type: string
-          example: 'Please respond to this email :)'
+          example: "Please respond to this email :)"
         app_version:
           type: string
           pattern: '^(?:ios|android) [0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
