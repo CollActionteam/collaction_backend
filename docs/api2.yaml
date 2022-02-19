@@ -287,7 +287,7 @@ paths:
     get:
       tags:
         - Crowdaction
-      summary: Get comments a specific crowdaction
+      summary: Get comments from a specific crowdaction
       parameters:
         - $ref: "#/components/parameters/ApiVersionParameter"
         - name: crowdactionID
