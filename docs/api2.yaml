@@ -283,389 +283,6 @@ paths:
                       crowdactionID: already participating
       security:
         - FirebaseAuthorizer: []
-  "/crowdactions/{crowdactionID}/comments":
-    get:
-      tags:
-        - Crowdaction
-      summary: Get comments from a specific crowdaction
-      parameters:
-        - $ref: "#/components/parameters/ApiVersionParameter"
-        - name: crowdactionID
-          in: path
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: password
-          description: Only include if crowdaction requires password
-          required: false
-          schema:
-            type: string
-            format: password
-      responses:
-        "200":
-          description: Comments
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: success
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Comment"
-        "401":
-          description: Unauthorized (Invalid password)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: string
-                    example:
-                      password: Invalid or missing password
-        "403":
-          $ref: "#/components/responses/UnsupportedClientVersion"
-        "404":
-          description: Crowdaction not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: string
-                    example:
-                      crowdactionID: crowdaction does not exist
-    post:
-      tags:
-        - "Crowdaction"
-      summary: Create a new comment on a crowdaction
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                comment:
-                  type: string
-      responses:
-        "201":
-          description: Comment created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: success
-                  data:
-                    type: object
-                    properties:
-                      commentID:
-                        type: string
-        "401":
-          description: Unauthorized (Invalid password)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: string
-                    example:
-                      password: Invalid or missing password
-        "403":
-          $ref: "#/components/responses/UnsupportedClientVersion"
-        "404":
-          description: Crowdaction not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: string
-                    example:
-                      password: crowdaction does not exist
-      security:
-        - FirebaseAuthorizer: []
-  "/crowdactions/{crowdactionID}/comments/{commentID}":
-    put:
-      tags:
-        - Crowdaction
-      summary: Edit a specific comment on a specific crowdaction
-      parameters:
-        - $ref: "#/components/parameters/ApiVersionParameter"
-        - name: crowdactionID
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: commentID
-          in: path
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: password
-          description: Only include if crowdaction requires password
-          required: false
-          schema:
-            type: string
-            format: password
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                comment:
-                  type: string
-      responses:
-        "200":
-          description: Updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: success
-                  data:
-                    default: null
-        "401":
-          description: Unauthorized (Invalid password)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: string
-                    example:
-                      password: Invalid or missing password
-        "400":
-          description: Bad request (Tried to edit foreign comment)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: string
-                    example:
-                      userID: You can only edit your own comments
-        "403":
-          $ref: "#/components/responses/UnsupportedClientVersion"
-        "404":
-          description: Crowdaction or comment not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: string
-                    example:
-                      crowdactionID: crowdaction does not exist
-      security:
-        - FirebaseAuthorizer: []
-    delete:
-      tags:
-        - Crowdaction
-      summary: Delete a specific comment on a specific crowdaction
-      parameters:
-        - $ref: "#/components/parameters/ApiVersionParameter"
-        - name: crowdactionID
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: commentID
-          in: path
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: password
-          description: Only include if crowdaction requires password
-          required: false
-          schema:
-            type: string
-            format: password
-      responses:
-        "200":
-          description: Deleted
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: success
-                  data:
-                    default: null
-        "401":
-          description: Unauthorized (Invalid password)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: string
-                    example:
-                      password: Invalid or missing password
-        "400":
-          description: Bad request (Tried to delete foreign comment)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: string
-                    example:
-                      userID: You can only delete your own comments
-        "403":
-          $ref: "#/components/responses/UnsupportedClientVersion"
-        "404":
-          description: Crowdaction or comment not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: string
-                    example:
-                      crowdactionID: crowdaction does not exist
-      security:
-        - FirebaseAuthorizer: []
-  "/crowdactions/{crowdactionID}/comments/{commentID}/report":
-    post:
-      tags:
-        - Crowdaction
-      summary: Report a specific comment on a specific crowdaction
-      parameters:
-        - $ref: "#/components/parameters/ApiVersionParameter"
-        - name: crowdactionID
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: commentID
-          in: path
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: password
-          description: Only include if crowdaction requires password
-          required: false
-          schema:
-            type: string
-            format: password
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                reason:
-                  type: string
-                  enum:
-                    - discrimination
-                    - doxing
-                    - falsehood
-                    - hate_speech
-                    - spam
-      responses:
-        "200":
-          description: Reported
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: success
-                  data:
-                    default: null
-        "401":
-          description: Unauthorized (Invalid password)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: string
-                    example:
-                      password: Invalid or missing password
-        "403":
-          $ref: "#/components/responses/UnsupportedClientVersion"
-        "404":
-          description: Crowdaction or comment not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: string
-                    example:
-                      crowdactionID: crowdaction does not exist
-      security:
-        - FirebaseAuthorizer: []
   "/profiles/{userID}":
     parameters:
       - $ref: "#/components/parameters/ApiVersionParameter"
@@ -845,6 +462,393 @@ paths:
                         format: uri
         "403":
           $ref: "#/components/responses/UnsupportedClientVersion"
+      security:
+        - FirebaseAuthorizer: []
+  "/crowdactions/{threadID}/comments":
+    get:
+      tags:
+        - Comment
+      summary: Get comments from a specific crowdaction
+      parameters:
+        - $ref: "#/components/parameters/ApiVersionParameter"
+        - name: threadID
+          description: Either a crowdactionID or commentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: password
+          description: Only include if crowdaction requires password
+          required: false
+          schema:
+            type: string
+            format: password
+      responses:
+        "200":
+          description: Comments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Comment"
+        "401":
+          description: Unauthorized (Invalid password)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      password: Invalid or missing password
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
+          description: Thread not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      threadID: thread does not exist
+    post:
+      tags:
+        - "Comment"
+      summary: Create a new comment on a crowdaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  data:
+                    type: object
+                    properties:
+                      commentID:
+                        type: string
+        "401":
+          description: Unauthorized (Invalid password)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      password: Invalid or missing password
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
+          description: Crowdaction not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      password: crowdaction does not exist
+      security:
+        - FirebaseAuthorizer: []
+  "/crowdactions/{threadID}/comments/{commentID}":
+    put:
+      tags:
+        - Comment
+      summary: Edit a specific comment on a specific crowdaction
+      parameters:
+        - $ref: "#/components/parameters/ApiVersionParameter"
+        - name: threadID
+          description: Either a crowdactionID or commentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: commentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: password
+          description: Only include if crowdaction requires password
+          required: false
+          schema:
+            type: string
+            format: password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  data:
+                    default: null
+        "401":
+          description: Unauthorized (Invalid password)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      password: Invalid or missing password
+        "400":
+          description: Bad request (Tried to edit foreign comment)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      userID: You can only edit your own comments
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
+          description: Thread or comment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      threadID: thread does not exist
+      security:
+        - FirebaseAuthorizer: []
+    delete:
+      tags:
+        - Comment
+      summary: Delete a specific comment on a specific crowdaction
+      parameters:
+        - $ref: "#/components/parameters/ApiVersionParameter"
+        - name: threadID
+          description: Either a crowdactionID or commentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: commentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: password
+          description: Only include if crowdaction requires password
+          required: false
+          schema:
+            type: string
+            format: password
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  data:
+                    default: null
+        "401":
+          description: Unauthorized (Invalid password)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      password: Invalid or missing password
+        "400":
+          description: Bad request (Tried to delete foreign comment)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      userID: You can only delete your own comments
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
+          description: Thread or comment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      threadID: thread does not exist
+      security:
+        - FirebaseAuthorizer: []
+  "/crowdactions/{threadID}/comments/{commentID}/report":
+    post:
+      tags:
+        - Comment
+      summary: Report a specific comment on a specific crowdaction
+      parameters:
+        - $ref: "#/components/parameters/ApiVersionParameter"
+        - name: threadID
+          description: Either a crowdactionID or commentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: commentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: password
+          description: Only include if crowdaction requires password
+          required: false
+          schema:
+            type: string
+            format: password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  enum:
+                    - discrimination
+                    - doxing
+                    - falsehood
+                    - hate_speech
+                    - spam
+      responses:
+        "200":
+          description: Reported
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  data:
+                    default: null
+        "401":
+          description: Unauthorized (Invalid password)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      password: Invalid or missing password
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+        "404":
+          description: Thread or comment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: fail
+                  data:
+                    type: string
+                    example:
+                      threadID: thread does not exist
       security:
         - FirebaseAuthorizer: []
   /contact:
@@ -1129,3 +1133,5 @@ components:
         deleted:
           type: boolean
           default: false
+        responses_count:
+          type: integer
