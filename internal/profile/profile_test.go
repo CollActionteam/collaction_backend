@@ -59,11 +59,20 @@ func Test_CreateProfile(t *testing.T) {
 }
 
 func Test_GetProfile(t *testing.T) {
+	ast := assert.New(t)
 	testData := models.Profile{UserID: "user-id"}
 	profileRepository := &repository.Profile{GetData: &testData}
 
 	t.Run("testing GetProfile", func(t *testing.T) {
 		userID := "user-id"
+		service := profile.NewProfileCrudService(profileRepository)
+
 		profileRepository.On("GetUserProfile", context.Background(), userID).Return(&testData, nil).Once()
+
+		profileData, err := service.GetProfile(context.Background(), userID)
+		ast.NoError(err)
+		ast.Equal(&testData, profileData)
+
+		profileRepository.AssertExpectations(t)
 	})
 }
