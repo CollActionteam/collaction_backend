@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -12,5 +13,22 @@ func GetMessageHttpResponse(statusCode int, msg string) events.APIGatewayProxyRe
 	return events.APIGatewayProxyResponse{
 		Body:       string(jsonPayload),
 		StatusCode: statusCode,
+	}
+}
+
+func GetDataHttpResponse(statusCode int, msg string, data interface{}) events.APIGatewayProxyResponse {
+	resp := struct {
+		Message string
+		Data    interface{}
+		Status  int
+	}{
+		Message: msg,
+		Data:    data,
+		Status:  statusCode,
+	}
+	jsonData, _ := json.Marshal(resp)
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusInternalServerError,
+		Body:       string(jsonData),
 	}
 }
