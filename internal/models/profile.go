@@ -3,18 +3,8 @@ package models
 import (
 	"os"
 
+	"github.com/CollActionteam/collaction_backend/internal/constants"
 	validation "github.com/go-ozzo/ozzo-validation"
-)
-
-const (
-	DisplayNameMinimumLength = 2
-	DisplayNameMaximumLength = 20
-	CountryMinimumLength     = 3
-	CountryMaximumLength     = 20
-	CityMinimumLength        = 3
-	CityMaximumLength        = 20
-	BioMinimumLength         = 10
-	BioMaximumLength         = 100
 )
 
 var (
@@ -49,18 +39,18 @@ func NewUserInfo(userId, name, phoneNumber string) *UserInfo {
 func (c Profile) ValidateProfileStruct(validateType string) error {
 	if validateType == "create" {
 		return validation.ValidateStruct(&c,
-			validation.Field(&c.DisplayName, validation.Required, validation.Length(DisplayNameMinimumLength, DisplayNameMaximumLength)),
-			validation.Field(&c.Country, validation.Required, validation.Length(CountryMinimumLength, CountryMaximumLength)),
-			validation.Field(&c.City, validation.Required, validation.Length(CityMinimumLength, CityMaximumLength)),
-			validation.Field(&c.Bio, validation.Required, validation.Length(BioMinimumLength, BioMaximumLength)),
+			validation.Field(&c.DisplayName, validation.Required, validation.Length(constants.DisplayNameMinimumLength, constants.DisplayNameMaximumLength)),
+			validation.Field(&c.Country, validation.Required, validation.Length(constants.CountryMinimumLength, constants.CountryMaximumLength)),
+			validation.Field(&c.City, validation.Required, validation.Length(constants.CityMinimumLength, constants.CityMaximumLength)),
+			validation.Field(&c.Bio, validation.Required, validation.Length(constants.BioMinimumLength, constants.BioMaximumLength)),
 		)
 
 	} else if validateType == "update" {
 		return validation.ValidateStruct(&c,
-			validation.Field(&c.DisplayName, validation.Length(DisplayNameMinimumLength, DisplayNameMaximumLength)),
-			validation.Field(&c.Country, validation.Length(CountryMinimumLength, CountryMaximumLength)),
-			validation.Field(&c.City, validation.Length(CityMinimumLength, CityMaximumLength)),
-			validation.Field(&c.Bio, validation.Length(BioMinimumLength, BioMaximumLength)),
+			validation.Field(&c.DisplayName, validation.Length(constants.DisplayNameMinimumLength, constants.DisplayNameMaximumLength)),
+			validation.Field(&c.Country, validation.Length(constants.CountryMinimumLength, constants.CountryMaximumLength)),
+			validation.Field(&c.City, validation.Length(constants.CityMinimumLength, constants.CityMaximumLength)),
+			validation.Field(&c.Bio, validation.Length(constants.BioMinimumLength, constants.BioMaximumLength)),
 		)
 	}
 

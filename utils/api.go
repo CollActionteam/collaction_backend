@@ -16,7 +16,7 @@ func GetMessageHttpResponse(statusCode int, msg string) events.APIGatewayProxyRe
 	}
 }
 
-func GetDataHttpResponse(statusCode int, msg string, data interface{}) events.APIGatewayProxyResponse {
+func GetDataHttpResponse(statusCode int, msg string, data interface{}) events.APIGatewayV2HTTPResponse {
 	resp := struct {
 		Message string
 		Data    interface{}
@@ -27,7 +27,7 @@ func GetDataHttpResponse(statusCode int, msg string, data interface{}) events.AP
 		Status:  statusCode,
 	}
 	jsonData, _ := json.Marshal(resp)
-	return events.APIGatewayProxyResponse{
+	return events.APIGatewayV2HTTPResponse{
 		StatusCode: http.StatusInternalServerError,
 		Body:       string(jsonData),
 	}

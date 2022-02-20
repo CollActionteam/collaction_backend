@@ -20,12 +20,12 @@ type ProfileHandler struct {
 	service profile.Service
 }
 
-func NewContactHandler() *ProfileHandler {
+func NewProfileHandler() *ProfileHandler {
 	profileRepository := repository.NewProfile(aws.NewDynamoConn())
 	return &ProfileHandler{service: profile.NewProfileCrudService(profileRepository)}
 }
 
-func (h *ProfileHandler) getProfile(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+func (h *ProfileHandler) getProfile(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userID := req.PathParameters["userID"]
 	if userID == "" {
 		return utils.GetDataHttpResponse(http.StatusBadRequest, "no profile selected", ""), nil
@@ -43,58 +43,58 @@ func (h *ProfileHandler) getProfile(ctx context.Context, req events.APIGatewayV2
 	return utils.GetDataHttpResponse(http.StatusOK, "Successfully Retrieving Profile", profileData), nil
 }
 
-func (h *ProfileHandler) createProfile(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+func (h *ProfileHandler) createProfile(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	usrInf, err := auth.ExtractUserInfo(req)
 	if err != nil {
-		return utils.GetMessageHttpResponse(http.StatusUnauthorized, err.Error()), nil
+		return utils.GetDataHttpResponse(http.StatusUnauthorized, err.Error(), ""), nil
 	}
 
 	us := models.NewUserInfo(usrInf.UserID(), usrInf.Name(), usrInf.PhoneNumber())
 	requestData, err := ValidateProfileRequestData(req, "create")
 	if err != nil {
-		return utils.GetMessageHttpResponse(http.StatusBadRequest, err.Error()), nil
+		return utils.GetDataHttpResponse(http.StatusBadRequest, err.Error(), ""), nil
 	}
 
 	err = h.service.CreateProfile(ctx, *us, requestData)
 	if err != nil {
-		return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+		return utils.GetDataHttpResponse(http.StatusInternalServerError, err.Error(), ""), nil
 	}
 
-	return utils.GetMessageHttpResponse(http.StatusOK, "Profile Created"), nil
+	return utils.GetDataHttpResponse(http.StatusOK, "Profile Created", ""), nil
 }
 
-func (h *ProfileHandler) updateProfile(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+func (h *ProfileHandler) updateProfile(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	usrInf, err := auth.ExtractUserInfo(req)
 	if err != nil {
-		return utils.GetMessageHttpResponse(http.StatusUnauthorized, err.Error()), nil
+		return utils.GetDataHttpResponse(http.StatusUnauthorized, err.Error(), ""), nil
 	}
 
 	us := models.NewUserInfo(usrInf.UserID(), usrInf.Name(), usrInf.PhoneNumber())
 	requestData, err := ValidateProfileRequestData(req, "update")
 	if err != nil {
-		return utils.GetMessageHttpResponse(http.StatusBadRequest, err.Error()), nil
+		return utils.GetDataHttpResponse(http.StatusBadRequest, err.Error(), ""), nil
 	}
 
 	err = h.service.UpdateProfile(ctx, *us, requestData)
 	if err != nil {
-		return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+		return utils.GetDataHttpResponse(http.StatusInternalServerError, err.Error(), ""), nil
 	}
 
-	return utils.GetMessageHttpResponse(http.StatusOK, "profile update successful"), nil
+	return utils.GetDataHttpResponse(http.StatusOK, "profile update successful", ""), nil
 }
 
-func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (res events.APIGatewayProxyResponse, err error) {
+func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (res events.APIGatewayV2HTTPResponse, err error) {
 	method := strings.ToLower(req.RequestContext.HTTP.Method)
 
 	switch method {
 	case "get":
-		res, err = NewContactHandler().getProfile(ctx, req)
+		res, err = NewProfileHandler().getProfile(ctx, req)
 	case "post":
-		res, err = NewContactHandler().createProfile(ctx, req)
+		res, err = NewProfileHandler().createProfile(ctx, req)
 	case "put":
-		res, err = NewContactHandler().updateProfile(ctx, req)
+		res, err = NewProfileHandler().updateProfile(ctx, req)
 	default:
-		res = utils.GetMessageHttpResponse(http.StatusNotImplemented, "Not implemented")
+		res = utils.GetDataHttpResponse(http.StatusNotImplemented, "Not implemented", "")
 	}
 	return
 }
