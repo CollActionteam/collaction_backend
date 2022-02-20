@@ -417,7 +417,14 @@ paths:
                     type: string
                     default: success
                   data:
-                    $ref: '#/components/schemas/Profile'
+                    allOf:
+                      - $ref: '#/components/schemas/Profile'
+                      - type: object
+                        properties:
+                          badges:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Badge'
         '403':
           $ref: '#/components/responses/UnsupportedClientVersion'
         '404':
@@ -570,6 +577,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CommitmentOption'
+        badges:
+          type: array
+          items:
+            $ref: '#/components/schemas/Badge'
         participation:
           $ref: '#/components/schemas/Date'
         images:
@@ -711,6 +722,23 @@ components:
           example: >-
             Hi, I am Max and I am trying to eat less meat to stop animal
             suffering.
+    Badge:
+      type: object
+      properties:
+        crowdactionID:
+          type: string
+          example: 'sustainability#food#88615462-2789-4159-8659-2ecfd33ef305'
+        title:
+          type: string
+          description: Title of the crowdactions
+        badge_title:
+          type: string
+          example: 'vegan hero'
+        badge_description:
+          type: string
+          example: 'The highest sacrifices deserve the highest awards'
+        badge_image:
+          $ref: '#/components/schemas/Image'
     Email:
       type: object
       properties:
