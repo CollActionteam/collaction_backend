@@ -11,17 +11,17 @@ import (
 	"github.com/CollActionteam/collaction_backend/utils"
 )
 
-type profile struct {
+type Profile struct {
 	dbClient awsRepo.DynamoDb
 }
 
-func NewProfile(dynamo *awsRepo.DynamoDb) *profile {
-	return &profile{
+func NewProfile(dynamo *awsRepo.DynamoDb) *Profile {
+	return &Profile{
 		dbClient: *dynamo,
 	}
 }
 
-func (p *profile) GetUserProfile(ctx context.Context, userID string) (*models.Profile, error) {
+func (p *Profile) GetUserProfile(ctx context.Context, userID string) (*models.Profile, error) {
 	var profiledata *models.Profile
 
 	err := awsRepo.NewTable(models.ProifleTablename, p.dbClient).DynamoGetItemKV("userid", userID, &profiledata)
@@ -34,7 +34,7 @@ func (p *profile) GetUserProfile(ctx context.Context, userID string) (*models.Pr
 	return profiledata, nil
 }
 
-func (p *profile) UpdateUserProfile(ctx context.Context, user models.UserInfo, requestData models.Profile) error {
+func (p *Profile) UpdateUserProfile(ctx context.Context, user models.UserInfo, requestData models.Profile) error {
 	var (
 		removeFields = []string{"userid", "displayname", "phone"}
 		userID       = user.UserID
@@ -88,7 +88,7 @@ func (p *profile) UpdateUserProfile(ctx context.Context, user models.UserInfo, r
 	return nil
 }
 
-func (p *profile) CreateUserProfile(ctx context.Context, user models.UserInfo, requestData models.Profile) error {
+func (p *Profile) CreateUserProfile(ctx context.Context, user models.UserInfo, requestData models.Profile) error {
 	var (
 		profiledata *models.Profile
 		tb          = awsRepo.NewTable(models.ProifleTablename, p.dbClient)
