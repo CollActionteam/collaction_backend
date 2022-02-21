@@ -1,7 +1,7 @@
 package aws
 
 import (
-	"github.com/CollActionteam/collaction_backend/internal/models"
+	"github.com/CollActionteam/collaction_backend/internal/constants"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -43,7 +43,7 @@ func NewUpdateItem(searchKey, searchValue, updateFieldKey, updateFieldValue stri
 
 func (t *DynamoTable) DynamoGetItemKV(key, value string, receiver interface{}) error {
 	result, err := t.DbClient.DbClient.GetItem(&dynamodb.GetItemInput{
-		TableName: aws.String(models.ProifleTablename),
+		TableName: aws.String(constants.ProifleTablename),
 		Key: map[string]*dynamodb.AttributeValue{
 			key: {
 				S: aws.String(value),

@@ -32,3 +32,11 @@ func GetDataHttpResponse(statusCode int, msg string, data interface{}) events.AP
 		Body:       string(jsonData),
 	}
 }
+
+func CreateMessageHttpResponse(statusCode int, msg string) events.APIGatewayV2HTTPResponse {
+	jsonPayload, _ := json.Marshal(map[string]interface{}{"message": msg})
+	return events.APIGatewayV2HTTPResponse{
+		Body:       string(jsonPayload),
+		StatusCode: statusCode,
+	}
+}

@@ -1,14 +1,8 @@
 package models
 
 import (
-	"os"
-
 	"github.com/CollActionteam/collaction_backend/internal/constants"
 	validation "github.com/go-ozzo/ozzo-validation"
-)
-
-var (
-	ProifleTablename = os.Getenv("PROFILE_TABLE")
 )
 
 type Profile struct {
