@@ -20,6 +20,7 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 	if err := json.Unmarshal([]byte(req.Body), &request); err != nil {
 		return errToResponse(err, http.StatusBadRequest), nil
 	}
+	// TODO implement POW verification using nonce (see https://github.com/CollActionteam/collaction_backend/issues/58)
 
 	validate := validator.New()
 	if err := validate.StructCtx(ctx, request); err != nil {
