@@ -25,7 +25,7 @@ func NewProfile(dynamo *awsRepo.DynamoDb) *Profile {
 func (p *Profile) GetUserProfile(ctx context.Context, userID string) (*models.Profile, error) {
 	var profiledata *models.Profile
 
-	err := awsRepo.NewTable(constants.ProifleTablename, p.dbClient).DynamoGetItemKV("userid", userID, &profiledata)
+	err := awsRepo.NewTable(constants.ProfileTablename, p.dbClient).DynamoGetItemKV("userid", userID, &profiledata)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (p *Profile) UpdateUserProfile(ctx context.Context, user models.UserInfo, r
 
 	wg.Add(mapLength)
 	wrkchan := make(chan error, mapLength)
-	tb := awsRepo.NewTable(constants.ProifleTablename, p.dbClient)
+	tb := awsRepo.NewTable(constants.ProfileTablename, p.dbClient)
 
 	for i, v := range requiredMap {
 		go func(i string, v string, userID string, tb *awsRepo.DynamoTable, ch chan error, wg *sync.WaitGroup) {
@@ -92,7 +92,7 @@ func (p *Profile) UpdateUserProfile(ctx context.Context, user models.UserInfo, r
 func (p *Profile) CreateUserProfile(ctx context.Context, user models.UserInfo, requestData models.Profile) error {
 	var (
 		profiledata *models.Profile
-		tb          = awsRepo.NewTable(constants.ProifleTablename, p.dbClient)
+		tb          = awsRepo.NewTable(constants.ProfileTablename, p.dbClient)
 	)
 
 	err := tb.DynamoGetItemKV("userid", user.UserID, &profiledata)

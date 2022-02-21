@@ -43,7 +43,7 @@ func NewUpdateItem(searchKey, searchValue, updateFieldKey, updateFieldValue stri
 
 func (t *DynamoTable) DynamoGetItemKV(key, value string, receiver interface{}) error {
 	result, err := t.DbClient.DbClient.GetItem(&dynamodb.GetItemInput{
-		TableName: aws.String(constants.ProifleTablename),
+		TableName: aws.String(constants.ProfileTablename),
 		Key: map[string]*dynamodb.AttributeValue{
 			key: {
 				S: aws.String(value),

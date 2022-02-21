@@ -17,6 +17,6 @@ const (
 
 var (
 	TableName              = os.Getenv("TABLE_NAME")
-	ProifleTablename       = os.Getenv("PROFILE_TABLE")
+	ProfileTablename       = os.Getenv("PROFILE_TABLE")
 	ParticipationQueueName = os.Getenv("PARTICIPATION_QUEUE")
 )
