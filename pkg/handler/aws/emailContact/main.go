@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"github.com/CollActionteam/collaction_backend/internal/contact"
 	"github.com/CollActionteam/collaction_backend/internal/models"
+	hnd "github.com/CollActionteam/collaction_backend/pkg/handler"
 	awsRepository "github.com/CollActionteam/collaction_backend/pkg/repository/aws"
+	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -21,8 +23,8 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 
 	validate := validator.New()
 	if err := validate.StructCtx(ctx, request); err != nil {
-		//TODO 10.01.22 mrsoftware: fix the error message
-		return errToResponse(err, http.StatusBadRequest), nil
+		body, _ := json.Marshal(hnd.Response{Status: hnd.StatusFail, Data: map[string]interface{}{"error": utils.ValidationResponse(err, validate)}})
+		return events.APIGatewayV2HTTPResponse{Body: string(body), StatusCode: http.StatusBadRequest}, nil
 	}
 
 	sess := session.Must(session.NewSession())
@@ -38,8 +40,8 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 		return errToResponse(err, http.StatusInternalServerError), nil
 	}
 
-	msg, _ := json.Marshal(map[string]string{"message": "message sent successfully"})
-	return events.APIGatewayV2HTTPResponse{StatusCode: 200, Body: string(msg)}, nil
+	body, _ := json.Marshal(hnd.Response{Status: hnd.StatusSuccess, Data: nil})
+	return events.APIGatewayV2HTTPResponse{StatusCode: 200, Body: string(body)}, nil
 }
 
 func main() {
@@ -47,6 +49,6 @@ func main() {
 }
 
 func errToResponse(err error, code int) events.APIGatewayV2HTTPResponse {
-	msg, _ := json.Marshal(map[string]string{"message": err.Error()})
-	return events.APIGatewayV2HTTPResponse{Body: string(msg), StatusCode: code}
+	body, _ := json.Marshal(hnd.Response{Status: hnd.StatusFail, Data: map[string]interface{}{"error": err.Error()}})
+	return events.APIGatewayV2HTTPResponse{Body: string(body), StatusCode: code}
 }

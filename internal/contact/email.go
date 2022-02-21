@@ -32,7 +32,7 @@ func NewContactService(emailRepository EmailRepository, configManager ConfigMana
 	return &contact{emailRepository: emailRepository, configManager: configManager, stage: stage}
 }
 
-func (e *contact) SendEmail(ctx context.Context, data models.EmailContactRequest) error {
+func (e *contact) SendEmail(ctx context.Context, req models.EmailContactRequest) error {
 	recipient, err := e.configManager.GetParameter(fmt.Sprintf(constants.RecipientEmail, e.stage))
 	if err != nil {
 		return err
@@ -40,9 +40,9 @@ func (e *contact) SendEmail(ctx context.Context, data models.EmailContactRequest
 
 	return e.emailRepository.Send(ctx, models.EmailData{
 		Recipient:  recipient,
-		Message:    fmt.Sprintf(EmailMessageFormat, data.Message, Separator, data.AppVersion),
-		Subject:    data.Subject,
-		Sender:     data.Email,
-		ReplyEmail: data.Email,
+		Message:    fmt.Sprintf(EmailMessageFormat, req.Data.Message, Separator, req.Data.AppVersion),
+		Subject:    req.Data.Subject,
+		Sender:     req.Data.Email,
+		ReplyEmail: req.Data.Email,
 	})
 }
