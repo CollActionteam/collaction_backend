@@ -61,7 +61,6 @@ func (h *ParticipationHandler) getParticipation(ctx context.Context, req events.
 	if participation == nil {
 		return utils.CreateMessageHttpResponse(http.StatusNotFound, "not participating"), nil
 	}
-	// "Cannot go wrong"
 	jsonPayload, _ := json.Marshal(participation)
 	return events.APIGatewayV2HTTPResponse{
 		Body:       string(jsonPayload),
