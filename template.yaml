@@ -324,8 +324,8 @@ Resources:
   ParticipationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: controllers/participation/endpoint
-      Handler: endpoint
+      CodeUri: pkg/handler/aws/participation
+      Handler: participation
       Runtime: go1.x
       Environment:
         Variables:
