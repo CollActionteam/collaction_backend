@@ -498,7 +498,7 @@ paths:
           example: draft
     get:
       tags:
-        - CMS
+        - CMS Crowdaction
       summary: List crowdactions
       responses:
         "200":
@@ -514,14 +514,14 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#/components/schemas/CMScrowdactionListItem"
+                      $ref: "#/components/schemas/CmsCrowdactionListItem"
         "403":
           $ref: "#/components/responses/UnsupportedClientVersion"
       security:
         - CMSAuthorizer: []
     post:
       tags:
-        - CMS
+        - CMS Crowdaction
       summary: Create a draft crowdaction
       requestBody:
         required: true
@@ -565,7 +565,7 @@ paths:
   "/cms/crowdactions/{crowdactionID}":
     get:
       tags:
-        - CMS
+        - CMS Crowdaction
       summary: Get the details of a specific crowdaction
       parameters:
         - $ref: "#/components/parameters/ApiVersionParameter"
@@ -617,7 +617,7 @@ paths:
         - CMSAuthorizer: []
     put:
       tags:
-        - CMS
+        - CMS Crowdaction
       summary: Update the details of a specific crowdaction
       parameters:
         - $ref: "#/components/parameters/ApiVersionParameter"
@@ -686,7 +686,7 @@ paths:
           type: string
     delete:
       tags:
-        - CMS
+        - CMS Crowdaction
       summary: Delete crowdaction draft
       responses:
         "200":
@@ -720,7 +720,7 @@ paths:
           type: string
     get:
       tags:
-        - CMS
+        - CMS Crowdaction
       summary: Get crowdaction status
       responses:
         "200":
@@ -734,14 +734,14 @@ paths:
                     type: string
                     default: success
                   data:
-                    $ref: "#/components/schemas/CMSCrowdactionStatus"
+                    $ref: "#/components/schemas/CmsCrowdactionStatus"
         "403":
           $ref: "#/components/responses/UnsupportedClientVersion"
       security:
         - CMSAuthorizer: []
     put:
       tags:
-        - CMS
+        - CMS Crowdaction
       summary: Update crowdaction status
       requestBody:
         required: true
@@ -780,7 +780,7 @@ paths:
             - card
     get:
       tags:
-        - CMS
+        - CMS Crowdaction
       summary: Fetch an upload URL (POST) for the crowdaction picture
       responses:
         "200":
@@ -800,6 +800,206 @@ paths:
                       upload_url:
                         type: string
                         format: uri
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+      security:
+        - CMSAuthorizer: []
+  "/cms/users":
+    parameters:
+      - $ref: "#/components/parameters/ApiVersionParameter"
+    get:
+      tags:
+        - CMS Users
+      summary: List CMS users
+      responses:
+        "200":
+          description: >-
+            Returns a list of all CMS users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CmsUser"
+        "401":
+          description: >-
+            Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      userType:
+                        type: string
+                        default: Only administrators may list users
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+      security:
+        - CMSAuthorizer: []
+    post:
+      tags:
+        - CMS Users
+      summary: Create a CMS user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                userType:
+                  $ref: "#/components/schemas/CmsUserType"
+      responses:
+        "201":
+          description: >-
+            Created the new user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/CmsUser"
+        "401":
+          description: >-
+            Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      userType:
+                        type: string
+                        default: Only administrators may create new users
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+      security:
+        - CMSAuthorizer: []
+  "/cms/users/{userID}":
+    parameters:
+      - $ref: "#/components/parameters/ApiVersionParameter"
+      - name: userID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - CMS Users
+      summary: Delete a CMS user
+      responses:
+        "200":
+          description: >-
+            User was deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    default: null
+        "401":
+          description: >-
+            Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      userType:
+                        type: string
+                        default: Only administrators may delete users
+        "403":
+          $ref: "#/components/responses/UnsupportedClientVersion"
+      security:
+        - CMSAuthorizer: []
+  "/cms/users/{userID}/type":
+    parameters:
+      - $ref: "#/components/parameters/ApiVersionParameter"
+      - name: userID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags:
+        - CMS Users
+      summary: Change the type of a CMS user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userType:
+                  $ref: "#/components/schemas/CmsUserType"
+      responses:
+        "200":
+          description: >-
+            User was updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    default: null
+        "401":
+          description: >-
+            Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      userType:
+                        type: string
+                        default: Only administrators may modify users
         "403":
           $ref: "#/components/responses/UnsupportedClientVersion"
       security:
@@ -858,6 +1058,10 @@ components:
     CrowdactionCore:
       type: object
       properties:
+        author:
+          type: string
+          format: uuid
+          description: CMS userID of the author of the crowdaction
         title:
           type: string
         description:
@@ -1038,7 +1242,7 @@ components:
           type: string
           pattern: '^(?:ios|android) [0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
           example: android 1.0.1+1
-    CMSCrowdactionStatus:
+    CmsCrowdactionStatus:
       type: string
       enum:
         - draft
@@ -1046,16 +1250,32 @@ components:
         - ongoing
         - ended
         - hidden
-    CMScrowdactionListItem:
+    CmsCrowdactionListItem:
       type: object
       properties:
         crowdactionID:
           type: string
           example: sustainability#food#88615462-2789-4159-8659-2ecfd33ef305
         status:
-          $ref: "#/components/schemas/CMSCrowdactionStatus"
+          $ref: "#/components/schemas/CmsCrowdactionStatus"
         password_required:
           type: boolean
           default: false
         title:
           type: string
+    CmsUser:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        userID:
+          type: string
+          format: uuid
+        userType:
+          $ref: "#/components/schemas/CmsUserType"
+    CmsUserType:
+      type: string
+      enum:
+        - Administrator
+        - Author
