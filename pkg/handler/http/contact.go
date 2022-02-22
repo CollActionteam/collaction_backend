@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/CollActionteam/collaction_backend/internal/contact"
 	"github.com/CollActionteam/collaction_backend/internal/models"
+	"github.com/CollActionteam/collaction_backend/pkg/handler"
 	"github.com/CollActionteam/collaction_backend/pkg/repository"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -26,14 +27,20 @@ func (h *ContactHandler) EmailContact(c *gin.Context) {
 	var request models.EmailContactRequest
 
 	if err := c.BindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, handler.Response{
+			Status: handler.StatusFail,
+			Data:   gin.H{"error": err.Error()},
+		})
 		return
 	}
 
 	if err := h.service.SendEmail(c.Request.Context(), request); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		c.JSON(http.StatusInternalServerError, handler.Response{
+			Status: handler.StatusFail,
+			Data:   gin.H{"error": err.Error()},
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "message sent successfully"})
+	c.JSON(http.StatusOK, handler.Response{Status: handler.StatusSuccess, Data: nil})
 }
