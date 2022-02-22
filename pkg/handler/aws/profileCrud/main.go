@@ -9,7 +9,6 @@ import (
 	"github.com/CollActionteam/collaction_backend/auth"
 	"github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/CollActionteam/collaction_backend/internal/profile"
-	"github.com/CollActionteam/collaction_backend/pkg/repository"
 	"github.com/CollActionteam/collaction_backend/pkg/repository/aws"
 	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-lambda-go/events"
@@ -21,7 +20,7 @@ type ProfileHandler struct {
 }
 
 func NewProfileHandler() *ProfileHandler {
-	profileRepository := repository.NewProfile(aws.NewDynamoConn())
+	profileRepository := aws.NewProfile(aws.NewDynamo())
 	return &ProfileHandler{service: profile.NewProfileCrudService(profileRepository)}
 }
 

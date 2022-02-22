@@ -7,10 +7,10 @@ import (
 
 type Profile struct {
 	UserID      string `json:"userid,omitempty"`
-	DisplayName string `json:"displayname,omitempty"`
-	Country     string `json:"country,omitempty"`
-	City        string `json:"city,omitempty"`
-	Bio         string `json:"bio,omitempty"`
+	DisplayName string `json:"displayname"`
+	Country     string `json:"country"`
+	City        string `json:"city"`
+	Bio         string `json:"bio"`
 	Phone       string `json:"phone,omitempty"`
 }
 

@@ -1,4 +1,4 @@
-package repository
+package aws
 
 import (
 	"context"
@@ -8,15 +8,14 @@ import (
 
 	"github.com/CollActionteam/collaction_backend/internal/constants"
 	"github.com/CollActionteam/collaction_backend/internal/models"
-	awsRepo "github.com/CollActionteam/collaction_backend/pkg/repository/aws"
 	"github.com/CollActionteam/collaction_backend/utils"
 )
 
 type Profile struct {
-	dbClient awsRepo.DynamoDb
+	dbClient Dynamo
 }
 
-func NewProfile(dynamo *awsRepo.DynamoDb) *Profile {
+func NewProfile(dynamo *Dynamo) *Profile {
 	return &Profile{
 		dbClient: *dynamo,
 	}
@@ -25,7 +24,7 @@ func NewProfile(dynamo *awsRepo.DynamoDb) *Profile {
 func (p *Profile) GetUserProfile(ctx context.Context, userID string) (*models.Profile, error) {
 	var profiledata *models.Profile
 
-	err := awsRepo.NewTable(constants.ProfileTablename, p.dbClient).DynamoGetItemKV("userid", userID, &profiledata)
+	err := NewTable(constants.ProfileTablename, p.dbClient).DynamoGetItemKV("userid", userID, &profiledata)
 	if err != nil {
 		return nil, err
 	}
@@ -61,12 +60,12 @@ func (p *Profile) UpdateUserProfile(ctx context.Context, user models.UserInfo, r
 
 	wg.Add(mapLength)
 	wrkchan := make(chan error, mapLength)
-	tb := awsRepo.NewTable(constants.ProfileTablename, p.dbClient)
+	tb := NewTable(constants.ProfileTablename, p.dbClient)
 
 	for i, v := range requiredMap {
-		go func(i string, v string, userID string, tb *awsRepo.DynamoTable, ch chan error, wg *sync.WaitGroup) {
+		go func(i string, v string, userID string, tb *DynamoTable, ch chan error, wg *sync.WaitGroup) {
 			defer wg.Done()
-			cData := awsRepo.NewUpdateItem("userid", userID, i, v)
+			cData := NewUpdateItem("userid", userID, i, v)
 			ch <- tb.DynamoUpdateItemKV(cData)
 		}(i, v, userID, tb, wrkchan, &wg)
 	}
@@ -92,7 +91,7 @@ func (p *Profile) UpdateUserProfile(ctx context.Context, user models.UserInfo, r
 func (p *Profile) CreateUserProfile(ctx context.Context, user models.UserInfo, requestData models.Profile) error {
 	var (
 		profiledata *models.Profile
-		tb          = awsRepo.NewTable(constants.ProfileTablename, p.dbClient)
+		tb          = NewTable(constants.ProfileTablename, p.dbClient)
 	)
 
 	err := tb.DynamoGetItemKV("userid", user.UserID, &profiledata)
