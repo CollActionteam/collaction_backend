@@ -353,8 +353,8 @@ Resources:
   ProfileCRUDFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: profile-crud/
-      Handler: profile-crud
+      CodeUri: pkg/handler/aws/profileCrud
+      Handler: profileCrud
       Runtime: go1.x
       Events:
         ProfileCRUDHandler:
