@@ -1,0 +1,12 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1xoanv4heoh1g"
+s3_prefix = "collaction-dev-edreinoso"
+stack_name = "collaction-dev-edreinoso"
+region = "eu-central-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+parameter_overrides = "Stage=\"dev\" FirebaseProjectId=\"collaction-52ca9\" DomainParameter=\"\" SubdomainSuffixParameter=\"\" HostedZoneIdParameter=\"\" AcmCertificateArnParameter=\"\""
