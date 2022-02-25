@@ -219,7 +219,7 @@ Resources:
           # Beware of recursive execution! Double check referenced buckets!
           OUTPUT_BUCKET_NAME: !Ref StaticHostingBucket
           KEY_PREIFX: profile-pictures/
-          CLOUDFRONT_DISTRIBUTION: !Ref StaticContentDistribution
+          CLOUDFRONT_DISTRIBUTION: !If [shouldUseCustomDomainNames, !Ref StaticContentDistribution, ""]
       Policies:
         - Statement:
           - Effect: Allow
