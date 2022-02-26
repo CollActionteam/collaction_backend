@@ -4,41 +4,25 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"os"
 
-	"github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/go-playground/validator/v10"
 )
 
-var (
-	tableName = os.Getenv("TABLE_NAME")
-)
+func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) string {
+	fmt.Println("Hello Go, first message from AWS!")
 
-func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	fmt.Println("Entering the crowdaction endpoint")
+	crowdactionID := req.PathParameters["crowdactionID"]
 
-	// invoking crowdaction model
-	var request models.CrowdActionRequest
+	fmt.Println("Getting the crowdactionID from the request")
 
-	// creating a new validator object
-	validate := validator.New()
-
-	// validating against error
-	if err := validate.StructCtx(ctx, request); err != nil {
-		return errToResponse(err, http.StatusBadRequest), nil
+	if crowdactionID == "" {
+		firstReturnValue := "Returning all crowdactions"
+		return firstReturnValue
 	}
+	firstReturnValue := "Returning specific crowdaction"
 
-	// AWS session
-	//sess := session.Must(session.NewSession())
-
-	if err := json.Unmarshal([]byte(req.Body), &request); err != nil {
-		return errToResponse(err, http.StatusBadRequest), nil
-	}
-
-	return events.APIGatewayV2HTTPResponse{StatusCode: 200, Body: "Success!"}, nil
+	return firstReturnValue
 }
 
 func main() {

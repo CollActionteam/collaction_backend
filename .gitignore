@@ -29,7 +29,7 @@ _ignored/
 .vscode/launch.json
 .vscode/extensions.json
 *.code-workspace
-
+*.gitconfig
 # VisualStudioCode Patch
 # Ignore all local history of files
 .history
