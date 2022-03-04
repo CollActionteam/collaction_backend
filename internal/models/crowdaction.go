@@ -1,7 +1,7 @@
 package models
 
-type CrowdActionRequest struct {
-	Data CrowdActionData `json:"data" validate:"required"`
+type CrowdactionRequest struct {
+	Data CrowdactionData `json:"data" validate:"required"`
 }
 
 type CrowdactionParticipant struct {
@@ -14,7 +14,7 @@ type CrowdactionImages struct {
 	Banner string `json:"banner,omitempty"`
 }
 
-type CrowdActionData struct {
+type CrowdactionData struct {
 	CrowdactionID      string                   `json:"crowdactionID"`
 	Title              string                   `json:"title"`
 	Description        string                   `json:"description"`
@@ -25,8 +25,8 @@ type CrowdActionData struct {
 	DateEnd            string                   `json:"date_end"`
 	DateLimitJoin      string                   `json:"date_limit_join"`
 	PasswordJoin       string                   `json:"password_join"`
-	CommitmentOptions  []CommitmentOption       `json:"commitment_options"`
 	ParticipationCount int                      `json:"participant_count"`
 	TopParticipants    []CrowdactionParticipant `json:"top_participants"`
 	Images             CrowdactionImages        `json:"images"`
+	// CommitmentOptions  []CommitmentOption       `json:"commitment_options"`
 }
