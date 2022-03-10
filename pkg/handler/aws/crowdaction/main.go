@@ -6,48 +6,17 @@ import (
 	"fmt"
 	"net/http"
 
-	crowdaction "github.com/CollActionteam/collaction_backend/internal/crowdactions"
+	cwd "github.com/CollActionteam/collaction_backend/internal/crowdactions"
 	"github.com/CollActionteam/collaction_backend/internal/models"
 	hnd "github.com/CollActionteam/collaction_backend/pkg/handler"
 	awsRepository "github.com/CollActionteam/collaction_backend/pkg/repository/aws"
 	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-
-	// "github.com/CollActionteam/collaction_backend/internal/contact"
-	// "github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/go-playground/validator/v10"
 )
 
-// type CrowdactionHandler struct {
-// 	// getting all the main functions from the internal
-// 	crowadction crowdactions.Dynamo
-// }
-
-// // return crowdactions by
-// func getCrowdactions (status string) (events.APIGatewayProxyResponse, error) {}
-
-// // return single crowdaction by ID
-// func getCrowdaction (crowdactionId string, dynamoRepository Dynamo) (events.APIGatewayProxyResponse, error) {
-// 	crowdaction, err := models.
-
-// 	// should call the internal and receive a response
-// }
-
-// func retrieveInfoFromRequest(req events.APIGatewayV2HTTPRequest) (*models.Crowdaction, error) {
-// 	crowdactionID := req.PathParameters["crowdactionID"]
-// 	usrInf, err := auth.ExtractUserInfo(req)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	crowdaction, _ := models.GetCrowdaction(crowdactionID, constants.TableName)
-// 	if crowdaction == nil {
-// 		return "", "", nil, errors.New("crowdaction not found")
-// 	}
-// 	return crowdaction, nil
-// }
-
-func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) string {
+func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	var request models.CrowdactionRequest
 
 	if err := json.Unmarshal([]byte(req.Body), &request); err != nil {
@@ -63,25 +32,30 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) string {
 	}
 
 	crowdactionID := req.PathParameters["crowdactionID"]
+
 	dynamoRepository := awsRepository.NewDynamo()
 
-	if err := crowdaction.NewCrowdactionService(dynamoRepository).GetCrowdaction(crowdactionID)
-	// fmt.Println("Getting the crowdactionID from the request")
+	fmt.Println("Getting the crowdactionID from the request")
 
-	// if crowdactionID == "" {
-	// 	status := req.QueryStringParameters["status"]
-	// 	switch status {
-	// 	case "":
-	// 		status = "joinable"
-	// 	case "featured":
-	// 		status = "joinable"
-	// 	}
-	// 	return getCrowdactions(status)
+	getCrowdaction, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdaction(ctx, crowdactionID)
+
+	if err != nil {
+		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+	}
+	if getCrowdaction == nil {
+		return utils.CreateMessageHttpResponse(http.StatusNotFound, "not participating"), nil
+	}
+
+	// if getCrowdaction, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdaction(ctx, crowdactionID); err != nil {
+	// 	return errToResponse(err, http.StatusInternalServerError), nil
 	// }
 
-	// return getCrowdaction(crowdactionID)
-	
-	return event.APIGatewayProxyResponse{StatusCode: 200, Body: string(body)}, nill
+	jsonPayload, _ := json.Marshal(getCrowdaction)
+	return events.APIGatewayV2HTTPResponse{
+		Body:       string(jsonPayload),
+		StatusCode: http.StatusOK,
+	}, nil
+
 }
 
 func main() {

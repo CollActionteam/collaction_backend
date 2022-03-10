@@ -7,12 +7,14 @@ import (
 	"github.com/CollActionteam/collaction_backend/internal/constants"
 	"github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/CollActionteam/collaction_backend/utils"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
 const Separator = "### app version:"
 
 type DynamoRepository interface {
-	GetDBItem(tableName string, pk string, crowdactionId string) (*models.CrowdactionData, error)
+	GetDBItem(tableName string, pk string, crowdactionId string) (map[string]*dynamodb.AttributeValue, error)
 }
 
 type Service interface {
@@ -38,7 +40,9 @@ func (e *crowdaction) GetCrowdaction(ctx context.Context, crowdactionId string) 
 	if item == nil {
 		return nil, fmt.Errorf("Crowdaction not found")
 	}
-	// var crowdaction models.CrowdactionData
-	// err = dynamodbattribute.UnmarshalMap(foo, &crowdaction)
-	return item, err
+	fmt.Printf("GetCrowdaction calling internal")
+	var crowdaction models.CrowdactionData
+	err = dynamodbattribute.UnmarshalMap(item, &crowdaction)
+	return &crowdaction, err
+	// return item, err
 }
