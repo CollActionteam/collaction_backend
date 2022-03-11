@@ -16,14 +16,19 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+// func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) {
 func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	// func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) {
+	crowdactionID := req.PathParameters["crowdactionID"]
+
+	fmt.Println("Hello Go, first message from CollAction AWS:  ", crowdactionID)
 	var request models.CrowdactionRequest
 
-	if err := json.Unmarshal([]byte(req.Body), &request); err != nil {
-		return errToResponse(err, http.StatusBadRequest), nil
-	}
+	// if err := json.Unmarshal([]byte(req.Body), &request); err != nil {
+	// 	return errToResponse(err, http.StatusBadRequest), nil
+	// }
 
-	fmt.Println("Hello Go, first message from AWS!")
+	fmt.Println("bad request")
 
 	validate := validator.New()
 	if err := validate.StructCtx(ctx, request); err != nil {
@@ -31,31 +36,32 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 		return events.APIGatewayV2HTTPResponse{Body: string(body), StatusCode: http.StatusBadRequest}, nil
 	}
 
-	crowdactionID := req.PathParameters["crowdactionID"]
+	fmt.Println("Request has been validated!")
 
 	dynamoRepository := awsRepository.NewDynamo()
 
-	fmt.Println("Getting the crowdactionID from the request")
+	// crowdactionService := cwd.NewCrowdactionService(dynamoRepository)
+
+	// getCrowdaction, err := crowdactionService.GetCrowdaction(ctx, crowdactionID)
 
 	getCrowdaction, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdaction(ctx, crowdactionID)
 
 	if err != nil {
+		// fmt.Println("There was an error")
 		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
 	}
 	if getCrowdaction == nil {
+		// fmt.Println("No crowdaction available")
 		return utils.CreateMessageHttpResponse(http.StatusNotFound, "not participating"), nil
 	}
 
-	// if getCrowdaction, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdaction(ctx, crowdactionID); err != nil {
-	// 	return errToResponse(err, http.StatusInternalServerError), nil
-	// }
+	fmt.Println("getCrowdaction", getCrowdaction)
 
 	jsonPayload, _ := json.Marshal(getCrowdaction)
 	return events.APIGatewayV2HTTPResponse{
 		Body:       string(jsonPayload),
 		StatusCode: http.StatusOK,
 	}, nil
-
 }
 
 func main() {

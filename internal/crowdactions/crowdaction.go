@@ -26,21 +26,22 @@ type crowdaction struct {
 }
 
 func NewCrowdactionService(dynamodb DynamoRepository) Service {
+	// fmt.Println("NewCrowdactionService")
 	return &crowdaction{dynamodb: dynamodb}
 }
 
 /**
 	GET Crowdaction by Id
 **/
-func (e *crowdaction) GetCrowdaction(ctx context.Context, crowdactionId string) (*models.CrowdactionData, error) {
-	item, err := e.dynamodb.GetDBItem(constants.TableName, utils.PKCrowdaction, crowdactionId)
+func (e *crowdaction) GetCrowdaction(ctx context.Context, crowdactionID string) (*models.CrowdactionData, error) {
+	// fmt.Println("GetCrowdaction calling internal:", crowdactionID)
+	item, err := e.dynamodb.GetDBItem(constants.TableName, utils.PKCrowdaction, crowdactionID)
 	if err != nil {
 		return nil, err
 	}
 	if item == nil {
 		return nil, fmt.Errorf("Crowdaction not found")
 	}
-	fmt.Printf("GetCrowdaction calling internal")
 	var crowdaction models.CrowdactionData
 	err = dynamodbattribute.UnmarshalMap(item, &crowdaction)
 	return &crowdaction, err

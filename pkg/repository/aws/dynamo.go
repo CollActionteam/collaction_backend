@@ -45,6 +45,7 @@ type UpdateItemData struct {
 }
 
 func NewDynamo() *Dynamo {
+	fmt.Println("New Dynamo Session")
 	sess := session.Must(session.NewSession())
 	return &Dynamo{dbClient: dynamodb.New(sess)}
 }
@@ -71,6 +72,8 @@ func (s *Dynamo) GetPrimaryKey(pk string, sk string) PrimaryKey {
 }
 
 func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (map[string]*dynamodb.AttributeValue, error) {
+	// fmt.Println("Calling GetDBItem", tableName, pk, sk)
+
 	result, err := s.dbClient.GetItem(&dynamodb.GetItemInput{
 		TableName: &tableName,
 		Key:       s.GetPrimaryKey(pk, sk),
@@ -87,6 +90,8 @@ func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (map[string]*
 	if result == nil {
 		return nil, nil
 	}
+
+	// fmt.Println("result from query: ", result)
 	return result.Item, nil
 }
 
