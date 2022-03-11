@@ -7,20 +7,21 @@ import (
 
 	"github.com/CollActionteam/collaction_backend/internal/constants"
 	m "github.com/CollActionteam/collaction_backend/internal/models"
-	"github.com/CollActionteam/collaction_backend/internal/participation"
-	"github.com/CollActionteam/collaction_backend/models"
-	"github.com/CollActionteam/collaction_backend/pkg/repository"
+	"github.com/CollActionteam/collaction_backend/internal/participation_aggregation"
 	"github.com/CollActionteam/collaction_backend/pkg/repository/aws"
 	"github.com/aws/aws-lambda-go/events"
 )
 
 type ParticipationAggregationHandler struct {
-	service participation.Service
+	service participation_aggregation.Service
 }
 
 func NewParticipationAggregationHandler() *ParticipationAggregationHandler {
-	participationRepository := repository.NewParticipation(aws.NewDynamo())
-	return &ParticipationAggregationHandler{service: participation.NewParticipationService(participationRepository)}
+	x := *aws.NewDynamo()
+	table := aws.NewTable(constants.TableName, x)
+	crowdactionParticipationsManager := aws.NewCrowdactionParticipations(table)
+	service := participation_aggregation.NewParticipationAggregationService(crowdactionParticipationsManager)
+	return &ParticipationAggregationHandler{service: service}
 }
 
 func (h *ParticipationAggregationHandler) aggregateParticipations(ctx context.Context, sqsEvent events.SQSEvent) error {
@@ -41,7 +42,7 @@ func (h *ParticipationAggregationHandler) aggregateParticipations(ctx context.Co
 		for _, event := range crowdactionEvents {
 			participantCountChangedBy += event.Count
 		}
-		err := models.ChangeCrowdactionParticipantCountBy(crowdactionID, constants.TableName, participantCountChangedBy)
+		err := h.service.ChangeCrowdactionParticipantCountBy(ctx, crowdactionID, participantCountChangedBy)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
