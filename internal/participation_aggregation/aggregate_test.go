@@ -11,30 +11,30 @@ import (
 
 func TestContact_ChangeCrowdactionParticipantCountBy(t *testing.T) {
 	as := assert.New(t)
-	participationManager := &repository.CrowdactionParticipations{}
+	cpm := &repository.CrowdactionParticipations{}
 	count := 100
 	crowdactionID := "Some crowdaction"
 
 	t.Run("increase participation", func(t *testing.T) {
-		service := participation_aggregation.NewParticipationAggregationService(participationManager)
+		service := participation_aggregation.NewParticipationAggregationService(cpm)
 
-		participationManager.On("ChangeCrowdactionParticipantCountBy", context.Background(), crowdactionID, count).Return(nil).Once()
+		cpm.On("ChangeCrowdactionParticipantCountBy", context.Background(), crowdactionID, count).Return(nil).Once()
 
 		err := service.ChangeCrowdactionParticipantCountBy(context.Background(), crowdactionID, count)
 		as.NoError(err)
 
-		participationManager.AssertExpectations(t)
+		cpm.AssertExpectations(t)
 	})
 
 	t.Run("decrease participation", func(t *testing.T) {
-		service := participation_aggregation.NewParticipationAggregationService(participationManager)
+		service := participation_aggregation.NewParticipationAggregationService(cpm)
 
-		participationManager.On("ChangeCrowdactionParticipantCountBy", context.Background(), crowdactionID, count*-1).Return(nil).Once()
+		cpm.On("ChangeCrowdactionParticipantCountBy", context.Background(), crowdactionID, count*-1).Return(nil).Once()
 
 		err := service.ChangeCrowdactionParticipantCountBy(context.Background(), crowdactionID, count*-1)
 		as.NoError(err)
 
-		participationManager.AssertExpectations(t)
+		cpm.AssertExpectations(t)
 	})
 
 }
