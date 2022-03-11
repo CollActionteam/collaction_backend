@@ -4,32 +4,29 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/CollActionteam/collaction_backend/internal/constants"
 	m "github.com/CollActionteam/collaction_backend/internal/models"
+	"github.com/CollActionteam/collaction_backend/internal/participation"
 	"github.com/CollActionteam/collaction_backend/models"
+	"github.com/CollActionteam/collaction_backend/pkg/repository"
+	"github.com/CollActionteam/collaction_backend/pkg/repository/aws"
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func groupEvents(
-	events []m.ParticipationEvent,
-	eventsGrouped map[string]([]m.ParticipationEvent),
-	groupBy func(m.ParticipationEvent) string) {
-	for _, e := range events {
-		key := groupBy(e)
-		if v, hasKey := eventsGrouped[key]; hasKey {
-			eventsGrouped[key] = append(v, e)
-		} else {
-			eventsGrouped[key] = []m.ParticipationEvent{e}
-		}
-	}
+type ParticipationAggregationHandler struct {
+	service participation.Service
 }
 
-func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
+func NewParticipationAggregationHandler() *ParticipationAggregationHandler {
+	participationRepository := repository.NewParticipation(aws.NewDynamo())
+	return &ParticipationAggregationHandler{service: participation.NewParticipationService(participationRepository)}
+}
+
+func (h *ParticipationAggregationHandler) aggregateParticipations(ctx context.Context, sqsEvent events.SQSEvent) error {
 	events := []m.ParticipationEvent{}
 	for _, record := range sqsEvent.Records {
 		var event m.ParticipationEvent
-		fmt.Printf("Received SQS Message: %s\n", record.Body) // TODO remove!
 		err := json.Unmarshal([]byte(record.Body), &event)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -55,6 +52,16 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 	return nil
 }
 
-func main() {
-	lambda.Start(handler)
+func groupEvents(
+	events []m.ParticipationEvent,
+	eventsGrouped map[string]([]m.ParticipationEvent),
+	groupBy func(m.ParticipationEvent) string) {
+	for _, e := range events {
+		key := groupBy(e)
+		if v, hasKey := eventsGrouped[key]; hasKey {
+			eventsGrouped[key] = append(v, e)
+		} else {
+			eventsGrouped[key] = []m.ParticipationEvent{e}
+		}
+	}
 }

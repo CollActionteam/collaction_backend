@@ -303,8 +303,8 @@ Resources:
   AggregateParticipationsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: controllers/participation/aggregator
-      Handler: aggregator
+      CodeUri: pkg/handler/aws/participations-aggregation
+      Handler: participations-aggregation
       Runtime: go1.x
       Environment:
         Variables:
