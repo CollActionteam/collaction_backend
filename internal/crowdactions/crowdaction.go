@@ -45,5 +45,4 @@ func (e *crowdaction) GetCrowdaction(ctx context.Context, crowdactionID string) 
 	var crowdaction models.CrowdactionData
 	err = dynamodbattribute.UnmarshalMap(item, &crowdaction)
 	return &crowdaction, err
-	// return item, err
 }
