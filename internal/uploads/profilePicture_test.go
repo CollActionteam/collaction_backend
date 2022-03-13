@@ -43,7 +43,7 @@ func TestProfile_GetUploadUrl(t *testing.T) {
 		userID := "1"
 		service := uploads.NewProfileImageUploadService(imageUploadRepository)
 
-		imageUploadRepository.On("GetUploadUrl", context.Background(), ext, userID).Return("", errors.New("user not found")).Once()
+		imageUploadRepository.On("GetUploadUrl", context.Background(), ext, userID).Return("", errors.New("unknown file format")).Once()
 		url, err := service.GetUploadUrl(context.Background(), ext, userID)
 		as.Equal("", url)
 		as.Error(err)
