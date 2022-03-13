@@ -1,11 +1,13 @@
 package uploads
 
+import "context"
+
 type ProfileImageUploadRepository interface {
-	GetUploadUrl(ext string, userID string) (string, error)
+	GetUploadUrl(ctx context.Context, ext string, userID string) (string, error)
 }
 
 type Service interface {
-	GetUploadUrl(ext string, userID string) (string, error)
+	GetUploadUrl(ctx context.Context, ext string, userID string) (string, error)
 }
 
 type image struct {
@@ -16,6 +18,6 @@ func NewProfileImageUploadService(profileImageUploadRepo ProfileImageUploadRepos
 	return &image{imageUploadRepository: profileImageUploadRepo}
 }
 
-func (i *image) GetUploadUrl(ext string, userID string) (string, error) {
-	return i.imageUploadRepository.GetUploadUrl(ext, userID)
+func (i *image) GetUploadUrl(ctx context.Context, ext string, userID string) (string, error) {
+	return i.imageUploadRepository.GetUploadUrl(ctx, ext, userID)
 }
