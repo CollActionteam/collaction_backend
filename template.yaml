@@ -19,6 +19,9 @@ Parameters:
   FirebaseProjectId:
     Type: String
     NoEcho: true
+  CmsFirebaseProjectId:
+    Type: String
+    NoEcho: true
   DomainParameter:
     Type: String
     NoEcho: true
@@ -137,6 +140,12 @@ Resources:
               audience:
                 - !Ref FirebaseProjectId
               issuer: !Sub https://securetoken.google.com/${FirebaseProjectId}
+          CmsFirebaseAuthorizer:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              audience:
+                - !Ref CmsFirebaseProjectId
+              issuer: !Sub https://securetoken.google.com/${CmsFirebaseProjectId}
         DefaultAuthorizer: FirebaseAuthorizer
       StageName: !Ref Stage
       # TODO revisite
