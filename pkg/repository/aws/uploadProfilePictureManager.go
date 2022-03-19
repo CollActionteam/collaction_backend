@@ -24,8 +24,7 @@ func (p *ProfilePicture) GetUploadUrl(ctx context.Context, ext string, userID st
 		filekey = userID + "." + ext
 	)
 
-	svc := p.Client
-	reqs, _ := svc.PutObjectRequest(&s3.PutObjectInput{
+	reqs, _ := p.Client.PutObjectRequest(&s3.PutObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(filekey),
 	})
