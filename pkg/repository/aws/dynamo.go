@@ -48,7 +48,6 @@ type UpdateItemData struct {
 }
 
 func NewDynamo() *Dynamo {
-	fmt.Println("New Dynamo Session")
 	sess := session.Must(session.NewSession())
 	return &Dynamo{dbClient: dynamodb.New(sess)}
 }
@@ -124,13 +123,11 @@ func (s *Dynamo) Query(tableName string, filterCond expression.ConditionBuilder,
 		FilterExpression:          expr.Filter(),
 	})
 
-	// err = dynamodbattribute.UnmarshalMap(result, &crowdactions)
-
 	for _, item := range result.Items {
 		var crowdaction models.CrowdactionData
 		err := dynamodbattribute.UnmarshalMap(item, &crowdaction)
 
-		if err == nil { // have to figure out this error
+		if err == nil {
 			crowdactions = append(crowdactions, crowdaction)
 		}
 	}

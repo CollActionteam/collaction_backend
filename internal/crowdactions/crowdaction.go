@@ -20,7 +20,7 @@ type DynamoRepository interface {
 }
 
 type Service interface {
-	GetCrowdaction(ctx context.Context, crowdactionId string) (*models.CrowdactionData, error)
+	GetCrowdactionById(ctx context.Context, crowdactionId string) (*models.CrowdactionData, error)
 	GetCrowdactionsByStatus(ctx context.Context, status string, startFrom *utils.PrimaryKey) ([]models.CrowdactionData, error)
 }
 type crowdaction struct {
@@ -34,14 +34,13 @@ const (
 )
 
 func NewCrowdactionService(dynamodb DynamoRepository) Service {
-	// fmt.Println("NewCrowdactionService")
 	return &crowdaction{dynamodb: dynamodb}
 }
 
 /**
 	GET Crowdaction by Id
 **/
-func (e *crowdaction) GetCrowdaction(ctx context.Context, crowdactionID string) (*models.CrowdactionData, error) {
+func (e *crowdaction) GetCrowdactionById(ctx context.Context, crowdactionID string) (*models.CrowdactionData, error) {
 	// fmt.Println("GetCrowdaction calling internal:", crowdactionID)
 	item, err := e.dynamodb.GetDBItem(constants.TableName, utils.PKCrowdaction, crowdactionID)
 	if err != nil {

@@ -28,5 +28,5 @@ type CrowdactionData struct {
 	ParticipationCount int                      `json:"participant_count"`
 	TopParticipants    []CrowdactionParticipant `json:"top_participants"`
 	Images             CrowdactionImages        `json:"images"`
-	// CommitmentOptions  []CommitmentOption       `json:"commitment_options"`
+	CommitmentOptions  []CommitmentOption       `json:"commitment_options"`
 }

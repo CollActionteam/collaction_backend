@@ -18,7 +18,7 @@ import (
 
 func getCrowdactionByID(ctx context.Context, crowdactionID string) (events.APIGatewayV2HTTPResponse, error) {
 	dynamoRepository := awsRepository.NewDynamo()
-	getCrowdaction, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdaction(ctx, crowdactionID)
+	getCrowdaction, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionById(ctx, crowdactionID)
 
 	if err != nil {
 		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
@@ -27,8 +27,6 @@ func getCrowdactionByID(ctx context.Context, crowdactionID string) (events.APIGa
 		return utils.CreateMessageHttpResponse(http.StatusNotFound, "not participating"), nil
 	}
 
-	fmt.Println("getCrowdaction", getCrowdaction)
-
 	jsonPayload, _ := json.Marshal(getCrowdaction)
 	return events.APIGatewayV2HTTPResponse{
 		Body:       string(jsonPayload),
@@ -36,42 +34,25 @@ func getCrowdactionByID(ctx context.Context, crowdactionID string) (events.APIGa
 	}, nil
 }
 
-func getAllCrowdactions(ctx context.Context, status string) (events.APIGatewayV2HTTPResponse, error) {
+func getCrowdactionsByStatus(ctx context.Context, status string) (events.APIGatewayV2HTTPResponse, error) {
 	dynamoRepository := awsRepository.NewDynamo()
 	var startFrom *utils.PrimaryKey
-	getAllCrowdactions, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionsByStatus(ctx, status, startFrom)
+	getCrowdactions, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionsByStatus(ctx, status, startFrom)
+
 	if err != nil {
 		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+	} else {
+		jsonPayload, err := json.Marshal(getCrowdactions)
+
+		if err != nil {
+			return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+		}
+
+		return events.APIGatewayV2HTTPResponse{
+			Body:       string(jsonPayload),
+			StatusCode: http.StatusOK,
+		}, nil
 	}
-
-	jsonPayload, _ := json.Marshal(getAllCrowdactions)
-	return events.APIGatewayV2HTTPResponse{
-		Body:       string(jsonPayload),
-		StatusCode: http.StatusOK,
-	}, nil
-
-	// var crowdactions []models.Crowdaction
-	// var err error
-
-	// /* TODO Send password for handling in app for MVP
-	// for i; i < len(crowdactions); i++) {
-	// 	if crowdactions[i].PasswordJoin != "" {
-	// 		crowdactions[i].PasswordJoin = passwordRequired
-	// 	}
-	// }
-	// */
-	// if err != nil {
-	// 	return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
-	// } else {
-	// 	body, err := json.Marshal(crowdactions)
-	// 	if err != nil {
-	// 		return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
-	// 	}
-	// 	return events.APIGatewayProxyResponse{
-	// 		Body:       string(body),
-	// 		StatusCode: http.StatusOK,
-	// 	}, nil
-	// }
 }
 
 func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -96,22 +77,9 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 
 	if crowdactionID == "" {
 		status := req.QueryStringParameters["status"]
-		// get all crowdactions
-		return getAllCrowdactions(ctx, status)
+		return getCrowdactionsByStatus(ctx, status)
 	}
 
-	// This switch statement is useless
-	// if crowdactionID == "" {
-	// 	status := req.QueryStringParameters["status"]
-	// 	switch status {
-	// 	case "":
-	// 		status = "joinable"
-	// 	case "featured":
-	// 		status = "joinable"
-	// 	}
-	// 	// get all crowdactions
-	// }
-	// get crowdaction by ID
 	return getCrowdactionByID(ctx, crowdactionID)
 }
 
