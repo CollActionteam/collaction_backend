@@ -98,14 +98,14 @@ func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (map[string]*
 	return result.Item, nil
 }
 
-func (s *Dynamo) Query(tableName string, filterCond expression.ConditionBuilder, startFrom *utils.PrimaryKey) ([]models.CrowdactionData, *utils.PrimaryKey, error) {
+func (s *Dynamo) Query(tableName string, filterCond expression.ConditionBuilder, startFrom *utils.PrimaryKey) ([]models.CrowdactionData, error) {
 	// var crowdactions models.CrowdactionData
 	crowdactions := []models.CrowdactionData{}
 	keyCond := expression.Key(utils.PartitionKey).Equal(expression.Value(utils.PKCrowdaction))
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithFilter(filterCond).Build()
 
 	if err != nil {
-		return crowdactions, nil, err
+		return crowdactions, err
 	}
 
 	var exclusiveStartKey utils.PrimaryKey
@@ -148,7 +148,7 @@ func (s *Dynamo) Query(tableName string, filterCond expression.ConditionBuilder,
 		startFrom = &exclusiveStartKey
 	}
 
-	return crowdactions, startFrom, err
+	return crowdactions, err
 }
 
 func (s *Dynamo) PutDBItem(tableName string, pk string, sk string, record interface{}) error {

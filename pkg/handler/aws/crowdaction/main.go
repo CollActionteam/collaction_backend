@@ -34,20 +34,53 @@ func getCrowdactionByID(ctx context.Context, crowdactionID string) (events.APIGa
 		Body:       string(jsonPayload),
 		StatusCode: http.StatusOK,
 	}, nil
-
-	// return events.APIGatewayProxyResponse{
-	// 	Body: string(body),
-	// 	StatusCode: http.StatusOK,
-	// }, nil
 }
 
-// func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) {
+func getAllCrowdactions(ctx context.Context, status string) (events.APIGatewayV2HTTPResponse, error) {
+	dynamoRepository := awsRepository.NewDynamo()
+	var startFrom *utils.PrimaryKey
+	getAllCrowdactions, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionsByStatus(ctx, status, startFrom)
+	if err != nil {
+		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+	}
+
+	jsonPayload, _ := json.Marshal(getAllCrowdactions)
+	return events.APIGatewayV2HTTPResponse{
+		Body:       string(jsonPayload),
+		StatusCode: http.StatusOK,
+	}, nil
+
+	// var crowdactions []models.Crowdaction
+	// var err error
+
+	// /* TODO Send password for handling in app for MVP
+	// for i; i < len(crowdactions); i++) {
+	// 	if crowdactions[i].PasswordJoin != "" {
+	// 		crowdactions[i].PasswordJoin = passwordRequired
+	// 	}
+	// }
+	// */
+	// if err != nil {
+	// 	return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+	// } else {
+	// 	body, err := json.Marshal(crowdactions)
+	// 	if err != nil {
+	// 		return utils.GetMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+	// 	}
+	// 	return events.APIGatewayProxyResponse{
+	// 		Body:       string(body),
+	// 		StatusCode: http.StatusOK,
+	// 	}, nil
+	// }
+}
+
 func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	// func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) {
 	crowdactionID := req.PathParameters["crowdactionID"]
 
 	fmt.Println("Hello Go, first message from CollAction AWS:  ", crowdactionID)
 	var request models.CrowdactionRequest
+
+	//dynamoRepository := awsRepository.NewDynamo() // should pass this dynamo variable
 
 	// This statement gives an error
 	// if err := json.Unmarshal([]byte(req.Body), &request); err != nil {
@@ -63,14 +96,21 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 
 	if crowdactionID == "" {
 		status := req.QueryStringParameters["status"]
-		switch status {
-		case "":
-			status = "joinable"
-		case "featured":
-			status = "joinable"
-		}
 		// get all crowdactions
+		return getAllCrowdactions(ctx, status)
 	}
+
+	// This switch statement is useless
+	// if crowdactionID == "" {
+	// 	status := req.QueryStringParameters["status"]
+	// 	switch status {
+	// 	case "":
+	// 		status = "joinable"
+	// 	case "featured":
+	// 		status = "joinable"
+	// 	}
+	// 	// get all crowdactions
+	// }
 	// get crowdaction by ID
 	return getCrowdactionByID(ctx, crowdactionID)
 }
