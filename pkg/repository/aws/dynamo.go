@@ -4,11 +4,14 @@ import (
 	"fmt"
 
 	"github.com/CollActionteam/collaction_backend/internal/constants"
+	"github.com/CollActionteam/collaction_backend/internal/models"
+	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
 
 const (
@@ -93,6 +96,59 @@ func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (map[string]*
 
 	// fmt.Println("result from query: ", result)
 	return result.Item, nil
+}
+
+func (s *Dynamo) Query(tableName string, filterCond expression.ConditionBuilder, startFrom *utils.PrimaryKey) ([]models.CrowdactionData, *utils.PrimaryKey, error) {
+	// var crowdactions models.CrowdactionData
+	crowdactions := []models.CrowdactionData{}
+	keyCond := expression.Key(utils.PartitionKey).Equal(expression.Value(utils.PKCrowdaction))
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithFilter(filterCond).Build()
+
+	if err != nil {
+		return crowdactions, nil, err
+	}
+
+	var exclusiveStartKey utils.PrimaryKey
+
+	if startFrom != nil {
+		exclusiveStartKey = *startFrom
+	}
+
+	result, err := s.dbClient.Query(&dynamodb.QueryInput{
+		Limit:                     aws.Int64(utils.CrowdactionsPageLength),
+		ExclusiveStartKey:         exclusiveStartKey,
+		TableName:                 aws.String(tableName),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.KeyCondition(),
+		FilterExpression:          expr.Filter(),
+	})
+
+	// err = dynamodbattribute.UnmarshalMap(result, &crowdactions)
+
+	for _, item := range result.Items {
+		var crowdaction models.CrowdactionData
+		err := dynamodbattribute.UnmarshalMap(item, &crowdaction)
+
+		if err == nil { // have to figure out this error
+			crowdactions = append(crowdactions, crowdaction)
+		}
+	}
+
+	if len(result.Items) != len(crowdactions) {
+		err = fmt.Errorf("Error unmarshelling %d items", len(result.Items)-len(crowdactions))
+	}
+
+	startFrom = nil
+
+	if result.LastEvaluatedKey != nil && len(result.LastEvaluatedKey) > 0 {
+		lastPK := result.LastEvaluatedKey[utils.PartitionKey].S
+		lastSK := result.LastEvaluatedKey[utils.SortKey].S
+		exclusiveStartKey = utils.GetPrimaryKey(*lastPK, *lastSK)
+		startFrom = &exclusiveStartKey
+	}
+
+	return crowdactions, startFrom, err
 }
 
 func (s *Dynamo) PutDBItem(tableName string, pk string, sk string, record interface{}) error {
