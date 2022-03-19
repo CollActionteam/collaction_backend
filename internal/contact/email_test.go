@@ -16,7 +16,7 @@ func TestContact_SendEmail(t *testing.T) {
 	emailRepository := &repository.Email{}
 	configManager := &repository.ConfigManager{}
 
-	emailRequest := models.EmailContactRequest{Email: "test@email.com", Subject: "test subject", Message: "test message", AppVersion: "version 1"}
+	emailRequest := models.EmailContactRequest{Data: models.EmailRequestData{Email: "test@email.com", Subject: "test subject", Message: "test message", AppVersion: "version 1"}}
 
 	t.Run("dev stage", func(t *testing.T) {
 		stage := "dev"
@@ -26,10 +26,10 @@ func TestContact_SendEmail(t *testing.T) {
 
 		emailData := models.EmailData{
 			Recipient:  recipientValue,
-			Message:    fmt.Sprintf(contact.EmailMessageFormat, emailRequest.Message, contact.Separator, emailRequest.AppVersion),
-			Subject:    emailRequest.Subject,
-			Sender:     emailRequest.Email,
-			ReplyEmail: emailRequest.Email,
+			Message:    fmt.Sprintf(contact.EmailMessageFormat, emailRequest.Data.Message, contact.Separator, emailRequest.Data.AppVersion),
+			Subject:    emailRequest.Data.Subject,
+			Sender:     emailRequest.Data.Email,
+			ReplyEmail: emailRequest.Data.Email,
 		}
 
 		emailRepository.On("Send", context.Background(), emailData).Return(nil).Once()
@@ -50,10 +50,10 @@ func TestContact_SendEmail(t *testing.T) {
 
 		emailData := models.EmailData{
 			Recipient:  recipientValue,
-			Message:    fmt.Sprintf(contact.EmailMessageFormat, emailRequest.Message, contact.Separator, emailRequest.AppVersion),
-			Subject:    emailRequest.Subject,
-			Sender:     emailRequest.Email,
-			ReplyEmail: emailRequest.Email,
+			Message:    fmt.Sprintf(contact.EmailMessageFormat, emailRequest.Data.Message, contact.Separator, emailRequest.Data.AppVersion),
+			Subject:    emailRequest.Data.Subject,
+			Sender:     emailRequest.Data.Email,
+			ReplyEmail: emailRequest.Data.Email,
 		}
 
 		emailRepository.On("Send", context.Background(), emailData).Return(nil).Once()
