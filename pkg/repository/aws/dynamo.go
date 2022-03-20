@@ -74,7 +74,7 @@ func (s *Dynamo) GetPrimaryKey(pk string, sk string) PrimaryKey {
 }
 
 func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (map[string]*dynamodb.AttributeValue, error) {
-	// fmt.Println("Calling GetDBItem", tableName, pk, sk)
+	fmt.Println("Calling GetDBItem", tableName, pk, sk)
 
 	result, err := s.dbClient.GetItem(&dynamodb.GetItemInput{
 		TableName: &tableName,

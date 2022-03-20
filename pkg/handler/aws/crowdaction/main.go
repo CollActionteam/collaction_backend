@@ -17,6 +17,7 @@ import (
 )
 
 func getCrowdactionByID(ctx context.Context, crowdactionID string) (events.APIGatewayV2HTTPResponse, error) {
+	fmt.Println("getCrowdactionByID handler: crowdactionID ", crowdactionID)
 	dynamoRepository := awsRepository.NewDynamo()
 	getCrowdaction, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionById(ctx, crowdactionID)
 
@@ -61,14 +62,6 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 	fmt.Println("Hello Go, first message from CollAction AWS:  ", crowdactionID)
 	var request models.CrowdactionRequest
 
-	//dynamoRepository := awsRepository.NewDynamo() // should pass this dynamo variable
-
-	// This statement gives an error
-	// if err := json.Unmarshal([]byte(req.Body), &request); err != nil {
-	// 	return errToResponse(err, http.StatusBadRequest), nil
-	// }
-
-	// Do we really need validation for this type of requests?
 	validate := validator.New()
 	if err := validate.StructCtx(ctx, request); err != nil {
 		body, _ := json.Marshal(hnd.Response{Status: hnd.StatusFail, Data: map[string]interface{}{"error": utils.ValidationResponse(err, validate)}})
