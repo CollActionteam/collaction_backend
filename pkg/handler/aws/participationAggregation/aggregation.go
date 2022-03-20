@@ -17,8 +17,7 @@ type ParticipationAggregationHandler struct {
 }
 
 func NewParticipationAggregationHandler() *ParticipationAggregationHandler {
-	x := *aws.NewDynamo()
-	table := aws.NewTable(constants.TableName, x)
+	table := aws.NewTable(constants.TableName, *aws.NewDynamo())
 	crowdactionParticipationsManager := aws.NewCrowdactionParticipations(table)
 	service := participation_aggregation.NewParticipationAggregationService(crowdactionParticipationsManager)
 	return &ParticipationAggregationHandler{service: service}
