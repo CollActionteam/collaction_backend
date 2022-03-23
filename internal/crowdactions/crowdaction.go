@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
 
-type DynamoRepository interface {
+type CrowdactionRepository interface {
 	GetDBItem(tableName string, pk string, crowdactionId string) (map[string]*dynamodb.AttributeValue, error)
 	Query(tableName string, filterCond expression.ConditionBuilder, startFrom *utils.PrimaryKey) ([]models.CrowdactionData, error)
 }
@@ -21,7 +21,7 @@ type Service interface {
 	GetCrowdactionsByStatus(ctx context.Context, status string, startFrom *utils.PrimaryKey) ([]models.CrowdactionData, error)
 }
 type crowdaction struct {
-	dynamodb DynamoRepository
+	dynamodb CrowdactionRepository
 }
 
 const (
@@ -30,7 +30,7 @@ const (
 	KeyDateJoinBefore = "date_limit_join"
 )
 
-func NewCrowdactionService(dynamodb DynamoRepository) Service {
+func NewCrowdactionService(dynamodb CrowdactionRepository) Service {
 	return &crowdaction{dynamodb: dynamodb}
 }
 
