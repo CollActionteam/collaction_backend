@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	cwd "github.com/CollActionteam/collaction_backend/internal/crowdactions"
@@ -17,8 +16,7 @@ import (
 )
 
 func getCrowdactionByID(ctx context.Context, crowdactionID string) (events.APIGatewayV2HTTPResponse, error) {
-	fmt.Println("getCrowdactionByID handler: crowdactionID ", crowdactionID)
-	dynamoRepository := awsRepository.NewDynamo()
+	dynamoRepository := awsRepository.NewCrowdaction(awsRepository.NewDynamo())
 	getCrowdaction, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionById(ctx, crowdactionID)
 
 	if err != nil {
@@ -36,30 +34,22 @@ func getCrowdactionByID(ctx context.Context, crowdactionID string) (events.APIGa
 }
 
 func getCrowdactionsByStatus(ctx context.Context, status string) (events.APIGatewayV2HTTPResponse, error) {
-	dynamoRepository := awsRepository.NewDynamo()
-	var startFrom *utils.PrimaryKey
-	getCrowdactions, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionsByStatus(ctx, status, startFrom)
+	dynamoRepository := awsRepository.NewCrowdaction(awsRepository.NewDynamo())
+	getCrowdactions, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionsByStatus(ctx, status, nil)
 
 	if err != nil {
 		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
-	} else {
-		jsonPayload, err := json.Marshal(getCrowdactions)
-
-		if err != nil {
-			return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
-		}
-
-		return events.APIGatewayV2HTTPResponse{
-			Body:       string(jsonPayload),
-			StatusCode: http.StatusOK,
-		}, nil
 	}
+	jsonPayload, _ := json.Marshal(getCrowdactions)
+
+	return events.APIGatewayV2HTTPResponse{
+		Body:       string(jsonPayload),
+		StatusCode: http.StatusOK,
+	}, nil
 }
 
 func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	crowdactionID := req.PathParameters["crowdactionID"]
-
-	fmt.Println("Hello Go, first message from CollAction AWS:  ", crowdactionID)
 	var request models.CrowdactionRequest
 
 	validate := validator.New()
