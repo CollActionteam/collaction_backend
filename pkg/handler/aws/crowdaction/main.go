@@ -47,7 +47,6 @@ func getCrowdactionsByStatus(ctx context.Context, status string) (events.APIGate
 		Body:       string(jsonPayload),
 		StatusCode: http.StatusOK,
 	}, nil
-
 }
 
 func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {

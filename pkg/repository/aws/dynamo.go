@@ -73,9 +73,8 @@ func (s *Dynamo) GetPrimaryKey(pk string, sk string) PrimaryKey {
 	}
 }
 
-func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (map[string]*dynamodb.AttributeValue, error) {
-	fmt.Println("Calling GetDBItem", tableName, pk, sk)
-
+func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (*models.CrowdactionData, error) {
+	var crowdaction models.CrowdactionData
 	result, err := s.dbClient.GetItem(&dynamodb.GetItemInput{
 		TableName: &tableName,
 		Key:       s.GetPrimaryKey(pk, sk),
@@ -84,7 +83,7 @@ func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (map[string]*
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == dynamodb.ErrCodeResourceNotFoundException {
-				err = nil // Just return nil (not found is not an error)
+				err = nil
 			}
 		}
 		return nil, err
@@ -93,12 +92,12 @@ func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (map[string]*
 		return nil, nil
 	}
 
-	// fmt.Println("result from query: ", result)
-	return result.Item, nil
+	err = dynamodbattribute.UnmarshalMap(result.Item, &crowdaction)
+	return &crowdaction, err
 }
 
-func (s *Dynamo) Query(tableName string, filterCond expression.ConditionBuilder, startFrom *utils.PrimaryKey) ([]models.CrowdactionData, error) {
-	// var crowdactions models.CrowdactionData
+func (s *Dynamo) Query(tableName string, filter string, startFrom *utils.PrimaryKey) ([]models.CrowdactionData, error) {
+	filterCond := expression.Name(filter).GreaterThan(expression.Value(utils.GetDateStringNow()))
 	crowdactions := []models.CrowdactionData{}
 	keyCond := expression.Key(utils.PartitionKey).Equal(expression.Value(utils.PKCrowdaction))
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithFilter(filterCond).Build()
@@ -133,7 +132,7 @@ func (s *Dynamo) Query(tableName string, filterCond expression.ConditionBuilder,
 	}
 
 	if len(result.Items) != len(crowdactions) {
-		err = fmt.Errorf("Error unmarshelling %d items", len(result.Items)-len(crowdactions))
+		err = fmt.Errorf("error unmarshelling %d items", len(result.Items)-len(crowdactions))
 	}
 
 	startFrom = nil
