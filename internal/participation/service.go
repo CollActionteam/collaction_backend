@@ -14,6 +14,7 @@ type Service interface {
 	GetParticipation(ctx context.Context, userID string, crowdactionID string) (*m.ParticipationRecord, error)
 	RegisterParticipation(ctx context.Context, userID string, name string, crowdaction *models.Crowdaction, payload m.JoinPayload) error
 	CancelParticipation(ctx context.Context, userID string, crowdaction *models.Crowdaction) error
+	GetParticipations(ctx context.Context, userID string) (*[]m.ParticipationRecord, error)
 }
 
 type participationService struct {
@@ -67,4 +68,9 @@ func (s *participationService) CancelParticipation(ctx context.Context, userID s
 		return err
 	}
 	return recordEvent(userID, crowdaction.CrowdactionID, part.Commitments, -1)
+}
+
+
+func (s *participationService) GetParticipations(ctx context.Context, userID string) (*[]m.ParticipationRecord, error) {
+	
 }

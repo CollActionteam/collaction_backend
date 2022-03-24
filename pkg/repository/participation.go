@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+
 	"github.com/CollActionteam/collaction_backend/internal/constants"
 	m "github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/CollActionteam/collaction_backend/models"
@@ -15,6 +16,7 @@ type Participation interface {
 	Get(ctx context.Context, userID string, crowdactionID string) (*m.ParticipationRecord, error)
 	Register(ctx context.Context, userID string, name string, crowdaction *models.Crowdaction, payload m.JoinPayload) error
 	Cancel(ctx context.Context, userID string, crowdaction *models.Crowdaction) error
+	List(ctx context.Context, userID string) (*[]m.ParticipationRecord, error)
 }
 
 type participation struct {
@@ -67,4 +69,9 @@ func (s *participation) Cancel(ctx context.Context, userID string, crowdaction *
 	pk := utils.PrefixParticipationPK_UserID + userID
 	sk := utils.PrefixParticipationSK_CrowdactionID + crowdaction.CrowdactionID
 	return s.dbClient.DeleteDBItem(constants.TableName, pk, sk)
+}
+
+func (s *participation) List(ctx context.Context, userID string) (*[]m.ParticipationRecord, error) {
+	pk := utils.PrefixParticipationPK_UserID + userID
+	//s.dbClient.
 }

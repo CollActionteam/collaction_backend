@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/CollActionteam/collaction_backend/internal/constants"
-	validation "github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 type Profile struct {
