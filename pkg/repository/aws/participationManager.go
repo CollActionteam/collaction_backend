@@ -1,12 +1,13 @@
-package repository
+package aws
 
 import (
 	"context"
 	"errors"
+	"fmt"
+
 	"github.com/CollActionteam/collaction_backend/internal/constants"
 	m "github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/CollActionteam/collaction_backend/models"
-	"github.com/CollActionteam/collaction_backend/pkg/repository/aws"
 	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
@@ -18,10 +19,10 @@ type Participation interface {
 }
 
 type participation struct {
-	dbClient *aws.Dynamo
+	dbClient *Dynamo
 }
 
-func NewParticipation(dynamo *aws.Dynamo) Participation {
+func NewParticipation(dynamo *Dynamo) Participation {
 	return &participation{
 		dbClient: dynamo,
 	}
@@ -39,11 +40,9 @@ func (s *participation) Get(ctx context.Context, userID string, crowdactionID st
 }
 
 func (s *participation) Register(ctx context.Context, userID string, name string, crowdaction *models.Crowdaction, payload m.JoinPayload) error {
-	/* TODO Password not required when joining for MVP
 	if crowdaction.PasswordJoin != "" && crowdaction.PasswordJoin != payload.Password {
 		return fmt.Errorf("invalid password")
 	}
-	*/
 	part, err := s.Get(ctx, userID, crowdaction.CrowdactionID)
 	if part != nil {
 		err = errors.New("already participating")

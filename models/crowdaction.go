@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-sdk-go/aws"
@@ -125,19 +124,4 @@ func ListJoinableCrowdactions(tableName string, startFrom *utils.PrimaryKey) ([]
 func ListCompletedCrowdactions(tableName string, startFrom *utils.PrimaryKey) ([]Crowdaction, *utils.PrimaryKey, error) {
 	filterCond := expression.Name(KeyDateEnd).LessThanEqual(expression.Value(utils.GetDateStringNow()))
 	return listCrowdactions(tableName, filterCond, startFrom)
-}
-
-func ChangeCrowdactionParticipantCountBy(crowdactionID string, tableName string, count int) error {
-	dbClient := utils.CreateDBClient()
-	_, err := dbClient.UpdateItem(&dynamodb.UpdateItemInput{
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":c": {
-				N: aws.String(strconv.Itoa(count)),
-			},
-		},
-		TableName:        aws.String(tableName),
-		Key:              utils.GetPrimaryKey(utils.PKCrowdaction, crowdactionID),
-		UpdateExpression: aws.String("set participant_count = participant_count + :c"),
-	})
-	return err
 }
