@@ -17,7 +17,7 @@ func TestCrowdaction_GetCrowdactionById(t *testing.T) {
 	crowdactionID := "sustainability#food#185f66fd"
 
 	t.Run("dev stage", func(t *testing.T) {
-		dynamoRepository.On("Send", context.Background(), crowdactionID).Return(nil).Once()
+		dynamoRepository.On("GetById", context.Background(), crowdactionID).Return(nil).Once()
 
 		service := cwd.NewCrowdactionService(dynamoRepository)
 
