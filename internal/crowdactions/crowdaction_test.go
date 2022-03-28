@@ -10,9 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCrowdaction_GetCrowdactionById(t *testing.T, ctx context.Context) {
+func TestCrowdaction_GetCrowdactionById(t *testing.T) {
 	as := assert.New(t)
 	dynamoRepository := &repository.Dynamo{}
+	var ctx context.Context
 	crowdactionID := "Helloworld2"
 
 	t.Run("dev stage", func(t *testing.T) {
