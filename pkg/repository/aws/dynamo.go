@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/CollActionteam/collaction_backend/internal/constants"
-	"github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -73,8 +72,7 @@ func (s *Dynamo) GetPrimaryKey(pk string, sk string) PrimaryKey {
 	}
 }
 
-func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (*models.CrowdactionData, error) {
-	var crowdaction models.CrowdactionData
+func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (map[string]*dynamodb.AttributeValue, error) {
 	result, err := s.dbClient.GetItem(&dynamodb.GetItemInput{
 		TableName: &tableName,
 		Key:       s.GetPrimaryKey(pk, sk),
@@ -83,7 +81,7 @@ func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (*models.Crow
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == dynamodb.ErrCodeResourceNotFoundException {
-				err = nil
+				err = nil // Just return nil (not found is not an error)
 			}
 		}
 		return nil, err
@@ -91,20 +89,12 @@ func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (*models.Crow
 	if result == nil {
 		return nil, nil
 	}
-
-	err = dynamodbattribute.UnmarshalMap(result.Item, &crowdaction)
-	return &crowdaction, err
+	return result.Item, nil
 }
 
-func (s *Dynamo) Query(tableName string, filter string, startFrom *utils.PrimaryKey) ([]models.CrowdactionData, error) {
-	filterCond := expression.Name(filter).GreaterThan(expression.Value(utils.GetDateStringNow()))
-	crowdactions := []models.CrowdactionData{}
+func (s *Dynamo) Query(tableName string, filterCond expression.ConditionBuilder, startFrom *utils.PrimaryKey) ([]map[string]*dynamodb.AttributeValue, error) {
 	keyCond := expression.Key(utils.PartitionKey).Equal(expression.Value(utils.PKCrowdaction))
-	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithFilter(filterCond).Build()
-
-	if err != nil {
-		return crowdactions, err
-	}
+	expr, _ := expression.NewBuilder().WithKeyCondition(keyCond).WithFilter(filterCond).Build()
 
 	var exclusiveStartKey utils.PrimaryKey
 
@@ -122,29 +112,7 @@ func (s *Dynamo) Query(tableName string, filter string, startFrom *utils.Primary
 		FilterExpression:          expr.Filter(),
 	})
 
-	for _, item := range result.Items {
-		var crowdaction models.CrowdactionData
-		err := dynamodbattribute.UnmarshalMap(item, &crowdaction)
-
-		if err == nil {
-			crowdactions = append(crowdactions, crowdaction)
-		}
-	}
-
-	if len(result.Items) != len(crowdactions) {
-		err = fmt.Errorf("error unmarshelling %d items", len(result.Items)-len(crowdactions))
-	}
-
-	startFrom = nil
-
-	if result.LastEvaluatedKey != nil && len(result.LastEvaluatedKey) > 0 {
-		lastPK := result.LastEvaluatedKey[utils.PartitionKey].S
-		lastSK := result.LastEvaluatedKey[utils.SortKey].S
-		exclusiveStartKey = utils.GetPrimaryKey(*lastPK, *lastSK)
-		startFrom = &exclusiveStartKey
-	}
-
-	return crowdactions, err
+	return result.Items, err
 }
 
 func (s *Dynamo) PutDBItem(tableName string, pk string, sk string, record interface{}) error {
