@@ -10,12 +10,12 @@ type Dynamo struct {
 	mock.Mock
 }
 
-func (d *Dynamo) GetDBItem(tableName string, pk string, sk string) (*models.CrowdactionData, error) {
-	args := d.Called(tableName, pk, sk)
+func (d *Dynamo) GetById(pk string, sk string) (*models.CrowdactionData, error) {
+	args := d.Called(pk, sk)
 	return args.Get(0).(*models.CrowdactionData), args.Error(1)
 }
 
-func (d *Dynamo) Query(tableName string, filter string, startFrom *utils.PrimaryKey) ([]models.CrowdactionData, error) {
-	args := d.Called(tableName, filter, startFrom)
+func (d *Dynamo) GetByStatus(filterCond string, startFrom *utils.PrimaryKey) ([]models.CrowdactionData, error) {
+	args := d.Called(filterCond, startFrom)
 	return args.Get(0).([]models.CrowdactionData), args.Error(1)
 }

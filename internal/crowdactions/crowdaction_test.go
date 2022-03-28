@@ -22,7 +22,7 @@ func TestCrowdaction_GetCrowdactionById(t *testing.T, ctx context.Context) {
 
 		crowdaction, err := service.GetCrowdactionById(ctx, crowdactionID)
 
-		fmt.Printf("Hello world", crowdaction)
+		fmt.Println("Hello world", crowdaction)
 
 		as.NoError(err)
 
