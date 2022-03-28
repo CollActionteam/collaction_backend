@@ -14,7 +14,7 @@ func TestCrowdaction_GetCrowdactionById(t *testing.T) {
 	as := assert.New(t)
 	dynamoRepository := &repository.Dynamo{}
 	var ctx context.Context
-	crowdactionID := "Helloworld2"
+	crowdactionID := "sustainability#food#185f66fd"
 
 	t.Run("dev stage", func(t *testing.T) {
 		dynamoRepository.On("Send", context.Background(), crowdactionID).Return(nil).Once()
