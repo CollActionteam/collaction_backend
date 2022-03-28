@@ -16,7 +16,7 @@ import (
 )
 
 func getCrowdactionByID(ctx context.Context, crowdactionID string) (events.APIGatewayV2HTTPResponse, error) {
-	dynamoRepository := awsRepository.NewDynamo()
+	dynamoRepository := awsRepository.NewCrowdaction(awsRepository.NewDynamo())
 	getCrowdaction, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionById(ctx, crowdactionID)
 
 	if err != nil {
@@ -34,9 +34,8 @@ func getCrowdactionByID(ctx context.Context, crowdactionID string) (events.APIGa
 }
 
 func getCrowdactionsByStatus(ctx context.Context, status string) (events.APIGatewayV2HTTPResponse, error) {
-	dynamoRepository := awsRepository.NewDynamo()
-	var startFrom *utils.PrimaryKey
-	getCrowdactions, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionsByStatus(ctx, status, startFrom)
+	dynamoRepository := awsRepository.NewCrowdaction(awsRepository.NewDynamo())
+	getCrowdactions, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionsByStatus(ctx, status, nil)
 
 	if err != nil {
 		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
