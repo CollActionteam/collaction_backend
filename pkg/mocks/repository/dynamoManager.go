@@ -13,7 +13,7 @@ type Dynamo struct {
 }
 
 func (d *Dynamo) GetById(pk string, sk string) (*models.CrowdactionData, error) {
-	args := d.Called(pk, sk)
+	args := d.Mock.Called(pk, sk)
 	fmt.Println("Before the args")
 	fmt.Println("Args", args)
 	fmt.Println("Args", args.Get(0))
@@ -22,6 +22,6 @@ func (d *Dynamo) GetById(pk string, sk string) (*models.CrowdactionData, error) 
 }
 
 func (d *Dynamo) GetByStatus(filterCond string, startFrom *utils.PrimaryKey) ([]models.CrowdactionData, error) {
-	args := d.Called(filterCond, startFrom)
+	args := d.Mock.Called(filterCond, startFrom)
 	return args.Get(0).([]models.CrowdactionData), args.Error(1)
 }
