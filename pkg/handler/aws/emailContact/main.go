@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/CollActionteam/collaction_backend/internal/contact"
@@ -23,8 +22,6 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 		return errToResponse(err, http.StatusBadRequest), nil
 	}
 	// TODO implement POW verification using nonce (see https://github.com/CollActionteam/collaction_backend/issues/58)
-
-	fmt.Println("Hello World")
 
 	validate := validator.New()
 	if err := validate.StructCtx(ctx, request); err != nil {
