@@ -31,17 +31,11 @@ func NewCrowdactionService(crowdactionRepository CrowdactionManager) Service {
 	return &crowdactionService{crowdactionRepository: crowdactionRepository}
 }
 
-/**
-	GET Crowdaction by Id
-**/
 func (e *crowdactionService) GetCrowdactionById(ctx context.Context, crowdactionID string) (*m.CrowdactionData, error) {
 	fmt.Println("GetCrowdactionById", crowdactionID)
 	return e.crowdactionRepository.GetById(utils.PKCrowdaction, crowdactionID)
 }
 
-/**
-	GET Crowdaction by Status
-**/
 func (e *crowdactionService) GetCrowdactionsByStatus(ctx context.Context, status string, startFrom *utils.PrimaryKey) ([]m.CrowdactionData, error) {
 	fmt.Println("GetCrowdactionsByStatus", status, startFrom)
 	return e.crowdactionRepository.GetByStatus(status, startFrom)
