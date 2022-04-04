@@ -16,8 +16,5 @@ func (p *ProfilePicture) GetUploadUrl(ctx context.Context, ext string, userID st
 	uploadUrl := outputs.String(0)
 	err := outputs.Error(1)
 
-	if uploadUrl != "" {
-		return uploadUrl, err
-	}
-	return "", err
+	return uploadUrl, err
 }
