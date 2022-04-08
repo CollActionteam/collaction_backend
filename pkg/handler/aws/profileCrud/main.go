@@ -48,7 +48,7 @@ func (h *ProfileHandler) createProfile(ctx context.Context, req events.APIGatewa
 		return utils.GetDataHttpResponse(http.StatusUnauthorized, err.Error(), ""), nil
 	}
 
-	us := models.NewUserInfo(usrInf.UserID(), usrInf.Name(), usrInf.PhoneNumber())
+	us := models.NewUserInfo(usrInf.UserID(), *usrInf.Name(), *usrInf.PhoneNumber())
 	requestData, err := ValidateProfileRequestData(req, "create")
 	if err != nil {
 		return utils.GetDataHttpResponse(http.StatusBadRequest, err.Error(), ""), nil
@@ -68,7 +68,7 @@ func (h *ProfileHandler) updateProfile(ctx context.Context, req events.APIGatewa
 		return utils.GetDataHttpResponse(http.StatusUnauthorized, err.Error(), ""), nil
 	}
 
-	us := models.NewUserInfo(usrInf.UserID(), usrInf.Name(), usrInf.PhoneNumber())
+	us := models.NewUserInfo(usrInf.UserID(), *usrInf.Name(), *usrInf.PhoneNumber())
 	requestData, err := ValidateProfileRequestData(req, "update")
 	if err != nil {
 		return utils.GetDataHttpResponse(http.StatusBadRequest, err.Error(), ""), nil
