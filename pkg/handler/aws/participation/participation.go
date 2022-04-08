@@ -4,24 +4,24 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
+
 	"github.com/CollActionteam/collaction_backend/auth"
 	"github.com/CollActionteam/collaction_backend/internal/constants"
 	m "github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/CollActionteam/collaction_backend/internal/participation"
 	"github.com/CollActionteam/collaction_backend/models"
-	"github.com/CollActionteam/collaction_backend/pkg/repository"
 	"github.com/CollActionteam/collaction_backend/pkg/repository/aws"
 	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-lambda-go/events"
-	"net/http"
 )
 
 type ParticipationHandler struct {
 	service participation.Service
 }
 
-func NewContactHandler() *ParticipationHandler {
-	participationRepository := repository.NewParticipation(aws.NewDynamo())
+func NewParticipationHandler() *ParticipationHandler {
+	participationRepository := aws.NewParticipation(aws.NewDynamo())
 	return &ParticipationHandler{service: participation.NewParticipationService(participationRepository)}
 }
 
@@ -83,13 +83,13 @@ func retrieveInfoFromRequest(req events.APIGatewayV2HTTPRequest) (string, string
 	crowdactionID := req.PathParameters["crowdactionID"]
 	usrInf, err := auth.ExtractUserInfo(req)
 	if err != nil {
-		return usrInf.UserID(), usrInf.Name(), nil, err
+		return usrInf.UserID(), *usrInf.Name(), nil, err
 	}
 	crowdaction, _ := models.GetCrowdaction(crowdactionID, constants.TableName)
 	if crowdaction == nil {
 		return "", "", nil, errors.New("crowdaction not found")
 	}
-	return usrInf.UserID(), usrInf.Name(), crowdaction, nil
+	return usrInf.UserID(), *usrInf.Name(), crowdaction, nil
 }
 
 func handlerError(err error) events.APIGatewayV2HTTPResponse {

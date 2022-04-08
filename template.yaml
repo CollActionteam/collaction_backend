@@ -18,6 +18,9 @@ Parameters:
   FirebaseProjectId:
     Type: String
     NoEcho: true
+  CmsFirebaseProjectId:
+    Type: String
+    NoEcho: true
   DomainParameter:
     Type: String
     NoEcho: true
@@ -135,6 +138,12 @@ Resources:
               audience:
                 - !Ref FirebaseProjectId
               issuer: !Sub https://securetoken.google.com/${FirebaseProjectId}
+          CmsFirebaseAuthorizer:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              audience:
+                - !Ref CmsFirebaseProjectId
+              issuer: !Sub https://securetoken.google.com/${CmsFirebaseProjectId}
         DefaultAuthorizer: FirebaseAuthorizer
       StageName: !Ref Stage
       # TODO revisite
@@ -301,8 +310,8 @@ Resources:
   AggregateParticipationsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: controllers/participation/aggregator
-      Handler: aggregator
+      CodeUri: pkg/handler/aws/participationAggregation
+      Handler: participation-aggregation
       Runtime: go1.x
       Environment:
         Variables:
