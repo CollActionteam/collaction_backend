@@ -195,7 +195,7 @@ Resources:
   UploadProfilePictureFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: upload-profile-picture/
+      CodeUri: pkg/handler/aws/uploadProfilePicture
       Handler: upload-profile-picture
       Runtime: go1.x
       Environment:

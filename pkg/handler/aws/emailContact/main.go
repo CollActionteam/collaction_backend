@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"net/http"
+
 	"github.com/CollActionteam/collaction_backend/internal/contact"
 	"github.com/CollActionteam/collaction_backend/internal/models"
 	hnd "github.com/CollActionteam/collaction_backend/pkg/handler"
 	awsRepository "github.com/CollActionteam/collaction_backend/pkg/repository/aws"
-	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/go-playground/validator/v10"
 )
 
 func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -23,9 +23,8 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 	}
 	// TODO implement POW verification using nonce (see https://github.com/CollActionteam/collaction_backend/issues/58)
 
-	validate := validator.New()
-	if err := validate.StructCtx(ctx, request); err != nil {
-		body, _ := json.Marshal(hnd.Response{Status: hnd.StatusFail, Data: map[string]interface{}{"error": utils.ValidationResponse(err, validate)}})
+	if err := request.Validate(ctx); err != nil {
+		body, _ := json.Marshal(hnd.Response{Status: hnd.StatusFail, Data: map[string]interface{}{"error": err}})
 		return events.APIGatewayV2HTTPResponse{Body: string(body), StatusCode: http.StatusBadRequest}, nil
 	}
 
