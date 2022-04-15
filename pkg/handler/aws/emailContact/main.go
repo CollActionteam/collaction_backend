@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"net/http"
-
 	"github.com/CollActionteam/collaction_backend/internal/contact"
 	"github.com/CollActionteam/collaction_backend/internal/models"
 	hnd "github.com/CollActionteam/collaction_backend/pkg/handler"
