@@ -21,6 +21,7 @@ type CrowdactionData struct {
 	Category           string                   `json:"category"`
 	Subcategory        string                   `json:"subcategory"`
 	Location           string                   `json:"location"`
+	BadgesThresholds   []int                    `json:"badges_threshold"`
 	DateStart          string                   `json:"date_start"`
 	DateEnd            string                   `json:"date_end"`
 	DateLimitJoin      string                   `json:"date_limit_join"`
