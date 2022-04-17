@@ -2,7 +2,6 @@ package crowdaction_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	cwd "github.com/CollActionteam/collaction_backend/internal/crowdactions"
@@ -25,9 +24,7 @@ func TestCrowdaction_GetCrowdactionById(t *testing.T) {
 
 		service := cwd.NewCrowdactionService(dynamoRepository)
 
-		crowdaction, err := service.GetCrowdactionById(ctx, crowdactionID)
-
-		fmt.Println("Hello world", crowdaction)
+		_, err := service.GetCrowdactionById(ctx, crowdactionID)
 
 		as.NoError(err)
 
