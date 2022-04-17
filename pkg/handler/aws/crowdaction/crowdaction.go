@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	cwd "github.com/CollActionteam/collaction_backend/internal/crowdactions"
@@ -25,15 +24,11 @@ func NewCrowdactionHandler() *CrowdactionHandler {
 }
 
 func (c *CrowdactionHandler) createCrowdaction(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	// validate request
-	// register crowdaction
-	// return call to client
 	return utils.CreateMessageHttpResponse(http.StatusNotImplemented, "not implemented"), nil
 }
 
 func (c *CrowdactionHandler) getCrowdaction(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	crowdactionID := req.PathParameters["crowdactionID"]
-	fmt.Println("1. handler/aws/crowdaction/crowdaction.go/getCrowdaction")
 	var request models.CrowdactionRequest
 
 	validate := validator.New()
@@ -51,11 +46,7 @@ func (c *CrowdactionHandler) getCrowdaction(ctx context.Context, req events.APIG
 }
 
 func (c *CrowdactionHandler) getCrowdactionByID(ctx context.Context, crowdactionID string) (events.APIGatewayV2HTTPResponse, error) {
-	// func getCrowdactionByID(ctx context.Context, crowdactionID string) (events.APIGatewayV2HTTPResponse, error) {
-	// dynamoRepository := awsRepository.NewCrowdaction(awsRepository.NewDynamo())
-	fmt.Println("2. handler/aws/crowdaction/crowdaction.go/getCrowdactionByID")
 	getCrowdaction, err := c.service.GetCrowdactionById(ctx, crowdactionID)
-	// getCrowdaction, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionById(ctx, crowdactionID)
 
 	if err != nil {
 		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
@@ -63,8 +54,6 @@ func (c *CrowdactionHandler) getCrowdactionByID(ctx context.Context, crowdaction
 	if getCrowdaction == nil {
 		return utils.CreateMessageHttpResponse(http.StatusNotFound, "not participating"), nil
 	}
-
-	fmt.Println("7. handler/aws/crowdaction/crowdaction.go/getCrowdactionByID", getCrowdaction)
 
 	jsonPayload, _ := json.Marshal(getCrowdaction)
 	return events.APIGatewayV2HTTPResponse{

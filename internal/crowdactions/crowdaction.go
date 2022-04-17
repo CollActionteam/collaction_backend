@@ -2,7 +2,6 @@ package crowdaction
 
 import (
 	"context"
-	"fmt"
 
 	m "github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/CollActionteam/collaction_backend/utils"
@@ -32,11 +31,9 @@ func NewCrowdactionService(crowdactionRepository CrowdactionManager) Service {
 }
 
 func (e *crowdactionService) GetCrowdactionById(ctx context.Context, crowdactionID string) (*m.CrowdactionData, error) {
-	fmt.Println("GetCrowdactionById", crowdactionID)
 	return e.crowdactionRepository.GetById(utils.PKCrowdaction, crowdactionID)
 }
 
 func (e *crowdactionService) GetCrowdactionsByStatus(ctx context.Context, status string, startFrom *utils.PrimaryKey) ([]m.CrowdactionData, error) {
-	fmt.Println("GetCrowdactionsByStatus", status, startFrom)
 	return e.crowdactionRepository.GetByStatus(status, startFrom)
 }

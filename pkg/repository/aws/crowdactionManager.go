@@ -29,9 +29,6 @@ func NewCrowdaction(dynamo *Dynamo) Crowdaction {
 	return &crowdaction{dbClient: dynamo}
 }
 
-/**
-	GET Crowdaction by Id
-**/
 func (s *crowdaction) GetById(pk string, sk string) (*m.CrowdactionData, error) {
 	item, err := s.dbClient.GetDBItem(constants.TableName, pk, sk)
 
@@ -45,9 +42,6 @@ func (s *crowdaction) GetById(pk string, sk string) (*m.CrowdactionData, error) 
 	return &c, err
 }
 
-/**
-	GET Crowdaction by Status
-**/
 func (s *crowdaction) GetByStatus(status string, startFrom *utils.PrimaryKey) ([]m.CrowdactionData, error) {
 	crowdactions := []m.CrowdactionData{}
 	var filterCond expression.ConditionBuilder
@@ -55,15 +49,11 @@ func (s *crowdaction) GetByStatus(status string, startFrom *utils.PrimaryKey) ([
 	switch status {
 	case "joinable":
 		filterCond = expression.Name(KeyDateJoinBefore).GreaterThan(expression.Value(utils.GetDateStringNow()))
-		fmt.Println("GetByStatus: joinable", filterCond)
 	case "active":
 		filterCond = expression.Name(KeyDateStart).LessThanEqual(expression.Value(utils.GetDateStringNow()))
-		fmt.Println("GetByStatus: active", filterCond)
 	case "ended":
 		filterCond = expression.Name(KeyDateEnd).LessThanEqual(expression.Value(utils.GetDateStringNow()))
-		fmt.Println("GetByStatus: ended", filterCond)
 	default:
-		fmt.Println("None of the edge cases matched")
 	}
 
 	items, err := s.dbClient.Query(constants.TableName, filterCond, startFrom)
