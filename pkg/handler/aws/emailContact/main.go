@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/CollActionteam/collaction_backend/internal/contact"
 	"github.com/CollActionteam/collaction_backend/internal/models"
 	hnd "github.com/CollActionteam/collaction_backend/pkg/handler"
@@ -10,7 +12,6 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"net/http"
 )
 
 func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {

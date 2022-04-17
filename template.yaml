@@ -1,9 +1,8 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   CollAction backend
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
-
 Globals:
   Function:
     Timeout: 10
@@ -38,13 +37,12 @@ Parameters:
     Type: String
     NoEcho: true
     Description: "ARN of certificate for CloudFront in region us-east-1 (Only for custom domain)"
-  
+
 Conditions:
   shouldUseCustomDomainNames: !Not [!Equals [!Ref DomainParameter, ""]]
 
 Resources:
-
-  DnsRecords: 
+  DnsRecords:
     Type: AWS::Route53::RecordSetGroup
     Condition: shouldUseCustomDomainNames
     Properties:
@@ -85,14 +83,14 @@ Resources:
   StaticContentDistribution:
     Type: AWS::CloudFront::Distribution
     Condition: shouldUseCustomDomainNames
-    Properties: 
+    Properties:
       DistributionConfig:
         DefaultCacheBehavior:
           AllowedMethods: [HEAD, DELETE, POST, GET, OPTIONS, PUT, PATCH]
           TargetOriginId: StaticBucketOrigin
           ViewerProtocolPolicy: redirect-to-https
           ForwardedValues:
-            QueryString: 'false'
+            QueryString: "false"
             Cookies:
               Forward: none
         Enabled: true
@@ -102,7 +100,7 @@ Resources:
           - Id: StaticBucketOrigin
             DomainName: !Sub ${StaticHostingBucket}.s3.${ AWS::Region }.amazonaws.com
             S3OriginConfig:
-              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginIdentity}'
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginIdentity}"
         ViewerCertificate:
           AcmCertificateArn: !Ref AcmCertificateArnParameter
           MinimumProtocolVersion: TLSv1.1_2016
@@ -111,21 +109,21 @@ Resources:
   HttpApiDomainName:
     Type: AWS::ApiGatewayV2::DomainName
     Condition: shouldUseCustomDomainNames
-    Properties: 
+    Properties:
       DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
-      DomainNameConfigurations: 
+      DomainNameConfigurations:
         - EndpointType: REGIONAL
           CertificateArn: !Ref Certificate
 
   HttpApiMapping:
     Type: AWS::ApiGatewayV2::ApiMapping
     Condition: shouldUseCustomDomainNames
-    Properties: 
+    Properties:
       ApiMappingKey: ""
       DomainName: !Sub "api${SubdomainSuffixParameter}.${DomainParameter}"
       ApiId: !Ref HttpApi
       Stage: !Ref HttpApi.Stage
-    DependsOn: 
+    DependsOn:
       - HttpApiDomainName
       - HttpApi
 
@@ -152,7 +150,7 @@ Resources:
       CorsConfiguration:
         AllowMethods: [GET]
         AllowOrigins: [http://localhost:8080]
-  
+
   EmailContactFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -169,19 +167,19 @@ Resources:
             Auth:
               Authorizer: "NONE"
       Policies:
-        - Version: '2012-10-17'
+        - Version: "2012-10-17"
           Statement:
             - Effect: Allow
               Action:
-                - 'ses:SendEmail'
-                - 'ses:SendRawEmail'
-                - 'ssm:GetParameter'
-              Resource: '*'
+                - "ses:SendEmail"
+                - "ses:SendRawEmail"
+                - "ssm:GetParameter"
+              Resource: "*"
   ProfilePictureUploadBucket:
-    Type: 'AWS::S3::Bucket'
+    Type: "AWS::S3::Bucket"
 
   StaticHostingBucket:
-    Type: 'AWS::S3::Bucket'
+    Type: "AWS::S3::Bucket"
     Properties:
       AccessControl: Private
       WebsiteConfiguration:
@@ -205,10 +203,10 @@ Resources:
           BUCKET: !Ref ProfilePictureUploadBucket
       Policies:
         - Statement:
-          - Effect: Allow
-            Action: 
-              - s3:PutObject*
-            Resource: '*'
+            - Effect: Allow
+              Action:
+                - s3:PutObject*
+              Resource: "*"
       Events:
         ProfilePictureUpload:
           Type: HttpApi
@@ -218,7 +216,7 @@ Resources:
             ApiId: !Ref HttpApi
 
   ProcessProfilePictureFunction:
-    Type: 'AWS::Serverless::Function'
+    Type: "AWS::Serverless::Function"
     Properties:
       CodeUri: process-profile-picture/
       Handler: process-profile-picture
@@ -228,17 +226,18 @@ Resources:
           # Beware of recursive execution! Double check referenced buckets!
           OUTPUT_BUCKET_NAME: !Ref StaticHostingBucket
           KEY_PREIFX: profile-pictures/
-          CLOUDFRONT_DISTRIBUTION: !If [shouldUseCustomDomainNames, !Ref StaticContentDistribution, ""]
+          CLOUDFRONT_DISTRIBUTION:
+            !If [shouldUseCustomDomainNames, !Ref StaticContentDistribution, ""]
       Policies:
         - Statement:
-          - Effect: Allow
-            Action: 
-              - s3:GetObject*
-              - s3:PutObject*
-              - s3:DeleteObject*
-              - rekognition:DetectModerationLabels
-              - cloudfront:CreateInvalidation
-            Resource: '*'
+            - Effect: Allow
+              Action:
+                - s3:GetObject*
+                - s3:PutObject*
+                - s3:DeleteObject*
+                - rekognition:DetectModerationLabels
+                - cloudfront:CreateInvalidation
+              Resource: "*"
       Events:
         S3Event:
           Type: S3
@@ -265,10 +264,10 @@ Resources:
       GlobalSecondaryIndexes:
         - IndexName: "invertedIndex"
           KeySchema:
-          - AttributeName: "sk"
-            KeyType: "HASH"
-          - AttributeName: "pk"
-            KeyType: "RANGE"
+            - AttributeName: "sk"
+              KeyType: "HASH"
+            - AttributeName: "pk"
+              KeyType: "RANGE"
           Projection:
             ProjectionType: "ALL" # Data duplication is less costly than additional per primary key lookups (?)
           ProvisionedThroughput:
@@ -278,7 +277,7 @@ Resources:
   CrowdactionFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: crowdaction/
+      CodeUri: pkg/handler/aws/crowdaction
       Handler: crowdaction
       Runtime: go1.x
       Events:
@@ -303,8 +302,7 @@ Resources:
           TABLE_NAME: !Ref SingleTable
       Policies:
         - DynamoDBCrudPolicy:
-            TableName:
-              !Ref SingleTable
+            TableName: !Ref SingleTable
 
   ParticipationQueue:
     Type: AWS::SQS::Queue
@@ -327,8 +325,7 @@ Resources:
             MaximumBatchingWindowInSeconds: 300 #5min
       Policies:
         - DynamoDBCrudPolicy:
-            TableName:
-              !Ref SingleTable
+            TableName: !Ref SingleTable
 
   ParticipationFunction:
     Type: AWS::Serverless::Function
@@ -350,15 +347,14 @@ Resources:
             ApiId: !Ref HttpApi
       Policies:
         - DynamoDBCrudPolicy:
-            TableName:
-              !Ref SingleTable
+            TableName: !Ref SingleTable
         - Statement:
-          - Sid: ParticipationQueuePutRecordPolicy
-            Effect: Allow
-            Action:
-            - sqs:SendMessage
-            Resource: !GetAtt ParticipationQueue.Arn
-            
+            - Sid: ParticipationQueuePutRecordPolicy
+              Effect: Allow
+              Action:
+                - sqs:SendMessage
+              Resource: !GetAtt ParticipationQueue.Arn
+
   ProfileCRUDFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -377,8 +373,7 @@ Resources:
           PROFILE_TABLE: !Ref ProfileTable
       Policies:
         - DynamoDBCrudPolicy:
-            TableName:
-              !Ref ProfileTable
+            TableName: !Ref ProfileTable
 
   # TODO use table SingleTabel instead
   ProfileTable:
@@ -401,5 +396,5 @@ Outputs:
     Description: "CloudFront distribution endpoint URL for static files"
     Value: !Sub "https://static${SubdomainSuffixParameter}.${DomainParameter}/"
   TableName:
-    Value: !Ref  SingleTable
+    Value: !Ref SingleTable
     Description: Table name of the newly created DynamoDB table
