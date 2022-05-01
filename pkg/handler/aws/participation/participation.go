@@ -21,7 +21,7 @@ type ParticipationHandler struct {
 	service participation.Service
 }
 
-func NewContactHandler() *ParticipationHandler {
+func NewParticipationHandler() *ParticipationHandler {
 	participationRepository := repository.NewParticipation(aws.NewDynamo())
 	return &ParticipationHandler{service: participation.NewParticipationService(participationRepository)}
 }

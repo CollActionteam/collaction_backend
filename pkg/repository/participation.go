@@ -9,14 +9,17 @@ import (
 	"github.com/CollActionteam/collaction_backend/models"
 	"github.com/CollActionteam/collaction_backend/pkg/repository/aws"
 	"github.com/CollActionteam/collaction_backend/utils"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
 
 type Participation interface {
 	Get(ctx context.Context, userID string, crowdactionID string) (*m.ParticipationRecord, error)
 	Register(ctx context.Context, userID string, name string, crowdaction *models.Crowdaction, payload m.JoinPayload) error
 	Cancel(ctx context.Context, userID string, crowdaction *models.Crowdaction) error
-	List(ctx context.Context, userID string) (*[]m.ParticipationRecord, error)
+	ListByUser(ctx context.Context, userID string) (*[]m.ParticipationRecord, error)
+	ListByCrowdaction(ctx context.Context, crowdactionID string) (*[]m.ParticipationRecord, error)
 }
 
 type participation struct {
@@ -71,7 +74,45 @@ func (s *participation) Cancel(ctx context.Context, userID string, crowdaction *
 	return s.dbClient.DeleteDBItem(constants.TableName, pk, sk)
 }
 
-func (s *participation) List(ctx context.Context, userID string) (*[]m.ParticipationRecord, error) {
+func (s *participation) listByPK(ctx context.Context, pk string, useGSI bool) (*[]m.ParticipationRecord, error) {
+	var indexName *string = nil
+	if useGSI {
+		indexName = &constants.IndexName
+	}
+	participationRecords := []m.ParticipationRecord{}
+	// TODO refactor (do not directly interact with dynamo)
+	dbClient := utils.CreateDBClient()
+	keyCond := expression.Key(utils.PartitionKey).Equal(expression.Value(pk))
+	expr, err := expression.NewBuilder().
+		WithKeyCondition(keyCond).
+		Build()
+	if err != nil {
+		return nil, err
+	}
+	out, err := dbClient.Query(&dynamodb.QueryInput{
+		TableName:                 &constants.TableName,
+		IndexName:                 indexName,
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.KeyCondition(),
+		FilterExpression:          expr.Filter(),
+	})
+	for _, item := range out.Items {
+		var participationRecord m.ParticipationRecord
+		itemErr := dynamodbattribute.UnmarshalMap(item, &participationRecord)
+		if itemErr == nil {
+			participationRecords = append(participationRecords, participationRecord)
+		}
+	}
+	return &participationRecords, err
+}
+
+func (s *participation) ListByUser(ctx context.Context, userID string) (*[]m.ParticipationRecord, error) {
 	pk := utils.PrefixParticipationPK_UserID + userID
-	//s.dbClient.
+	return s.listByPK(ctx, pk, false)
+}
+
+func (s *participation) ListByCrowdaction(ctx context.Context, crowdactionID string) (*[]m.ParticipationRecord, error) {
+	pk := utils.PrefixParticipationSK_CrowdactionID + crowdactionID
+	return s.listByPK(ctx, pk, true)
 }

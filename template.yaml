@@ -358,6 +358,35 @@ Resources:
             Action:
             - sqs:SendMessage
             Resource: !GetAtt ParticipationQueue.Arn
+
+  ParticipationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: pkg/handler/aws/participations
+      Handler: participations
+      Runtime: go1.x
+      Environment:
+        Variables:
+          # Maybe use a different table to remove the overhead form the GSI on the other data
+          TABLE_NAME: !Ref SingleTable
+          INDEX_NAME: "invertedIndex"
+      Events:
+        Participants:
+          Type: HttpApi
+          Properties:
+            Path: /crowdactions/{crowdactionID}/participations
+            Method: any
+            ApiId: !Ref HttpApi
+        Participations:
+          Type: HttpApi
+          Properties:
+            Path: /profiles/{userID}/participations
+            Method: any
+            ApiId: !Ref HttpApi
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref SingleTable
             
   ProfileCRUDFunction:
     Type: AWS::Serverless::Function

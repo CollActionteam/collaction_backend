@@ -2,6 +2,7 @@ package participation
 
 import (
 	"context"
+
 	"github.com/CollActionteam/collaction_backend/internal/constants"
 	m "github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/CollActionteam/collaction_backend/models"
@@ -14,7 +15,8 @@ type Service interface {
 	GetParticipation(ctx context.Context, userID string, crowdactionID string) (*m.ParticipationRecord, error)
 	RegisterParticipation(ctx context.Context, userID string, name string, crowdaction *models.Crowdaction, payload m.JoinPayload) error
 	CancelParticipation(ctx context.Context, userID string, crowdaction *models.Crowdaction) error
-	GetParticipations(ctx context.Context, userID string) (*[]m.ParticipationRecord, error)
+	GetParticipationsUser(ctx context.Context, userID string) (*[]m.ParticipationRecord, error)
+	GetParticipationsCrowdaction(ctx context.Context, crowdactionID string) (*[]m.ParticipationRecord, error)
 }
 
 type participationService struct {
@@ -70,7 +72,10 @@ func (s *participationService) CancelParticipation(ctx context.Context, userID s
 	return recordEvent(userID, crowdaction.CrowdactionID, part.Commitments, -1)
 }
 
+func (s *participationService) GetParticipationsUser(ctx context.Context, userID string) (*[]m.ParticipationRecord, error) {
+	return s.participationRepository.ListByUser(ctx, userID)
+}
 
-func (s *participationService) GetParticipations(ctx context.Context, userID string) (*[]m.ParticipationRecord, error) {
-	
+func (s *participationService) GetParticipationsCrowdaction(ctx context.Context, crowdactionID string) (*[]m.ParticipationRecord, error) {
+	return s.participationRepository.ListByCrowdaction(ctx, crowdactionID)
 }

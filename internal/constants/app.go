@@ -17,6 +17,7 @@ const (
 
 var (
 	TableName              = os.Getenv("TABLE_NAME")
+	IndexName              = os.Getenv("INDEX_NAME")
 	ProfileTablename       = os.Getenv("PROFILE_TABLE")
 	ParticipationQueueName = os.Getenv("PARTICIPATION_QUEUE")
 )

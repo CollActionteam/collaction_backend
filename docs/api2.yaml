@@ -527,20 +527,6 @@ paths:
                       $ref: "#/components/schemas/Participation"
         "403":
           $ref: "#/components/responses/UnsupportedClientVersion"
-        "404":
-          description: Profile was not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: fail
-                  data:
-                    type: object
-                    default:
-                      userID: No such profile
   /upload-profile-picture:
     parameters:
       - $ref: "#/components/parameters/ApiVersionParameter"
