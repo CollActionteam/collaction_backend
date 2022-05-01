@@ -6,7 +6,6 @@ import (
 	"github.com/CollActionteam/collaction_backend/internal/constants"
 	m "github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/CollActionteam/collaction_backend/models"
-	"github.com/CollActionteam/collaction_backend/pkg/repository"
 	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/pkg/errors"
 )
@@ -19,11 +18,20 @@ type Service interface {
 	GetParticipationsCrowdaction(ctx context.Context, crowdactionID string) (*[]m.ParticipationRecord, error)
 }
 
-type participationService struct {
-	participationRepository repository.Participation
+type ParticipationManager interface {
+	Get(ctx context.Context, userID string, crowdactionID string) (*m.ParticipationRecord, error)
+	Register(ctx context.Context, userID string, name string, crowdaction *models.Crowdaction, payload m.JoinPayload) error
+	Cancel(ctx context.Context, userID string, crowdaction *models.Crowdaction) error
+	ListByUser(ctx context.Context, userID string) (*[]m.ParticipationRecord, error)
+	ListByCrowdaction(ctx context.Context, crowdactionID string) (*[]m.ParticipationRecord, error)
 }
 
-func NewParticipationService(participationRepository repository.Participation) Service {
+type participationService struct {
+	participationRepository ParticipationManager
+}
+
+// TODO move to handler
+func NewParticipationService(participationRepository ParticipationManager) Service {
 	return &participationService{
 		participationRepository: participationRepository,
 	}

@@ -8,7 +8,6 @@ import (
 
 	m "github.com/CollActionteam/collaction_backend/internal/models"
 	"github.com/CollActionteam/collaction_backend/internal/participation"
-	"github.com/CollActionteam/collaction_backend/pkg/repository"
 	"github.com/CollActionteam/collaction_backend/pkg/repository/aws"
 	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-lambda-go/events"
@@ -21,7 +20,7 @@ type ParticipationsHandler struct {
 }
 
 func NewParticipationsHandler() *ParticipationsHandler {
-	participationRepository := repository.NewParticipation(aws.NewDynamo())
+	participationRepository := aws.NewParticipation(aws.NewDynamo())
 	return &ParticipationsHandler{service: participation.NewParticipationService(participationRepository)}
 }
 

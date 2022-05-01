@@ -4,11 +4,13 @@ import (
 	"fmt"
 
 	"github.com/CollActionteam/collaction_backend/internal/constants"
+	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
 
 const (
@@ -88,6 +90,29 @@ func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (map[string]*
 		return nil, nil
 	}
 	return result.Item, nil
+}
+
+func (s *Dynamo) Query(tableName string, filterCond expression.ConditionBuilder, startFrom *utils.PrimaryKey) ([]map[string]*dynamodb.AttributeValue, error) {
+	keyCond := expression.Key(utils.PartitionKey).Equal(expression.Value(utils.PKCrowdaction))
+	expr, _ := expression.NewBuilder().WithKeyCondition(keyCond).WithFilter(filterCond).Build()
+
+	var exclusiveStartKey utils.PrimaryKey
+
+	if startFrom != nil {
+		exclusiveStartKey = *startFrom
+	}
+
+	result, err := s.dbClient.Query(&dynamodb.QueryInput{
+		Limit:                     aws.Int64(utils.CrowdactionsPageLength),
+		ExclusiveStartKey:         exclusiveStartKey,
+		TableName:                 aws.String(tableName),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.KeyCondition(),
+		FilterExpression:          expr.Filter(),
+	})
+
+	return result.Items, err
 }
 
 func (s *Dynamo) PutDBItem(tableName string, pk string, sk string, record interface{}) error {
