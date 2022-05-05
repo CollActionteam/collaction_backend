@@ -28,7 +28,7 @@ func TestContact_SendEmail(t *testing.T) {
 			Recipient:  recipientValue,
 			Message:    fmt.Sprintf(contact.EmailMessageFormat, emailRequest.Data.Message, contact.Separator, emailRequest.Data.AppVersion),
 			Subject:    emailRequest.Data.Subject,
-			Sender:     emailRequest.Data.Email,
+			Sender:     recipientValue,
 			ReplyEmail: emailRequest.Data.Email,
 		}
 
@@ -52,7 +52,7 @@ func TestContact_SendEmail(t *testing.T) {
 			Recipient:  recipientValue,
 			Message:    fmt.Sprintf(contact.EmailMessageFormat, emailRequest.Data.Message, contact.Separator, emailRequest.Data.AppVersion),
 			Subject:    emailRequest.Data.Subject,
-			Sender:     emailRequest.Data.Email,
+			Sender:     recipientValue,
 			ReplyEmail: emailRequest.Data.Email,
 		}
 
