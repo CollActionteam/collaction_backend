@@ -33,7 +33,7 @@ func (e EmailContactRequest) Validate(ctx context.Context) validator.ValidationE
 		return utils.ValidationResponse(err, validate)
 	}
 
-	reg := regexp.MustCompile("^(?:ios|android) [0-9]+\\\\.[0-9]+\\\\.[0-9]+\\\\+[0-9]+$")
+	reg := regexp.MustCompile(`^(?:ios|android) [0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$`)
 	if match := reg.MatchString(e.Data.AppVersion); !match {
 		return validator.ValidationErrorsTranslations{"err": "app version is not valid"}
 	}
