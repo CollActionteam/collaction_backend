@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
+// Deprecated: Use GetDataHttpResponse instead (uses APIGatewayV2HTTPResponse)
 func GetMessageHttpResponse(statusCode int, msg string) events.APIGatewayProxyResponse {
 	// "Cannot go wrong"
 	jsonPayload, _ := json.Marshal(map[string]interface{}{"message": msg})

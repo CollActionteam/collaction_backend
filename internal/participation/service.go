@@ -14,12 +14,16 @@ type Service interface {
 	GetParticipation(ctx context.Context, userID string, crowdactionID string) (*m.ParticipationRecord, error)
 	RegisterParticipation(ctx context.Context, userID string, name string, crowdaction *models.Crowdaction, payload m.JoinPayload) error
 	CancelParticipation(ctx context.Context, userID string, crowdaction *models.Crowdaction) error
+	GetParticipationsUser(ctx context.Context, userID string) (*[]m.ParticipationRecord, error)
+	GetParticipationsCrowdaction(ctx context.Context, crowdactionID string) (*[]m.ParticipationRecord, error)
 }
 
 type ParticipationManager interface {
 	Get(ctx context.Context, userID string, crowdactionID string) (*m.ParticipationRecord, error)
 	Register(ctx context.Context, userID string, name string, crowdaction *models.Crowdaction, payload m.JoinPayload) error
 	Cancel(ctx context.Context, userID string, crowdaction *models.Crowdaction) error
+	ListByUser(ctx context.Context, userID string) (*[]m.ParticipationRecord, error)
+	ListByCrowdaction(ctx context.Context, crowdactionID string) (*[]m.ParticipationRecord, error)
 }
 
 type participationService struct {
@@ -74,4 +78,12 @@ func (s *participationService) CancelParticipation(ctx context.Context, userID s
 		return err
 	}
 	return recordEvent(userID, crowdaction.CrowdactionID, part.Commitments, -1)
+}
+
+func (s *participationService) GetParticipationsUser(ctx context.Context, userID string) (*[]m.ParticipationRecord, error) {
+	return s.participationRepository.ListByUser(ctx, userID)
+}
+
+func (s *participationService) GetParticipationsCrowdaction(ctx context.Context, crowdactionID string) (*[]m.ParticipationRecord, error) {
+	return s.participationRepository.ListByCrowdaction(ctx, crowdactionID)
 }
