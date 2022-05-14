@@ -1,0 +1,11 @@
+{
+    "pathParameters": {
+      "crowdactionID": "sustainability#food#303e67d6"
+    },
+    "requestContext": {
+      "http": {
+        "method": "GET",
+        "path": "/crowdactions/sustainability#food#303e67d6"
+      }
+    }
+  }

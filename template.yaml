@@ -284,7 +284,7 @@ Resources:
         FetchCrowdaction:
           Type: HttpApi
           Properties:
-            Path: /crowdactions/{crowdactionID}
+            Path: /crowdactions/{crowdactionID}/
             Method: get
             ApiId: !Ref HttpApi
             Auth:
@@ -373,12 +373,16 @@ Resources:
             Path: /crowdactions/{crowdactionID}/participations
             Method: any
             ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
         Participations:
           Type: HttpApi
           Properties:
             Path: /profiles/{userID}/participations
             Method: any
             ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
       Policies:
         - DynamoDBCrudPolicy:
             TableName:

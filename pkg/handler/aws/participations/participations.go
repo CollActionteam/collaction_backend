@@ -25,16 +25,18 @@ func NewParticipationsHandler() *ParticipationsHandler {
 }
 
 func (h *ParticipationsHandler) getParticipations(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	var err error
+	var err error = nil
 	var data *[]m.ParticipationRecord
 	path := req.RequestContext.HTTP.Path
 	// TODO pagination
+	fmt.Printf("Participations function called with path: %s\n", path) // TODO remove
 	if strings.HasPrefix(path, "/crowdactions") {
 		crowdactionID := req.PathParameters["crowdactionID"]
 		// TODO check password:
 		// 1. Fetch crowdaction
 		// 2. If the crowdaction is not found, return 404
 		// 3. If the crowdaction is password protected, check the request for the password
+		fmt.Printf("getParticipations: crowdactionID: %s\n", crowdactionID) // TODO remove
 		data, err = h.service.GetParticipationsCrowdaction(ctx, crowdactionID)
 	} else if strings.HasPrefix(path, "/profiles") {
 		userID := req.PathParameters["userID"]
@@ -43,6 +45,7 @@ func (h *ParticipationsHandler) getParticipations(ctx context.Context, req event
 		err = fmt.Errorf("invalid path: %s", path)
 	}
 	if err != nil {
+		fmt.Printf("getParticipations: error: %s\n", err) // TODO remove
 		handlerError(err)
 	}
 	return utils.GetDataHttpResponse(http.StatusOK, "", data), nil
