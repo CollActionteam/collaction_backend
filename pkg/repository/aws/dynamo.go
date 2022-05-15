@@ -92,6 +92,20 @@ func (s *Dynamo) GetDBItem(tableName string, pk string, sk string) (map[string]*
 	return result.Item, nil
 }
 
+func (s *Dynamo) Scan(tableName string, filterCond expression.ConditionBuilder) ([]map[string]*dynamodb.AttributeValue, error) {
+	expr, _ := expression.NewBuilder().WithFilter(filterCond).Build()
+
+	result, err := s.dbClient.Scan(&dynamodb.ScanInput{
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+		ProjectionExpression:      expr.Projection(),
+		TableName:                 aws.String(tableName),
+	})
+
+	return result.Items, err
+}
+
 func (s *Dynamo) Query(tableName string, filterCond expression.ConditionBuilder, startFrom *utils.PrimaryKey) ([]map[string]*dynamodb.AttributeValue, error) {
 	keyCond := expression.Key(utils.PartitionKey).Equal(expression.Value(utils.PKCrowdaction))
 	expr, _ := expression.NewBuilder().WithKeyCondition(keyCond).WithFilter(filterCond).Build()
@@ -101,6 +115,9 @@ func (s *Dynamo) Query(tableName string, filterCond expression.ConditionBuilder,
 	if startFrom != nil {
 		exclusiveStartKey = *startFrom
 	}
+
+	// here filter does have a reference
+	fmt.Println("Query expr", expr.Names(), expr.Filter(), expr.Values())
 
 	result, err := s.dbClient.Query(&dynamodb.QueryInput{
 		Limit:                     aws.Int64(utils.CrowdactionsPageLength),

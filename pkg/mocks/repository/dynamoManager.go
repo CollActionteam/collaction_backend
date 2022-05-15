@@ -12,6 +12,11 @@ type Dynamo struct {
 	mock.Mock
 }
 
+func (d *Dynamo) GetAll() ([]m.CrowdactionData, error) {
+	args := d.Mock.Called()
+	return args.Get(0).([]m.CrowdactionData), args.Error(1)
+}
+
 func (d *Dynamo) GetById(pk string, sk string) (*m.CrowdactionData, error) {
 	args := d.Mock.Called(pk, sk)
 	return args.Get(0).(*m.CrowdactionData), args.Error(1)

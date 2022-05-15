@@ -14,6 +14,7 @@ import (
 )
 
 type Crowdaction interface {
+	GetAll() ([]m.CrowdactionData, error)
 	GetById(pk string, sk string) (*m.CrowdactionData, error)
 	GetByStatus(status string, startFrom *utils.PrimaryKey) ([]m.CrowdactionData, error)
 	Register(ctx context.Context, payload m.CrowdactionData) error
@@ -63,6 +64,31 @@ func (s *crowdaction) GetById(pk string, sk string) (*m.CrowdactionData, error) 
 	return &c, err
 }
 
+func (s *crowdaction) GetAll() ([]m.CrowdactionData, error) {
+	crowdactions := []m.CrowdactionData{} // crowdactions array
+	var filterCond = expression.Name(utils.PartitionKey).Equal(expression.Value(utils.PKCrowdaction))
+
+	item, err := s.dbClient.Scan(constants.TableName, filterCond)
+	if item == nil || err != nil {
+		return nil, err
+	}
+
+	for _, itemIterator := range item {
+		var crowdaction m.CrowdactionData
+		err := dynamodbattribute.UnmarshalMap(itemIterator, &crowdaction)
+
+		if err == nil {
+			crowdactions = append(crowdactions, crowdaction)
+		}
+	}
+
+	if len(item) != len(crowdactions) {
+		err = fmt.Errorf("error unmarshallaing %d items", len(item)-len(crowdactions))
+	}
+
+	return crowdactions, err
+}
+
 func (s *crowdaction) GetByStatus(status string, startFrom *utils.PrimaryKey) ([]m.CrowdactionData, error) {
 	crowdactions := []m.CrowdactionData{}
 	var filterCond expression.ConditionBuilder
@@ -83,9 +109,9 @@ func (s *crowdaction) GetByStatus(status string, startFrom *utils.PrimaryKey) ([
 		return nil, err
 	}
 
-	for _, foo := range items {
+	for _, itemIterator := range items {
 		var crowdaction m.CrowdactionData
-		err := dynamodbattribute.UnmarshalMap(foo, &crowdaction)
+		err := dynamodbattribute.UnmarshalMap(itemIterator, &crowdaction)
 
 		if err == nil {
 			crowdactions = append(crowdactions, crowdaction)
