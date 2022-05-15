@@ -3,6 +3,7 @@ package contact
 import (
 	"context"
 	"fmt"
+
 	"github.com/CollActionteam/collaction_backend/internal/constants"
 	"github.com/CollActionteam/collaction_backend/internal/models"
 )

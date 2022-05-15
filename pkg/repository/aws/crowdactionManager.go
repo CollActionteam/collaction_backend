@@ -1,7 +1,10 @@
 package aws
 
 import (
+	"context"
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/CollActionteam/collaction_backend/internal/constants"
 	m "github.com/CollActionteam/collaction_backend/internal/models"
@@ -13,6 +16,7 @@ import (
 type Crowdaction interface {
 	GetById(pk string, sk string) (*m.CrowdactionData, error)
 	GetByStatus(status string, startFrom *utils.PrimaryKey) ([]m.CrowdactionData, error)
+	Register(ctx context.Context, payload m.CrowdactionData) error
 }
 
 const (
@@ -21,12 +25,29 @@ const (
 	KeyDateJoinBefore = "date_limit_join"
 )
 
+const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+var seededRand *rand.Rand = rand.New(
+	rand.NewSource(time.Now().UnixNano()))
+
 type crowdaction struct {
 	dbClient *Dynamo
 }
 
 func NewCrowdaction(dynamo *Dynamo) Crowdaction {
 	return &crowdaction{dbClient: dynamo}
+}
+
+func StringWithCharset(length int, charset string) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
+}
+
+func RandomIDPrefix(length int) string {
+	return StringWithCharset(length, charset)
 }
 
 func (s *crowdaction) GetById(pk string, sk string) (*m.CrowdactionData, error) {
@@ -76,4 +97,16 @@ func (s *crowdaction) GetByStatus(status string, startFrom *utils.PrimaryKey) ([
 	}
 
 	return crowdactions, err
+}
+
+func (s *crowdaction) Register(ctx context.Context, payload m.CrowdactionData) error {
+	generatedID := RandomIDPrefix(8)
+	pk := utils.PKCrowdaction
+	sk := payload.Category + "#" + payload.Subcategory + "#" + generatedID
+	payload.CrowdactionID = sk
+	// should modify the payload here to include the crowdcationID
+	// fmt.Println("payload", payload)
+	fmt.Println("9. pkg/respository/aws/crowdactionManager.go", payload)
+
+	return s.dbClient.PutDBItem(constants.TableName, pk, sk, payload)
 }

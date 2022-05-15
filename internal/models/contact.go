@@ -2,9 +2,10 @@ package models
 
 import (
 	"context"
+	"regexp"
+
 	"github.com/CollActionteam/collaction_backend/utils"
 	"github.com/go-playground/validator/v10"
-	"regexp"
 )
 
 type EmailContactRequest struct {

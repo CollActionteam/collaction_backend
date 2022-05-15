@@ -10,10 +10,12 @@ import (
 type Service interface {
 	GetCrowdactionById(ctx context.Context, crowdactionId string) (*m.CrowdactionData, error)
 	GetCrowdactionsByStatus(ctx context.Context, status string, startFrom *utils.PrimaryKey) ([]m.CrowdactionData, error)
+	RegisterCrowdaction(ctx context.Context, payload m.CrowdactionData) error
 }
 type CrowdactionManager interface {
 	GetById(pk string, crowdactionId string) (*m.CrowdactionData, error)
 	GetByStatus(filterCond string, startFrom *utils.PrimaryKey) ([]m.CrowdactionData, error)
+	Register(ctx context.Context, payload m.CrowdactionData) error
 }
 
 const (
@@ -36,4 +38,11 @@ func (e *crowdactionService) GetCrowdactionById(ctx context.Context, crowdaction
 
 func (e *crowdactionService) GetCrowdactionsByStatus(ctx context.Context, status string, startFrom *utils.PrimaryKey) ([]m.CrowdactionData, error) {
 	return e.crowdactionRepository.GetByStatus(status, startFrom)
+}
+
+func (e *crowdactionService) RegisterCrowdaction(ctx context.Context, payload m.CrowdactionData) error {
+	if err := e.crowdactionRepository.Register(ctx, payload); err != nil {
+		return err
+	}
+	return nil // should this be ultimately be nil?
 }

@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	cwd "github.com/CollActionteam/collaction_backend/internal/crowdactions"
-	"github.com/CollActionteam/collaction_backend/internal/models"
+	m "github.com/CollActionteam/collaction_backend/internal/models"
 	hnd "github.com/CollActionteam/collaction_backend/pkg/handler"
 	awsRepository "github.com/CollActionteam/collaction_backend/pkg/repository/aws"
 	"github.com/CollActionteam/collaction_backend/utils"
@@ -24,12 +24,20 @@ func NewCrowdactionHandler() *CrowdactionHandler {
 }
 
 func (c *CrowdactionHandler) createCrowdaction(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	return utils.CreateMessageHttpResponse(http.StatusNotImplemented, "not implemented"), nil
+	var payload m.CrowdactionData
+	if err := json.Unmarshal([]byte(req.Body), &payload); err != nil {
+		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+	}
+	if err := c.service.RegisterCrowdaction(ctx, payload); err != nil {
+		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+	}
+	// return call to client
+	return utils.CreateMessageHttpResponse(http.StatusOK, "Crowdaction has been recorded"), nil
 }
 
 func (c *CrowdactionHandler) getCrowdaction(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	crowdactionID := req.PathParameters["crowdactionID"]
-	var request models.CrowdactionRequest
+	var request m.CrowdactionRequest
 
 	validate := validator.New()
 	if err := validate.StructCtx(ctx, request); err != nil {
@@ -37,9 +45,13 @@ func (c *CrowdactionHandler) getCrowdaction(ctx context.Context, req events.APIG
 		return events.APIGatewayV2HTTPResponse{Body: string(body), StatusCode: http.StatusBadRequest}, nil
 	}
 
+	/**
+	this is what shoudl be changed
+	GET should return all
+	*/
 	if crowdactionID == "" {
 		status := req.QueryStringParameters["status"]
-		return getCrowdactionsByStatus(ctx, status)
+		return c.getCrowdactionsByStatus(ctx, status)
 	}
 
 	return c.getCrowdactionByID(ctx, crowdactionID)
@@ -52,7 +64,7 @@ func (c *CrowdactionHandler) getCrowdactionByID(ctx context.Context, crowdaction
 		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
 	}
 	if getCrowdaction == nil {
-		return utils.CreateMessageHttpResponse(http.StatusNotFound, "not participating"), nil
+		return utils.CreateMessageHttpResponse(http.StatusNotFound, "Crowdaction not found!"), nil
 	}
 
 	jsonPayload, _ := json.Marshal(getCrowdaction)
@@ -62,9 +74,8 @@ func (c *CrowdactionHandler) getCrowdactionByID(ctx context.Context, crowdaction
 	}, nil
 }
 
-func getCrowdactionsByStatus(ctx context.Context, status string) (events.APIGatewayV2HTTPResponse, error) {
-	dynamoRepository := awsRepository.NewCrowdaction(awsRepository.NewDynamo())
-	getCrowdactions, err := cwd.NewCrowdactionService(dynamoRepository).GetCrowdactionsByStatus(ctx, status, nil)
+func (c *CrowdactionHandler) getCrowdactionsByStatus(ctx context.Context, status string) (events.APIGatewayV2HTTPResponse, error) {
+	getCrowdactions, err := c.service.GetCrowdactionsByStatus(ctx, status, nil)
 
 	if err != nil {
 		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
@@ -75,9 +86,4 @@ func getCrowdactionsByStatus(ctx context.Context, status string) (events.APIGate
 		Body:       string(jsonPayload),
 		StatusCode: http.StatusOK,
 	}, nil
-}
-
-func errToResponse(err error, code int) events.APIGatewayV2HTTPResponse {
-	msg, _ := json.Marshal(map[string]string{"message": err.Error()})
-	return events.APIGatewayV2HTTPResponse{Body: string(msg), StatusCode: code}
 }
