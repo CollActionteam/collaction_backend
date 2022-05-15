@@ -34,16 +34,16 @@ func NewContactService(emailRepository EmailRepository, configManager ConfigMana
 }
 
 func (e *contact) SendEmail(ctx context.Context, req models.EmailContactRequest) error {
-	recipient, err := e.configManager.GetParameter(fmt.Sprintf(constants.RecipientEmail, e.stage))
+	senderRecipient, err := e.configManager.GetParameter(fmt.Sprintf(constants.RecipientEmail, e.stage))
 	if err != nil {
 		return err
 	}
 
 	return e.emailRepository.Send(ctx, models.EmailData{
-		Recipient:  recipient,
+		Recipient:  senderRecipient,
 		Message:    fmt.Sprintf(EmailMessageFormat, req.Data.Message, Separator, req.Data.AppVersion),
 		Subject:    req.Data.Subject,
-		Sender:     req.Data.Email,
+		Sender:     senderRecipient,
 		ReplyEmail: req.Data.Email,
 	})
 }
