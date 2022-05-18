@@ -281,6 +281,15 @@ Resources:
       Handler: crowdaction
       Runtime: go1.x
       Events:
+        # TODO feature wip (cms)
+        # CreateCrowdaction:
+        #   Type: HttpApi
+        #   Properties:
+        #     Path: /cms/crowdactions
+        #     Method: post
+        #     ApiId: !Ref HttpApi
+        #     Auth:
+        #       Authorizer: "NONE"
         FetchCrowdaction:
           Type: HttpApi
           Properties:
