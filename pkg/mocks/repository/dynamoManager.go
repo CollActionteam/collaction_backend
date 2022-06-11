@@ -27,7 +27,7 @@ func (d *Dynamo) GetByStatus(filterCond string, startFrom *utils.PrimaryKey) ([]
 	return args.Get(0).([]m.CrowdactionData), args.Error(1)
 }
 
-func (d *Dynamo) Register(ctx context.Context, payload m.CrowdactionData) error {
+func (d *Dynamo) Register(ctx context.Context, payload m.CrowdactionData) (*m.CrowdactionData, error) {
 	d.Mock.Called(payload)
-	return nil
+	return &payload, nil
 }
