@@ -17,7 +17,8 @@ type Crowdaction interface {
 	GetAll() ([]m.CrowdactionData, error)
 	GetById(pk string, sk string) (*m.CrowdactionData, error)
 	GetByStatus(status string, startFrom *utils.PrimaryKey) ([]m.CrowdactionData, error)
-	Register(ctx context.Context, payload m.CrowdactionData) error
+	Register(ctx context.Context, payload m.CrowdactionData) (*m.CrowdactionData, error)
+	// Register(ctx context.Context, payload m.CrowdactionData) error
 }
 
 const (
@@ -125,14 +126,21 @@ func (s *crowdaction) GetByStatus(status string, startFrom *utils.PrimaryKey) ([
 	return crowdactions, err
 }
 
-func (s *crowdaction) Register(ctx context.Context, payload m.CrowdactionData) error {
+func (s *crowdaction) Register(ctx context.Context, payload m.CrowdactionData) (*m.CrowdactionData, error) {
+	var response m.CrowdactionData
 	generatedID := RandomIDPrefix(8)
 	pk := utils.PKCrowdaction
 	sk := payload.Category + "#" + payload.Subcategory + "#" + generatedID
 	payload.CrowdactionID = sk
+	response = payload
 	// should modify the payload here to include the crowdcationID
 	// fmt.Println("payload", payload)
 	fmt.Println("9. pkg/respository/aws/crowdactionManager.go", payload)
 
-	return s.dbClient.PutDBItem(constants.TableName, pk, sk, payload)
+	err := s.dbClient.PutDBItem(constants.TableName, pk, sk, payload)
+
+	if err != nil {
+		return &response, nil
+	}
+	return &response, err
 }

@@ -28,11 +28,20 @@ func (c *CrowdactionHandler) createCrowdaction(ctx context.Context, req events.A
 	if err := json.Unmarshal([]byte(req.Body), &payload); err != nil {
 		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
 	}
-	if err := c.service.RegisterCrowdaction(ctx, payload); err != nil {
+
+	res, err := c.service.RegisterCrowdaction(ctx, payload)
+
+	if err != nil {
 		return utils.CreateMessageHttpResponse(http.StatusInternalServerError, err.Error()), nil
+
 	}
 	// return call to client
-	return utils.CreateMessageHttpResponse(http.StatusOK, "Crowdaction has been recorded"), nil
+	body, _ := json.Marshal(hnd.Response{Status: hnd.StatusSuccess, Data: res})
+
+	return events.APIGatewayV2HTTPResponse{
+		Body:       string(body),
+		StatusCode: http.StatusOK,
+	}, nil
 }
 
 /**
