@@ -84,18 +84,6 @@ paths:
       tags:
         - Crowdaction
       summary: Get list of crowdactions
-      parameters:
-        - $ref: "#/components/parameters/ApiVersionParameter"
-        - name: status
-          in: query
-          required: false
-          schema:
-            type: string
-            enum:
-              - featured
-              - joinable
-              - active
-              - ended
       responses:
         "200":
           description: List of crowdactions

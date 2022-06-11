@@ -195,7 +195,7 @@ Resources:
   UploadProfilePictureFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: upload-profile-picture/
+      CodeUri: pkg/handler/aws/uploadProfilePicture
       Handler: upload-profile-picture
       Runtime: go1.x
       Environment:
@@ -281,6 +281,15 @@ Resources:
       Handler: crowdaction
       Runtime: go1.x
       Events:
+        # TODO feature wip (cms)
+        CreateCrowdaction:
+          Type: HttpApi
+          Properties:
+            Path: /cms/crowdactions
+            Method: post
+            ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: "NONE"
         FetchCrowdaction:
           Type: HttpApi
           Properties:
