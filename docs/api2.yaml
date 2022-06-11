@@ -1131,6 +1131,9 @@ components:
         label:
           type: string
           example: Becoming vegetarian
+        points:
+          type: int
+          example: 30
         description:
           type: string
           example: I will not eat any meat from any animal (including fish).
@@ -1145,6 +1148,7 @@ components:
               id: no-beef
               label: Not eating beef
               description: I will avoid eating beef (Goodbye stake).
+              points: 30
     Date:
       type: string
       pattern: '\d{4}-\d{2}-\d{2}'

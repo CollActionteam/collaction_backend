@@ -5,4 +5,5 @@ type CommitmentOption struct {
 	Label       string             `json:"label"`
 	Description string             `json:"description"`
 	Requires    []CommitmentOption `json:"requires,omitempty"`
+	Points      int                `json:"points"`
 }
