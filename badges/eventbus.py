@@ -61,12 +61,6 @@ def ddb_query(table, usr_id, reward, crowdaction_id):
 
 
 def lambda_handler(event, context):
-    # static
-    # this table should be obtained from
-    # specific crowdaction, because it'll break
-    # :(
-    # map the tree to a dictionary
-
     prt_commit = {
         "no-beef": 5,
         "pescatarian": 10,
@@ -100,6 +94,11 @@ def lambda_handler(event, context):
     # for reward in badge_scale['Item']['badges']['L']:
     #     badge_reward_list.append(reward['N'])
     # print(badge_reward_list)
+
+    # 3. restructure the tree to a dictionary
+    # 4. go through all participants
+    # 5. validate their commitment level
+    # 6. award badge
 
     return {
         'statusCode': 200,
