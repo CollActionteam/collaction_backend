@@ -60,6 +60,13 @@ def ddb_query(table, usr_id, reward, crowdaction_id):
     )
 
 
+def tree_recursion(commit_list):
+    for i in range(0, len(commit_list)):
+        print(commit_list[i]['M'])
+        if 'requires' in commit_list[i]['M']:
+            tree_recursion(commit_list[i]['M']['requires']['L'])
+
+
 def lambda_handler(event, context):
     prt_commit = {
         "no-beef": 5,
@@ -90,12 +97,25 @@ def lambda_handler(event, context):
         }
     )
     # print(badge_scale)
-    print(badge_scale['Item']['commitment_options'])
+    print(badge_scale['Item']['commitment_options']['L'])
+    tree = badge_scale['Item']['commitment_options']['L']
+    commit_dict = {}
     # for reward in badge_scale['Item']['badges']['L']:
     #     badge_reward_list.append(reward['N'])
     # print(badge_reward_list)
 
-    # 3. restructure the tree to a dictionary
+    # 3. restructure the tree to a dictionary ⏰
+    for n in range(0, len(tree)):
+    t = tree[n]['M']
+    commit_key = t['id']['S']  # should be the key
+    commit_label = t['label']['S']  # placeholder
+    # commit_val = t['point']['S'] # should be the numeric value, future
+    print(tree[n]['M'])
+    commit_dict[commit_key] = commit_label
+    if 'requires' in t:
+        # call recursion
+        tree_recursion(t['requires']['L'])
+
     # 4. go through all participants
     # 5. validate their commitment level
     # 6. award badge
