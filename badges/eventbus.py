@@ -10,6 +10,8 @@ e_client = boto3.client('events')
 l_client = boto3.client('lambda')
 d_client = boto3.client('dynamodb')
 
+commit_dict = {}
+
 
 def compute_badge_award(points, reward_list):
     print('point system: ', points, reward_list)
@@ -60,11 +62,17 @@ def ddb_query(table, usr_id, reward, crowdaction_id):
     )
 
 
-def tree_recursion(commit_list):
-    for i in range(0, len(commit_list)):
-        print(commit_list[i]['M'])
-        if 'requires' in commit_list[i]['M']:
-            tree_recursion(commit_list[i]['M']['requires']['L'])
+def tree_recursion(tree):
+    for i in range(0, len(tree)):
+        t = tree[i]['M']
+        # print(t)
+        commit_key = t['id']['S']
+        commit_label = t['label']['S']
+        commit_dict[commit_key] = commit_label
+        # print(commit_key, commit_label)
+        if 'requires' in t:
+            # print('\t\trequire is inside of t')
+            tree_recursion(t['requires']['L'])
 
 
 def lambda_handler(event, context):
@@ -86,9 +94,11 @@ def lambda_handler(event, context):
     print('Lambda Crontab!', event['resources']
           [0].split('/')[1].replace('_', '#'))
 
-    # POINT CALCULATION LOGIC
+    """
+      POINT CALCULATION LOGIC
+    """
 
-    # 2. fetch the badge scale for crowdaction ✅
+    # 1. fetch the badge scale for crowdaction ✅
     badge_scale = d_client.get_item(
         TableName=single_table,
         Key={
@@ -96,29 +106,20 @@ def lambda_handler(event, context):
             'sk': {'S': crowdaction_id}
         }
     )
-    # print(badge_scale)
-    print(badge_scale['Item']['commitment_options']['L'])
     tree = badge_scale['Item']['commitment_options']['L']
-    commit_dict = {}
+    print(tree)
+    # commit_dict = {} # this is global for now, but could be changed
     # for reward in badge_scale['Item']['badges']['L']:
     #     badge_reward_list.append(reward['N'])
     # print(badge_reward_list)
 
-    # 3. restructure the tree to a dictionary ⏰
-    for n in range(0, len(tree)):
-    t = tree[n]['M']
-    commit_key = t['id']['S']  # should be the key
-    commit_label = t['label']['S']  # placeholder
-    # commit_val = t['point']['S'] # should be the numeric value, future
-    print(tree[n]['M'])
-    commit_dict[commit_key] = commit_label
-    if 'requires' in t:
-        # call recursion
-        tree_recursion(t['requires']['L'])
+    # 2. restructure the tree to a dictionary ⏰
+    tree_recursion(tree)
+    print(commit_dict)  # verifying the dictionary convertion
 
-    # 4. go through all participants
-    # 5. validate their commitment level
-    # 6. award badge
+    # 3. go through all participants
+    # 4. validate their commitment level
+    # 5. award badge
 
     return {
         'statusCode': 200,
