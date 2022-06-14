@@ -67,22 +67,15 @@ def tree_recursion(tree):
         t = tree[i]['M']
         # print(t)
         commit_key = t['id']['S']
-        commit_label = t['label']['S']
-        commit_dict[commit_key] = commit_label
-        # print(commit_key, commit_label)
+        commit_points = t['points']['N']
+        commit_dict[commit_key] = commit_points
+        # print(commit_key, commit_points)
         if 'requires' in t:
             # print('\t\trequire is inside of t')
             tree_recursion(t['requires']['L'])
 
 
 def lambda_handler(event, context):
-    prt_commit = {
-        "no-beef": 5,
-        "pescatarian": 10,
-        "no-dairy": 20,
-        "vegetarian": 30,
-        "vegan": 70
-    }
     badge_reward_list = []
 
     target_name = 'lambda_cron_test_end_date'
