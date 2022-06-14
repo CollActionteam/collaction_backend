@@ -100,10 +100,9 @@ def lambda_handler(event, context):
         }
     )
     tree = badge_scale['Item']['commitment_options']['L']
-    print(tree)
-    # for reward in badge_scale['Item']['badges']['L']:
-    #     badge_reward_list.append(reward['N'])
-    # print(badge_reward_list)
+    for reward in badge_scale['Item']['badges']['L']:
+        badge_reward_list.append(reward['N'])
+    print(badge_reward_list)
 
     # 2. restructure the tree to a dictionary ✅
     tree_recursion(tree)
@@ -119,9 +118,13 @@ def lambda_handler(event, context):
         },
     )
 
-    print(participant_list['Items'])
-
-    # 4. validate their commitment level
+    # 4. validate their commitment level ⏰
+    for i in range(0, len(participant_list['Items'])):
+        prt_details = participant_list['Items'][i]
+        prt_lvl = prt_details['commitments']['L'][0]['S']
+        print(prt_lvl)
+        if prt_lvl in commit_dict:
+            compute_badge_award(commit_dict[prt_lvl], reward_list)
 
     # 5. award badge
 
