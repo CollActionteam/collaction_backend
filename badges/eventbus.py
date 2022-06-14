@@ -10,7 +10,7 @@ e_client = boto3.client('events')
 l_client = boto3.client('lambda')
 d_client = boto3.client('dynamodb')
 
-commit_dict = {}
+commit_dict = {}  # this may be global for now
 
 
 def compute_badge_award(points, reward_list):
@@ -101,17 +101,28 @@ def lambda_handler(event, context):
     )
     tree = badge_scale['Item']['commitment_options']['L']
     print(tree)
-    # commit_dict = {} # this is global for now, but could be changed
     # for reward in badge_scale['Item']['badges']['L']:
     #     badge_reward_list.append(reward['N'])
     # print(badge_reward_list)
 
-    # 2. restructure the tree to a dictionary ⏰
+    # 2. restructure the tree to a dictionary ✅
     tree_recursion(tree)
     print(commit_dict)  # verifying the dictionary convertion
 
-    # 3. go through all participants
+    # 3. go through all participants ✅
+    participant_list = d_client.query(
+        TableName=single_table,
+        IndexName='invertedIndex',
+        KeyConditionExpression="sk = :sk",
+        ExpressionAttributeValues={
+            ':sk':  {'S': f'prt#act#{crowdaction_id}'}
+        },
+    )
+
+    print(participant_list['Items'])
+
     # 4. validate their commitment level
+
     # 5. award badge
 
     return {
