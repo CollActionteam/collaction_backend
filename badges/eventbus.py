@@ -14,19 +14,19 @@ commit_dict = {}  # this may be global for now
 
 
 def compute_badge_award(points, reward_list):
-    print('point system: ', points, reward_list)
+    print('point system: ', type(points), reward_list)
     """
      There is an assumption about the order
      of the reward_list. This is taken into
      account a descending order
     """
-    if points >= int(reward_list[3]):
+    if int(points) >= int(reward_list[3]):
         return "Diamond"
-    elif points >= int(reward_list[2]):
+    elif int(points) >= int(reward_list[2]):
         return "Golden"
-    elif points >= int(reward_list[1]):
+    elif int(points) >= int(reward_list[1]):
         return "Silver"
-    elif points >= int(reward_list[0]):
+    elif int(points) >= int(reward_list[0]):
         return "Bronze"
     else:
         return "No reward"
@@ -65,13 +65,10 @@ def ddb_query(table, usr_id, reward, crowdaction_id):
 def tree_recursion(tree):
     for i in range(0, len(tree)):
         t = tree[i]['M']
-        # print(t)
         commit_key = t['id']['S']
         commit_points = t['points']['N']
         commit_dict[commit_key] = commit_points
-        # print(commit_key, commit_points)
         if 'requires' in t:
-            # print('\t\trequire is inside of t')
             tree_recursion(t['requires']['L'])
 
 
@@ -118,14 +115,23 @@ def lambda_handler(event, context):
         },
     )
 
-    # 4. validate their commitment level ⏰
+    # 4. validate their commitment level ✅
+    user_prt_list = []  # list required to store individual participations
     for i in range(0, len(participant_list['Items'])):
         prt_details = participant_list['Items'][i]
+        usr_id = prt_details['userID']['S']
         prt_lvl = prt_details['commitments']['L'][0]['S']
-        print(prt_lvl)
+        usr_obj = {
+            "userid": usr_id,
+            "prt": prt_lvl,
+            "points": commit_dict[prt_lvl]
+        }
         if prt_lvl in commit_dict:
-            compute_badge_award(commit_dict[prt_lvl], reward_list)
+            usr_obj['badge'] = compute_badge_award(
+                commit_dict[prt_lvl], badge_reward_list)
+        user_prt_list.append(usr_obj)
 
+    print(user_prt_list)
     # 5. award badge
 
     return {
