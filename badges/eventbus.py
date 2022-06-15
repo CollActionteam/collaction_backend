@@ -5,10 +5,12 @@
 import json
 import logging
 import boto3
-
+import os
+from dynamodb import *
 e_client = boto3.client('events')
 l_client = boto3.client('lambda')
-d_client = boto3.client('dynamodb')
+
+ddb = ddb_ops()
 
 commit_dict = {}  # this may be global for now
 
@@ -29,44 +31,6 @@ def compute_badge_award(points, reward_list):
         return "Bronze"
     else:
         return "No reward"
-
-
-def ddb_get_item(table, crowdaction_id):
-    pass
-
-
-def ddb_query(table, crowdaction_id):
-    pass
-
-
-def ddb_update(table, usr_id, reward, crowdaction_id):
-    d_client.update_item(
-        TableName=table,
-        Key={
-            'userid': {
-                'S': usr_id,
-            }
-        },
-        AttributeUpdates={
-            'reward': {
-                'Value': {
-                    'L': [
-                        {
-                            "M": {
-                                "award": {
-                                    "S": reward
-                                },
-                                "crowdactionID": {
-                                    "S": crowdaction_id
-                                }
-                            }
-                        },
-                    ],
-                },
-                'Action': 'ADD'  # this operations still pending
-            }
-        },
-    )
 
 
 def tree_recursion(tree):
@@ -96,33 +60,21 @@ def lambda_handler(event, context):
     """
 
     # 1. fetch the badge scale for crowdaction ✅
-    badge_scale = d_client.get_item(
-        TableName=single_table,
-        Key={
-            'pk': {'S': 'act'},
-            'sk': {'S': crowdaction_id}
-        }
-    )
+    badge_scale = ddb.get_item(single_table, crowdaction_id)
+
     tree = badge_scale['Item']['commitment_options']['L']
     for reward in badge_scale['Item']['badges']['L']:
         badge_reward_list.append(reward['N'])
-    print(badge_reward_list)
+    # print(badge_reward_list) # verfying the badge reward list
 
     # 2. restructure the tree to a dictionary ✅
     tree_recursion(tree)
-    print(commit_dict)  # verifying the dictionary convertion
+    # print(commit_dict) # verifying the dictionary convertion
 
     # 3. go through all participants ✅
-    participant_list = d_client.query(
-        TableName=single_table,
-        IndexName='invertedIndex',
-        KeyConditionExpression="sk = :sk",
-        ExpressionAttributeValues={
-            ':sk':  {'S': f'prt#act#{crowdaction_id}'}
-        },
-    )
+    participant_list = ddb.query(single_table, crowdaction_id)
 
-    # 4. validate their commitment level ✅
+    # 4. map user commitment level ✅
     user_prt_list = []  # list required to store individual participations
     for i in range(0, len(participant_list['Items'])):
         prt_details = participant_list['Items'][i]
@@ -138,11 +90,9 @@ def lambda_handler(event, context):
                 commit_dict[prt_lvl], badge_reward_list)
         user_prt_list.append(usr_obj)
 
-    # print(user_prt_list)
-
-    # 5. award badge ⏰
+    # 5. award badge ✅
     for usr in user_prt_list:
-        ddb_update(profile_table, usr['userid'], usr['badge'], crowdaction_id)
+        ddb.update(profile_table, usr['userid'], usr['badge'], crowdaction_id)
 
     return {
         'statusCode': 200,
