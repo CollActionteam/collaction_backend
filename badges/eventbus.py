@@ -14,7 +14,6 @@ commit_dict = {}  # this may be global for now
 
 
 def compute_badge_award(points, reward_list):
-    print('point system: ', type(points), reward_list)
     """
      There is an assumption about the order
      of the reward_list. This is taken into
@@ -32,7 +31,15 @@ def compute_badge_award(points, reward_list):
         return "No reward"
 
 
-def ddb_query(table, usr_id, reward, crowdaction_id):
+def ddb_get_item(table, crowdaction_id):
+    pass
+
+
+def ddb_query(table, crowdaction_id):
+    pass
+
+
+def ddb_update(table, usr_id, reward, crowdaction_id):
     d_client.update_item(
         TableName=table,
         Key={
@@ -56,7 +63,7 @@ def ddb_query(table, usr_id, reward, crowdaction_id):
                         },
                     ],
                 },
-                'Action': 'ADD'
+                'Action': 'ADD'  # this operations still pending
             }
         },
     )
@@ -131,8 +138,11 @@ def lambda_handler(event, context):
                 commit_dict[prt_lvl], badge_reward_list)
         user_prt_list.append(usr_obj)
 
-    print(user_prt_list)
-    # 5. award badge
+    # print(user_prt_list)
+
+    # 5. award badge ⏰
+    for usr in user_prt_list:
+        ddb_update(profile_table, usr['userid'], usr['badge'], crowdaction_id)
 
     return {
         'statusCode': 200,
