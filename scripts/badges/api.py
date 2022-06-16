@@ -92,7 +92,7 @@ print(res)
 current_time = datetime.now()
 
 gmt_time = datetime.now() - timedelta(hours=2)  # converting time to GMT
-crowdacticon_date_end = gmt_time + timedelta(minutes=7)
+crowdacticon_date_end = gmt_time + timedelta(minutes=3)
 crowdacticon_date_limit = gmt_time + timedelta(minutes=4)
 # datetime.now().strftime("%Y-%m-%d")
 crowdaction_start_time = gmt_time.replace(microsecond=0)
@@ -124,27 +124,32 @@ cwr_payload = {
         {
             "description": "(in case you dont want to commit to 7/7 days a week)",
             "id": "working-days-only",
-            "label": "5/7 days a week"
+            "label": "5/7 days a week",
+            "points": 0
         },
         {
             "description": "",
             "id": "vegan",
             "label": "Vegan",
+            "points": 20,
             "requires": [
                 {
                     "description": "",
                     "id": "vegetarian",
                     "label": "Vegetarian",
+                    "points": 20,
                     "requires": [
                         {
                             "description": "",
                             "id": "pescatarian",
                             "label": "Pescatarian",
+                            "points": 5,
                             "requires": [
                                 {
                                     "description": "",
                                     "id": "no-beef",
-                                    "label": "No Beef"
+                                    "label": "No Beef",
+                                    "points": 5
                                 }
                             ]
                         }
@@ -154,11 +159,13 @@ cwr_payload = {
                     "description": "",
                     "id": "no-dairy",
                     "label": "No Dairy",
+                    "points": 10,
                     "requires": [
                         {
                             "description": "",
                             "id": "no-cheese",
-                            "label": "No Cheese"
+                            "label": "No Cheese",
+                            "points": 10
                         }
                     ]
                 }
@@ -200,7 +207,7 @@ print(cid)
 prt_payload = {
     # it would be nice that the commitment is randomly generated based on certain
     # options
-    "body": "{\"password\":\"myEvent-myCompany2021\", \"commitments\":[\"vegan\"]}",
+    "body": "{\"password\":\"myEvent-myCompany2021\", \"commitments\":[\"pescatarian\", \"no-beef\"]}",
     "pathParameters": {
         "crowdactionID": cid
     },
