@@ -51,7 +51,7 @@ def lambda_handler(event, context):
     profile_table = 'collaction-dev-edreinoso-ProfileTable-XQEJJNBK6UUY'
     # crowdaction_id = event['resources'][0].split('/')[1]
     crowdaction_id = 'sustainability#food#185f66fd'
-    participant_sk = "prt#act#" + crowdaction_id
+    # participant_sk = "prt#act#" + crowdaction_id
     print('Lambda Crontab!', event['resources']
           [0].split('/')[1].replace('_', '#'))
 
@@ -65,30 +65,36 @@ def lambda_handler(event, context):
     tree = badge_scale['Item']['commitment_options']['L']
     for reward in badge_scale['Item']['badges']['L']:
         badge_reward_list.append(reward['N'])
-    # print(badge_reward_list) # verfying the badge reward list
+    # print(badge_reward_list)  # verfying the badge reward list
 
     # 2. restructure the tree to a dictionary ✅
     tree_recursion(tree)
-    # print(commit_dict) # verifying the dictionary convertion
+    # print(commit_dict)  # verifying the dictionary convertion
 
     # 3. go through all participants ✅
     participant_list = ddb.query(single_table, crowdaction_id)
+    # print(participant_list)
 
     # 4. map user commitment level ✅
     user_prt_list = []  # list required to store individual participations
     for i in range(0, len(participant_list['Items'])):
         prt_details = participant_list['Items'][i]
         usr_id = prt_details['userID']['S']
-        prt_lvl = prt_details['commitments']['L'][0]['S']
+        prt_lvl = prt_details['commitments']['L']
+        usr_prt_counter = 0
+        for n in range(0, len(prt_lvl)):
+            usr_prt_counter += int(commit_dict[prt_lvl[n]['S']])
         usr_obj = {
             "userid": usr_id,
             "prt": prt_lvl,
-            "points": commit_dict[prt_lvl]
+            "points": usr_prt_counter
         }
-        if prt_lvl in commit_dict:
-            usr_obj['badge'] = compute_badge_award(
-                commit_dict[prt_lvl], badge_reward_list)
+        # if prt_lvl in commit_dict: # would I be assuming that a user would always have a participation
+        usr_obj['badge'] = compute_badge_award(
+            usr_prt_counter, badge_reward_list)
         user_prt_list.append(usr_obj)
+
+    print(user_prt_list)
 
     # 5. award badge ✅
     for usr in user_prt_list:
