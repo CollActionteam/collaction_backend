@@ -48,9 +48,9 @@ commitment_arr = [
 ]
 
 randomNum = random.randrange(4)  # this should be inside for loop
-usr_list = [
-    {"id": usr_id, "commitment": commitment_arr[randomNum]}
-]
+# usr_list = [
+#     {"id": usr_id, "commitment": commitment_arr[randomNum]}
+# ]
 
 # randomly create a user_id
 usr_id = id_generator(28)
@@ -110,7 +110,7 @@ cwr_payload = {
     "location": "test1",
     "date_end": str(crowdaction_expiry_time),
     "date_start": str(crowdaction_start_time),
-    "date_limit_join": "2022-05-24",
+    "date_limit_join": "2022-06-19",
     # "date_limit_join": str(crowdaction_join_limit),
     "password_join": "",
     "images": {
@@ -171,7 +171,6 @@ uri = 'https://5y310ujdy1.execute-api.eu-central-1.amazonaws.com/dev/cms/crowdac
 
 # # print(cwr_payload)
 
-# # # TODO: return the crowdaction object that was created
 res = requests.post(uri, json=cwr_payload)
 crowdaction = res.json()
 cid = crowdaction['data']['crowdactionID']
@@ -190,6 +189,7 @@ print(cid)
     through a stack of users (with their ID)
 """
 
+# TODO: complete this loop
 """
     for n in list of users
         from list
@@ -200,7 +200,7 @@ print(cid)
 prt_payload = {
     # it would be nice that the commitment is randomly generated based on certain
     # options
-    "body": "{\"password\":\"myEvent-myCompany2021\", \"commitments\":[\"no-beef\"]}",
+    "body": "{\"password\":\"myEvent-myCompany2021\", \"commitments\":[\"vegan\"]}",
     "pathParameters": {
         "crowdactionID": cid
     },
