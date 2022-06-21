@@ -50,7 +50,9 @@ for i in range(0, 5):
     print('user id:', usr_id, 'res:', res)
 
 # create crowdaction
-cid = create_cwd()
+category = id_generator(8)
+subcategory = id_generator(8)
+cid = create_cwd(category, subcategory)
 
 # create participation
 for n in range(0, len(usr_list)):

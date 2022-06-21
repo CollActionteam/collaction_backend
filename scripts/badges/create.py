@@ -42,7 +42,10 @@ class create:
         )
         return res
 
-    def crowdaction(self,):
+    def crowdaction(self, category, subcategory):
+        self.category = category
+        self.subcategory = subcategory
+
         gmt_time = datetime.now() - timedelta(hours=2)  # converting time to GMT
         crowdacticon_date_end = gmt_time + timedelta(minutes=3)
         crowdacticon_date_limit = gmt_time + timedelta(minutes=4)
@@ -52,9 +55,6 @@ class create:
         crowdaction_join_limit = crowdacticon_date_limit.replace(microsecond=0)
 
         print(crowdaction_expiry_time, crowdaction_join_limit)
-
-        category = id_generator(8)
-        subcategory = id_generator(8)
 
         cwr_payload = {
             "title": "querico",
