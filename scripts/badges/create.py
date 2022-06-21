@@ -10,7 +10,7 @@ import requests
 l_client = boto3.client('lambda')
 
 
-class create:
+class test:
     def profile(self, usr_id):
         self.usr_id = usr_id
         usr_payload = {
