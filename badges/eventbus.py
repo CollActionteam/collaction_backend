@@ -62,7 +62,7 @@ def lambda_handler(event, context):
 
     # 1. fetch the badge scale for crowdaction ✅
     badge_scale = ddb.get_item(single_table, crowdaction_id)
-    # print(badge_scale)
+    print(badge_scale)
 
     tree = badge_scale['Item']['commitment_options']['L']
     for reward in badge_scale['Item']['badges']['L']:
@@ -75,7 +75,7 @@ def lambda_handler(event, context):
 
     # 3. go through all participants ✅
     participant_list = ddb.query(single_table, crowdaction_id)
-    # print(participant_list)
+    print(participant_list)
 
     # 4. map user commitment level ✅
     user_prt_list = []  # list required to store individual participations
@@ -104,13 +104,26 @@ def lambda_handler(event, context):
     for usr in user_prt_list:
         ddb.update(profile_table, usr['userid'], usr['badge'], crowdaction_id)
 
-    # 6. delete event ✅
+    """
+      CLEANING UP TARGETS AND EVENTS
+    """
+
     crowdaction_id_e = crowdaction_id.replace('#', '_')
+
+    # 6. delete targets ✅
+    e_client.remove_targets(
+        Rule=crowdaction_id_e,
+        Ids=[
+            target_name,
+        ],
+    )
+
+    # 7. delete event ✅
     e_client.delete_rule(
         Name=crowdaction_id_e,
     )
 
-    # 7. delete permission ✅
+    # 8. delete permission ✅
     l_client.remove_permission(
         FunctionName=target_name,
         StatementId=crowdaction_id_e,

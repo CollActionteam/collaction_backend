@@ -3,9 +3,7 @@ d_client = boto3.client('dynamodb')
 
 
 class ddb_ops():
-    """
-      Get Item
-    """
+    """Get Item"""
 
     def get_item(self, table, crowdaction_id):
         self.table = table
@@ -20,9 +18,7 @@ class ddb_ops():
         )
         return res
 
-    """
-      Query Items
-    """
+    """Query Items"""
 
     def query(self, table, crowdaction_id):
         self.table = table
@@ -37,16 +33,16 @@ class ddb_ops():
             },
         )
         return res
-    """
 
-      Update Items
-    """
+    """Update Items"""
 
     def update(self, table, usr_id, reward, crowdaction_id):
         self.table = table
         self.usr_id = usr_id
         self.reward = reward
         self.crowdaction_id = crowdaction_id
+
+        print("update", table, usr_id, reward, crowdaction_id)
 
         d_client.update_item(
             TableName=table,
