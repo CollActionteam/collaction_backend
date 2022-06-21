@@ -18,7 +18,7 @@ def id_generator(size=6, chars=string.ascii_letters + string.digits):
 # Goal!
 # 5 users
 # 1 crowdaction
-# 5 different commitments
+# 5 different participations
 
 commitment_arr = [
     ["no-cheese"],
@@ -31,7 +31,7 @@ commitment_arr = [
 
 usr_list = []
 
-# create users
+"""create users"""
 for i in range(0, 5):
     usr_id = id_generator(28)
     randomNum = random.randrange(6)
@@ -47,12 +47,12 @@ for i in range(0, 5):
 
     print('user id:', usr_id, 'res:', res)
 
-# create crowdaction
+"""create crowdaction"""
 category = id_generator(8)
 subcategory = id_generator(8)
 cid = create.crowdaction(category, subcategory)
 
-# # create participation
+"""create participation"""
 for n in range(0, len(usr_list)):
     res = create.participation(cid, usr_list[n]['id'])
 
