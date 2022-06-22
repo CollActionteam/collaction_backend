@@ -22,17 +22,17 @@ def id_generator(size=6, chars=string.ascii_letters + string.digits):
 def main():
     commitment_arr = [
         ["no-cheese"],
-        ["no-cheese", "no-diary"],
+        ["no-dairy", "no-cheese"],
         ["no-beef"],
-        ["no-beef", "pescatarian"],
-        ["no-beef", "pescatarian", "vegeterian"],
-        ["no-beef", "pescatarian", "vegeterian", "vegan"]
+        ["pescatarian", "no-beef"],
+        ["vegetarian", "pescatarian", "no-beef"],
+        ["vegan", "vegetarian", "pescatarian", "no-beef"],
     ]
 
     usr_list = []
 
     """create users"""
-    for i in range(0, 1):
+    for i in range(0, 5):
         usr_id = id_generator(28)
         randomNum = random.randrange(6)
 
