@@ -40,3 +40,4 @@ _ignored/
 .idea
 
 samconfig.yaml
+scripts/badges/__pycache__/create.cpython-39.pyc
