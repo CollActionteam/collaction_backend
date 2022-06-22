@@ -10,7 +10,7 @@ import requests
 l_client = boto3.client('lambda')
 
 
-class test:
+class test():
     def profile(self, usr_id):
         self.usr_id = usr_id
         usr_payload = {
@@ -135,12 +135,19 @@ class test:
         cid = crowdaction['data']['crowdactionID']
         return cid
 
-    def participation(self, cid, usr_id):
+    def participation(self, cid, usr_id, commitment):
         self.cid = cid
         self.usr_id = usr_id
+        self.commitment = commitment
+
+        # dynamic commitments
+        body = {
+            "password": "myEvent-myCompany2021",
+            "commitments": commitment
+        }
 
         prt_payload = {
-            "body": "{\"password\":\"myEvent-myCompany2021\", \"commitments\":\"f{usr_list[n]['commitment']}\"}",
+            "body": json.dumps(body),
             "pathParameters": {
                 "crowdactionID": cid
             },
