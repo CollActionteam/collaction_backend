@@ -26,7 +26,7 @@ def main():
         ["no-beef"],
         ["pescatarian", "no-beef"],
         ["vegetarian", "pescatarian", "no-beef"],
-        ["vegan", "vegetarian", "pescatarian", "no-beef"],
+        ["vegan", "vegetarian", "pescatarian", "no-beef", "no-dairy", "no-cheese"],
     ]
 
     usr_list = []
