@@ -17,7 +17,6 @@ commit_dict = {}  # this may be global for now
 
 
 def compute_badge_award(points, reward_list):
-    print('venezuela')
     """
      There is an assumption about the order
      of the reward_list. This is taken into
@@ -53,7 +52,6 @@ def lambda_handler(event, context):
     profile_table = 'collaction-dev-edreinoso-ProfileTable-XQEJJNBK6UUY'
     crowdaction_id = event['resources'][0].split(
         '/')[1].replace('_', '#')  # prod
-    # crowdaction_id = 'sustainability#food#185f66fd' # test
     print('Lambda Crontab!', crowdaction_id)
 
     """
@@ -62,12 +60,11 @@ def lambda_handler(event, context):
 
     # 1. fetch the badge scale for crowdaction ✅
     badge_scale = ddb.get_item(single_table, crowdaction_id)
-    print(badge_scale)
 
     tree = badge_scale['Item']['commitment_options']['L']
     for reward in badge_scale['Item']['badges']['L']:
         badge_reward_list.append(reward['N'])
-    print(badge_reward_list)  # verfying the badge reward list
+    # print(badge_reward_list) # verfying the badge reward list
 
     # 2. restructure the tree to a dictionary ✅
     tree_recursion(tree)
@@ -93,7 +90,6 @@ def lambda_handler(event, context):
         }
         print(usr_obj)
         # if prt_lvl in commit_dict: # would I be assuming that a user would always have a participation
-        print('helloworld')
         usr_obj['badge'] = compute_badge_award(
             usr_prt_counter, badge_reward_list)
         user_prt_list.append(usr_obj)
@@ -102,7 +98,8 @@ def lambda_handler(event, context):
 
     # 5. award badge ✅
     for usr in user_prt_list:
-        ddb.update(profile_table, usr['userid'], usr['badge'], crowdaction_id)
+        ddb.update(
+            profile_table, usr['userid'], usr['badge'], crowdaction_id)
 
     """
       CLEANING UP TARGETS AND EVENTS
@@ -110,23 +107,23 @@ def lambda_handler(event, context):
 
     crowdaction_id_e = crowdaction_id.replace('#', '_')
 
-    # 6. delete targets ✅
-    e_client.remove_targets(
-        Rule=crowdaction_id_e,
-        Ids=[
-            target_name,
-        ],
-    )
-
-    # 7. delete event ✅
-    e_client.delete_rule(
-        Name=crowdaction_id_e,
-    )
-
-    # 8. delete permission ✅
+    # 6. delete permission ✅
     l_client.remove_permission(
         FunctionName=target_name,
         StatementId=crowdaction_id_e,
+    )
+
+    # 7. delete targets ✅
+    e_client.remove_targets(
+        Rule=crowdaction_id_e,
+        Ids=[
+            crowdaction_id_e,
+        ],
+    )
+
+    # 8. delete event ✅
+    e_client.delete_rule(
+        Name=crowdaction_id_e,
     )
 
     return {
